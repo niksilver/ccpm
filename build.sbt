@@ -8,13 +8,13 @@ scalacOptions ++=
 	Seq("-deprecation", "-feature",
 		"-language:implicitConversions")
 
-unmanagedJars in Compile <++= baseDirectory map { base =>
-	val jarDirs =
-		(base / "lib" / "build") +++
-		(base / "lib" / "runtime")
-	val jars = jarDirs ** "*.jar"
-	jars.classpath
-}
+// unmanagedJars in Compile <++= baseDirectory map { base =>
+	// val jarDirs =
+		// (base / "lib" / "build") +++
+		// (base / "lib" / "runtime")
+	// val jars = jarDirs ** "*.jar"
+	// jars.classpath
+// }
 
 libraryDependencies ++= Seq(
 )
