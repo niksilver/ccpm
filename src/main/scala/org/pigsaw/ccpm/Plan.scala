@@ -7,8 +7,8 @@ import scala.collection.mutable.ListBuffer
  */
 class Plan extends PlanVerbs {
 
-  val taskList = ListBuffer[Task]()
-  val dependenciesList = scala.collection.mutable.MutableList[(Task, Task)]()
+  private[ccpm] val taskList = ListBuffer[Task]()
+  private[ccpm] val dependenciesList = scala.collection.mutable.MutableList[(Task, Task)]()
 
   /**
    * Tasks in the plan, in the order in which they were created.
