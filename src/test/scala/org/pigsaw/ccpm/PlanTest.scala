@@ -5,7 +5,7 @@ import org.scalatest.FlatSpec
 
 class PlanTest extends FlatSpec with Matchers {
     
-  "A new Plan" should "be constructable with an empty block" in {
+  "A Plan" should "be constructable with an empty block" in {
     new Plan {}
   }
   
@@ -40,5 +40,12 @@ class PlanTest extends FlatSpec with Matchers {
     }
     p.tasks.length should equal (1)
     (p.tasks)(0) should equal (Task('t100, "My task"))
+  }
+  
+  it should "give a task with just an if the default description" in {
+    val p = new Plan {
+      add task 't22
+    }
+    (p.tasks)(0) should equal (Task('t22, Task.DefaultDescription))
   }
 }

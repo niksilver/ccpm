@@ -40,7 +40,7 @@ trait PlanVerbs {
      * Method for the syntax `add task 't100 as "My description"`
      */
     def task(id: Symbol): Task = {
-      val t = Task(id, "Dummy description")
+      val t = Task(id)
       taskList += t
       t
     }
