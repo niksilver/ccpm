@@ -15,6 +15,14 @@ class Plan extends PlanVerbs {
    */
   def tasks: List[Task] = scala.collection.immutable.List(taskList: _*)
 
+  def task(id: Symbol) = {
+    val tList = taskList filter { _.id == id }
+    if (tList.length == 0)
+      throw new UnknownTaskException("No such task with id " + id)
+    else
+      tList(0)
+  }
+
   /**
    * A list of task pairs `t0 -> t1` where `t0` has to finish
    * before `t1` can start.
@@ -39,14 +47,7 @@ trait PlanVerbs {
   this: Plan =>
 
   implicit def Task2DSLTask(t: Task) = new DSLTask(t, this)
-  implicit def Id2DSLTask(id: Symbol) = {
-    val tList = taskList filter { _.id == id }
-    if (tList.length == 0)
-      throw new UnknownTaskException("No such task with id " + id)
-    else {
-      new DSLTask(tList(0), this)
-    }
-  }
+  implicit def Id2DSLTask(id: Symbol) = new DSLTask(task(id), this)
 
   object add {
 
@@ -92,16 +93,12 @@ class DSLTask(t: Task, p: Plan) {
    * Method for the syntax `'t0 ~> 't1`
    */
   def ~>(id: Symbol): Task = {
-    val tList = p.taskList filter { _.id == id }
-    if (tList.length == 0)
-      throw new UnknownTaskException("No such task with id " + id)
-    
-    val tLater = tList(0)
+    val tLater = p.task(id)
     val dependency = (t -> tLater)
-    
+
     if (!Graph.remainsAcyclic(p.dependenciesList, dependency))
       throw new CyclicDependencyException(s"While adding $t ~> $tLater")
-    
+
     p.dependenciesList += dependency
     tLater
 
