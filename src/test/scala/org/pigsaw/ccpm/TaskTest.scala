@@ -23,11 +23,6 @@ class TaskTest extends FlatSpec with Matchers {
     t.id should equal ('t)
   }
   
-  it should "have a default id of t0" in {
-    val t = Task("My task")
-    t.id should equal ('t0)
-  }
-  
   it should "be definable with just an id" in {
     Task('t101)
   }
@@ -39,6 +34,10 @@ class TaskTest extends FlatSpec with Matchers {
   "The Task object" should "give the default id" in {
     val t = Task("My task")
     t.id should equal (Task.DefaultId)
+  }
+  
+  it should "have a sensible default id" in {
+    Task.DefaultId should equal ('t0)
   }
   
   "The Task object" should "give the sensible default description" in {
