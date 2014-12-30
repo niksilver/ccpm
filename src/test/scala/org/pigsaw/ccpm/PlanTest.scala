@@ -33,4 +33,12 @@ class PlanTest extends FlatSpec with Matchers {
     (p2.tasks)(1) should equal (Task("My task 2"))
     p2.tasks.length should equal (2)
   }
+  
+  it should "be able to accept a Task with an ID and description" in {
+    val p = new Plan {
+      add task 't100 as "My task"
+    }
+    p.tasks.length should equal (1)
+    (p.tasks)(0) should equal (Task('t100, "My task"))
+  }
 }
