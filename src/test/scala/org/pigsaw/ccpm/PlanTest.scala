@@ -92,6 +92,15 @@ class PlanTest extends FlatSpec with Matchers {
     }
   }
 
+  it should "allow task dependencies to be expressed by chaining ids" in {
+    new Plan {
+      add task 't0
+      add task 't1
+      add task 't2
+      't0 ~> 't1 ~> 't2
+    }
+  }
+
   it should "throw an exception if earlier task id does not exist" in {
     an[UnknownTaskException] should be thrownBy {
       new Plan {
@@ -112,13 +121,37 @@ class PlanTest extends FlatSpec with Matchers {
     }
   }
 
-  it should "allow extraction of dependencied" in {
+  it should "allow extraction of dependencies" in {
     val p = new Plan {
       add task 't0
       add task 't1
       't0 ~> 't1
     }
-    p.dependencies should contain (Task('t0) -> Task('t1))
+    p.dependencies should contain(Task('t0) -> Task('t1))
+  }
+
+  it should "allow extraction of chained dependencies" in {
+    val p = new Plan {
+      add task 't0
+      add task 't1
+      add task 't2
+      't0 ~> 't1 ~> 't2
+    }
+    p.dependencies should contain(Task('t0) -> Task('t1))
+    p.dependencies should contain(Task('t1) -> Task('t2))
+  }
+
+  it should "reject cyclic dependencies" in {
+    a[CyclicDependencyException] should be thrownBy {
+      new Plan {
+        add task 't0
+        add task 't1
+        add task 't2
+        't0 ~> 't1
+        't1 ~> 't2
+        't2 ~> 't0
+      }
+    }
   }
 
 }
