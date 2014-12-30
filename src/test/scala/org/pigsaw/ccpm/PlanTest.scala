@@ -5,7 +5,7 @@ import org.scalatest.FlatSpec
 
 class PlanTest extends FlatSpec with Matchers {
     
-  "A Plan" should "be constructable with an empty block" in {
+  "A new Plan" should "be constructable with an empty block" in {
     new Plan {}
   }
   
