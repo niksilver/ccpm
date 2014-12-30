@@ -1,13 +1,20 @@
 package org.pigsaw.ccpm
 
+import scala.collection.mutable.MutableList
+
 /**
  * A project plan, which may or may not be a good one.
  */
-class Plan(details: => Unit) {
-  
-  def tasks: List[Task] = List(Task("My task 1"), Task("My task 2"))
+class Plan {
+
+  private val taskList = MutableList[Task]()
+  def tasks: List[Task] = scala.collection.immutable.List(taskList: _*)
+
+  object add {
+    def task(desc: String) = {
+      val t = Task(desc)
+      taskList += t
+    }
+  }
 }
 
-object Plan {
-  def apply(details: => Unit) = new Plan(details)
-}
