@@ -8,11 +8,22 @@ import scala.collection.mutable.ListBuffer
 class Plan extends PlanVerbs {
 
   val taskList = ListBuffer[Task]()
+  val dependenciesList = scala.collection.mutable.MutableList[(Task, Task)]()
+  
+  /**
+   * Tasks in the plan, in the order in which they were created.
+   */
   def tasks: List[Task] = scala.collection.immutable.List(taskList: _*)
-
+  
+  /**
+   * A list of task pairs `t0 -> t1` where `t0` has to finish
+   * before `t1` can start.
+   */
+  def dependencies: List[(Task, Task)] = scala.collection.immutable.List(dependenciesList : _*)
 }
 
 class DuplicateTaskException(msg: String) extends Exception(msg)
+class UnknownTaskException(msg: String) extends Exception(msg)
 
 /**
  * The DSL for a `Plan` object. Example syntax:
@@ -27,6 +38,14 @@ trait PlanVerbs {
   this: Plan =>
 
   implicit def Task2DSLTask(t: Task) = new DSLTask(t, this)
+  implicit def Id2DSLTask(id: Symbol) = {
+    val tList = taskList filter { _.id == id }
+    if (tList.length == 0)
+      throw new UnknownTaskException("No such task with id "+id)
+    else {
+      new DSLTask(tList(0), this)    
+    }
+  }
 
   object add {
 
@@ -66,5 +85,20 @@ class DSLTask(t: Task, p: Plan) {
   def as(desc: String) = {
     val t2 = new Task(t.id, desc)
     p.taskList -= t += t2
+  }
+  
+  /**
+   * Method for the syntax `'t0 ~> 't1`
+   */
+  def ~>(id: Symbol): Task = {
+    val tList = p.taskList filter { _.id == id }
+    if (tList.length == 0)
+      throw new UnknownTaskException("No such task with id "+id)
+    else {
+      val tLater = tList(0)
+      p.dependenciesList += (t -> tLater)
+      tLater
+    }
+
   }
 }

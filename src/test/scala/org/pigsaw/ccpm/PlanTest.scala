@@ -29,8 +29,8 @@ class PlanTest extends FlatSpec with Matchers {
       add task "My task 1"
       add task "My task 2"
     }
-    (p2.tasks)(0).description should equal ("My task 1")
-    (p2.tasks)(1).description should equal ("My task 2")
+    (p2.tasks)(0).description should equal("My task 1")
+    (p2.tasks)(1).description should equal("My task 2")
     p2.tasks.length should equal(2)
   }
 
@@ -50,7 +50,7 @@ class PlanTest extends FlatSpec with Matchers {
   }
 
   it should "reject a second task with the same id for tasks without descriptions" in {
-    a [DuplicateTaskException] should be thrownBy {
+    a[DuplicateTaskException] should be thrownBy {
       new Plan {
         add task 't33
         add task 't33
@@ -59,14 +59,14 @@ class PlanTest extends FlatSpec with Matchers {
   }
 
   it should "reject a second task with the same id for tasks with descriptions" in {
-    a [DuplicateTaskException] should be thrownBy {
+    a[DuplicateTaskException] should be thrownBy {
       new Plan {
         add task 't33 as "Task one"
         add task 't33 as "Task two"
       }
     }
   }
-  
+
   it should "generate unique task ids for tasks that need them" in {
     val p = new Plan {
       add task "Task one"
@@ -76,11 +76,49 @@ class PlanTest extends FlatSpec with Matchers {
       add task "Task five"
     }
     val tasks = p.tasks
-    tasks.length should equal (5)
-    tasks(0).id should equal ('t0)
-    tasks(1).id should equal ('t13)
-    tasks(2).id should equal ('t14)
-    tasks(3).id should equal ('t3)
-    tasks(4).id should equal ('t15)
+    tasks.length should equal(5)
+    tasks(0).id should equal('t0)
+    tasks(1).id should equal('t13)
+    tasks(2).id should equal('t14)
+    tasks(3).id should equal('t3)
+    tasks(4).id should equal('t15)
   }
+
+  it should "allow task dependencies to be expressed by ids" in {
+    new Plan {
+      add task 't0
+      add task 't1
+      't0 ~> 't1
+    }
+  }
+
+  it should "throw an exception if earlier task id does not exist" in {
+    an[UnknownTaskException] should be thrownBy {
+      new Plan {
+        add task 't0
+        add task 't1
+        'xxx ~> 't1
+      }
+    }
+  }
+
+  it should "throw an exception if later task id does not exist" in {
+    an[UnknownTaskException] should be thrownBy {
+      new Plan {
+        add task 't0
+        add task 't1
+        't0 ~> 'xxx
+      }
+    }
+  }
+
+  it should "allow extraction of dependencied" in {
+    val p = new Plan {
+      add task 't0
+      add task 't1
+      't0 ~> 't1
+    }
+    p.dependencies should contain (Task('t0) -> Task('t1))
+  }
+
 }
