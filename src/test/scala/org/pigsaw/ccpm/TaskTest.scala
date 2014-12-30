@@ -31,6 +31,18 @@ class TaskTest extends FlatSpec with Matchers {
     Task('t101).description should equal (Task.DefaultDescription)
   }
   
+  it should "detect another task with same id is a variation of it" in {
+    val t1 = Task('t100, "First task")
+    val t2 = Task('t100, "Another task")
+    (t1 isAVariationOf t2) should equal (true)
+  }
+  
+  it should "not say another task is a variation of it if they've got different ids" in {
+    val t1 = Task('t100, "First task")
+    val t2 = Task('t101, "Another task")
+    (t1 isAVariationOf t2) should equal (false)
+  }
+  
   "The Task object" should "give the default id" in {
     val t = Task("My task")
     t.id should equal (Task.DefaultId)
@@ -40,7 +52,15 @@ class TaskTest extends FlatSpec with Matchers {
     Task.DefaultId should equal ('t0)
   }
   
-  "The Task object" should "give the sensible default description" in {
+  it should "give the sensible default description" in {
     Task.DefaultDescription should equal ("Anonymous task")
+  }
+  
+  it should "identify an auto-id" in {
+    Task.isAutoId('t0) should be (true)
+    Task.isAutoId('t0t) should be (false)
+    Task.isAutoId('t564) should be (true)
+    Task.isAutoId('x0) should be (false)
+    Task.isAutoId('t) should be (false)
   }
 }

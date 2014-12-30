@@ -4,48 +4,83 @@ import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 
 class PlanTest extends FlatSpec with Matchers {
-    
+
   "A Plan" should "be constructable with an empty block" in {
     new Plan {}
   }
-  
+
   it should "be able to accept a Task" in {
     val p = new Plan {
       Task("My task 1")
     }
   }
-  
+
   it should "be able to return the list of tasks specified (1)" in {
     val p1 = new Plan {
       add task "My task"
     }
     println("Starting assertions")
-    (p1.tasks)(0) should equal (Task("My task"))
-    p1.tasks.length should equal (1)
+    (p1.tasks)(0) should equal(Task("My task"))
+    p1.tasks.length should equal(1)
   }
-  
+
   it should "be able to return the list of tasks specified (2 - to avoid faking)" in {
     val p2 = new Plan {
       add task "My task 1"
       add task "My task 2"
     }
-    (p2.tasks)(0) should equal (Task("My task 1"))
-    (p2.tasks)(1) should equal (Task("My task 2"))
-    p2.tasks.length should equal (2)
+    (p2.tasks)(0).description should equal ("My task 1")
+    (p2.tasks)(1).description should equal ("My task 2")
+    p2.tasks.length should equal(2)
   }
-  
+
   it should "be able to accept a Task with an ID and description" in {
     val p = new Plan {
       add task 't100 as "My task"
     }
-    p.tasks.length should equal (1)
-    (p.tasks)(0) should equal (Task('t100, "My task"))
+    p.tasks.length should equal(1)
+    (p.tasks)(0) should equal(Task('t100, "My task"))
   }
-  
+
   it should "give a task with just an id the default description" in {
     val p = new Plan {
       add task 't22
     }
-    (p.tasks)(0) should equal (Task('t22, Task.DefaultDescription))
+    (p.tasks)(0) should equal(Task('t22, Task.DefaultDescription))
+  }
+
+  it should "reject a second task with the same id for tasks without descriptions" in {
+    a [DuplicateTaskException] should be thrownBy {
+      new Plan {
+        add task 't33
+        add task 't33
+      }
+    }
+  }
+
+  it should "reject a second task with the same id for tasks with descriptions" in {
+    a [DuplicateTaskException] should be thrownBy {
+      new Plan {
+        add task 't33 as "Task one"
+        add task 't33 as "Task two"
+      }
+    }
+  }
+  
+  it should "generate unique task ids for tasks that need them" in {
+    val p = new Plan {
+      add task "Task one"
+      add task 't13 as "Task two"
+      add task "Task three"
+      add task 't3 as "Task four"
+      add task "Task five"
+    }
+    val tasks = p.tasks
+    tasks.length should equal (5)
+    tasks(0).id should equal ('t0)
+    tasks(1).id should equal ('t13)
+    tasks(2).id should equal ('t14)
+    tasks(3).id should equal ('t3)
+    tasks(4).id should equal ('t15)
   }
 }

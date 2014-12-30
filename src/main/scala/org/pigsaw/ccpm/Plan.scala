@@ -6,11 +6,13 @@ import scala.collection.mutable.ListBuffer
  * A project plan, which may or may not be a good one.
  */
 class Plan extends PlanVerbs {
-  
+
   val taskList = ListBuffer[Task]()
   def tasks: List[Task] = scala.collection.immutable.List(taskList: _*)
 
 }
+
+class DuplicateTaskException(msg: String) extends Exception(msg)
 
 /**
  * The DSL for a `Plan` object. Example syntax:
@@ -23,32 +25,44 @@ class Plan extends PlanVerbs {
  */
 trait PlanVerbs {
   this: Plan =>
-  
+
   implicit def Task2DSLTask(t: Task) = new DSLTask(t, this)
-  
+
   object add {
-    
+
     /**
      * Method for the syntax `add task "My description"`
      */
     def task(desc: String) = {
-      val t = Task(desc)
+      val autoIds = taskList filter { t => Task.isAutoId(t.id) } map { _.id }
+      val idNums = autoIds map { _.name.drop(1).toInt }
+      val maxNum = idNums.fold(-1)(Math.max)
+      val nextId = Symbol("t" + (maxNum + 1))
+      val t = Task(nextId, desc)
       taskList += t
     }
-    
+
     /**
      * Method for the syntax `add task 't100 as "My description"`
      */
     def task(id: Symbol): Task = {
       val t = Task(id)
-      taskList += t
-      t
+      if (taskList exists (_ isAVariationOf t))
+        throw new DuplicateTaskException("Found duplicate of task " + id)
+      else {
+        taskList += t
+        t
+      }
     }
   }
-  
+
 }
 
 class DSLTask(t: Task, p: Plan) {
+
+  /**
+   * Method for the syntax `add task 't100 as "My description"`
+   */
   def as(desc: String) = {
     val t2 = new Task(t.id, desc)
     p.taskList -= t += t2
