@@ -7,7 +7,7 @@ import scala.collection.mutable.MutableList
  */
 class Plan extends PlanVerbs {
   
-  val taskList = MutableList[Task]()
+  protected val taskList = MutableList[Task]()
   def tasks: List[Task] = scala.collection.immutable.List(taskList: _*)
 
 }
