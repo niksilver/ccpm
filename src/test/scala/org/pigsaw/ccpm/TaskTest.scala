@@ -28,8 +28,16 @@ class TaskTest extends FlatSpec with Matchers {
     t.id should equal ('t0)
   }
   
+  it should "be definable with just an id" in {
+    Task('t101)
+  }
+  
+  it should "have the default description from the Task object" in {
+    Task('t101).description should equal (Task.DefaultDescription)
+  }
+  
   "The Task object" should "give the default id" in {
     val t = Task("My task")
-    t.id should equal (Task.DefaultId)    
+    t.id should equal (Task.DefaultId)
   }
 }
