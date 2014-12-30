@@ -42,7 +42,7 @@ class PlanTest extends FlatSpec with Matchers {
     (p.tasks)(0) should equal (Task('t100, "My task"))
   }
   
-  it should "give a task with just an if the default description" in {
+  it should "give a task with just an id the default description" in {
     val p = new Plan {
       add task 't22
     }
