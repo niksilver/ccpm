@@ -40,4 +40,8 @@ class TaskTest extends FlatSpec with Matchers {
     val t = Task("My task")
     t.id should equal (Task.DefaultId)
   }
+  
+  "The Task object" should "give the sensible default description" in {
+    Task.DefaultDescription should equal ("Anonymous task")
+  }
 }
