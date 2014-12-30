@@ -98,6 +98,7 @@ class DSLTask(t: Task, p: Plan) {
     
     val tLater = tList(0)
     val dependency = (t -> tLater)
+    
     if (!Graph.remainsAcyclic(p.dependenciesList, dependency))
       throw new CyclicDependencyException(s"While adding $t ~> $tLater")
     
