@@ -85,7 +85,7 @@ class DSLTask(t: Task, p: Plan) {
    * Method for the syntax `add task 't100 as "My description"`
    */
   def as(desc: String) = {
-    val t2 = new Task(t.id, desc)
+    val t2 = Task(t.id, desc)
     p.taskList -= t += t2
   }
 

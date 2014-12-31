@@ -43,6 +43,21 @@ class TaskTest extends FlatSpec with Matchers {
     (t1 isAVariationOf t2) should equal (false)
   }
   
+  it should "have a default duration of zero" in {
+    val t = Task('t100)
+    t.duration should equal (0)
+  }
+  
+  it should "allow the setting of the duration to be non-zero" in {
+    val t = Task('t100, 2)
+    t.duration should equal (2)
+  }
+  
+  it should "allow the setting of the duration to be a non-integer" in {
+    val t = Task('t100, 2.5)
+    t.duration should equal (2.5)
+  }
+  
   "The Task object" should "give the default id" in {
     val t = Task("My task")
     t.id should equal (Task.DefaultId)
@@ -54,6 +69,10 @@ class TaskTest extends FlatSpec with Matchers {
   
   it should "give the sensible default description" in {
     Task.DefaultDescription should equal ("Anonymous task")
+  }
+  
+  it should "give the sensible default duration" in {
+    Task.DefaultDuration should equal (0)
   }
   
   it should "identify an auto-id" in {
