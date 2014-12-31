@@ -2,6 +2,7 @@ A playground for exploring critical chain project management
 via a Scala DSL.
 
 You can add tasks to a plan, and state dependencies between them.
+Tasks can have a duration and a resource.
 
 ```scala
     new Plan {

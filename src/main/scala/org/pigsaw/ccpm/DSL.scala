@@ -51,12 +51,15 @@ trait PlanVerbs {
  */
 class DSLTask(t: Task, p: Plan) {
 
+  private def replaceTask(tOld: Task, tNew: Task) {
+    p.taskList -= tOld += tNew
+  }
   /**
    * Method for the syntax `add task 't100 as "My description"`
    */
   def as(desc: String) = {
     val t2 = Task(t.id, desc, t.duration, t.resource)
-    p.taskList -= t += t2
+    replaceTask(t, t2)
   }
 
   /**
@@ -79,7 +82,7 @@ class DSLTask(t: Task, p: Plan) {
    */
   def duration(dur: Double): Task = {
     val t2 = Task(t.id, t.description, dur, t.resource)
-    p.taskList -= t += t2
+    replaceTask(t, t2)
     t2
   }
   
@@ -89,7 +92,7 @@ class DSLTask(t: Task, p: Plan) {
    */
   def resource(res: String): Task = {
     val t2 = Task(t.id, t.description, t.duration, Some(res))
-    p.taskList -= t += t2
+    replaceTask(t, t2)
     t2
   }
 }
