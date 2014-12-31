@@ -71,6 +71,14 @@ class DSLTask(t: Task, p: Plan) {
 
     p.dependenciesList += dependency
     tLater
-
+  }
+  
+  /**
+   * Method to define the duration of a task, as in
+   * `add task 't0 duration 5`
+   */
+  def duration(dur: Double): Unit = {
+    val t2 = Task(t.id, t.description, dur, t.resource)
+    p.taskList -= t += t2
   }
 }

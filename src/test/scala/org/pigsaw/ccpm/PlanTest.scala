@@ -153,5 +153,12 @@ class PlanTest extends FlatSpec with Matchers {
       }
     }
   }
+  
+  it should "allow specification of duration via the DSL" in {
+    val p = new Plan {
+      add task 't0 duration 5
+    }
+    p.task('t0).duration should equal (5)
+  }
 
 }
