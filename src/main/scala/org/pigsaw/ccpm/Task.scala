@@ -11,6 +11,7 @@ case class Task(id: Symbol, description: String, duration: Double) {
    */
   def isAVariationOf(t: Task) = (id == t.id)
   
+  lazy val halfDuration: Double = duration/2
 }
 
 object Task {

@@ -58,6 +58,11 @@ class TaskTest extends FlatSpec with Matchers {
     t.duration should equal (2.5)
   }
   
+  it should "allow the extraction of half duration" in {
+    val t = Task('t100, 12)
+    t.halfDuration should equal (6)
+  }
+  
   "The Task object" should "give the default id" in {
     val t = Task("My task")
     t.id should equal (Task.DefaultId)
