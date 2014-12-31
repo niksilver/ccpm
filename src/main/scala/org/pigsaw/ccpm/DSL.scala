@@ -82,4 +82,14 @@ class DSLTask(t: Task, p: Plan) {
     p.taskList -= t += t2
     t2
   }
+  
+  /**
+   * Method to define the resource for a task, as in
+   * `add task 't0 resource "Kevin"`
+   */
+  def resource(res: String): Task = {
+    val t2 = Task(t.id, t.description, t.duration, Some(res))
+    p.taskList -= t += t2
+    t2
+  }
 }
