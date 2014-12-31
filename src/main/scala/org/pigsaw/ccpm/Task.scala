@@ -3,7 +3,7 @@ package org.pigsaw.ccpm
 /**
  * A task in the project plan
  */
-case class Task(id: Symbol, description: String, duration: Double) {
+case class Task(id: Symbol, description: String, duration: Double, resource: Option[String]) {
   
   /**
    * One task is a variation of another if and only if
@@ -20,21 +20,22 @@ object Task {
   val DefaultDescription = "Anonymous task"
   val DefaultDuration = 0.0
   
-  /** A `Task` with default ID.
+  /** A `Task` with just a description defined. Everything else is
+   *  the default
    */
-  def apply(description: String) = new Task(DefaultId, description, 0)
+  def apply(description: String) = new Task(DefaultId, description, 0, None)
   
-  /** A `Task` with just the `id` set.
+  /** A `Task` with just the `id` defined by the user.
    */
-  def apply(id: Symbol) = new Task(id, DefaultDescription, 0)
+  def apply(id: Symbol) = new Task(id, DefaultDescription, 0, None)
   
-  /** A `Task` with just the `id` and `description` set.
+  /** A `Task` with just the `id` and `description` set by the user.
    */
-  def apply(id: Symbol, description: String) = new Task(id, description, 0)
+  def apply(id: Symbol, description: String) = new Task(id, description, 0, None)
   
-  /** A `Task` with just the `id` and `duration` set.
+  /** A `Task` with just the `id` and `duration` set by the user.
    */
-  def apply(id: Symbol, duration: Double) = new Task(id, DefaultDescription, duration)
+  def apply(id: Symbol, duration: Double) = new Task(id, DefaultDescription, duration, None)
   
   /**
    * Is a given symbol of the format for an auto id?

@@ -63,6 +63,15 @@ class TaskTest extends FlatSpec with Matchers {
     t.halfDuration should equal (6)
   }
   
+  it should "be constructable with an optional resource" in {
+    new Task('t100, "My task", 4, Some("Bob"))
+  }
+  
+  it should "have a default resource of None" in {
+    val t = Task('t100)
+    t.resource should equal (None)
+  }
+  
   "The Task object" should "give the default id" in {
     val t = Task("My task")
     t.id should equal (Task.DefaultId)
