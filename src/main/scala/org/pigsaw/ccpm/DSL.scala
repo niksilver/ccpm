@@ -57,9 +57,10 @@ class DSLTask(t: Task, p: Plan) {
   /**
    * Method for the syntax `add task 't100 as "My description"`
    */
-  def as(desc: String) = {
+  def as(desc: String): Task = {
     val t2 = Task(t.id, desc, t.duration, t.resource)
     replaceTask(t, t2)
+    t2
   }
 
   /**
