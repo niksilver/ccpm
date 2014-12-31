@@ -55,7 +55,7 @@ class DSLTask(t: Task, p: Plan) {
    * Method for the syntax `add task 't100 as "My description"`
    */
   def as(desc: String) = {
-    val t2 = Task(t.id, desc)
+    val t2 = Task(t.id, desc, t.duration, t.resource)
     p.taskList -= t += t2
   }
 
@@ -77,8 +77,9 @@ class DSLTask(t: Task, p: Plan) {
    * Method to define the duration of a task, as in
    * `add task 't0 duration 5`
    */
-  def duration(dur: Double): Unit = {
+  def duration(dur: Double): Task = {
     val t2 = Task(t.id, t.description, dur, t.resource)
     p.taskList -= t += t2
+    t2
   }
 }
