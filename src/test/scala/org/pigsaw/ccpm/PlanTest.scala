@@ -192,5 +192,11 @@ class PlanTest extends FlatSpec with Matchers {
     p.task('t0).duration should equal (0)
     p.task('t0).resource should equal (Some("Kevin"))
   }
+  
+  it should "allow declaring of resources" in {
+    new Plan {
+      declare resource "Alice"
+    }
+  }
 
 }

@@ -42,6 +42,10 @@ trait PlanVerbs {
       }
     }
   }
+  
+  object declare {
+    def resource(res: String) = {}
+  }
 
 }
 
