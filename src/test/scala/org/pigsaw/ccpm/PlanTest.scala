@@ -175,5 +175,14 @@ class PlanTest extends FlatSpec with Matchers {
     }
     p.task('t0).resource should equal (Some("Kevin"))
   }
+  
+  it should "allow DSL syntax add task ... resource ... as ..." in {
+    val p = new Plan {
+      add task 't0 resource "Kevin" as "First task"
+    }
+    p.task('t0).description should equal ("First task")
+    p.task('t0).duration should equal (0)
+    p.task('t0).resource should equal (Some("Kevin"))
+  }
 
 }
