@@ -79,6 +79,9 @@ class DSLTask(t: Task, p: Plan) {
   def ~>(id: Symbol): Task = {
     val tLater = p.task(id)
     val dependency = (t -> tLater)
+    
+    if (p.dependenciesList contains dependency)
+      throw new DuplicateDependencyException(s"Already got $t ~> $tLater")
 
     val g = new Graph(p.dependenciesList)
     if (!g.remainsAcyclic(dependency))

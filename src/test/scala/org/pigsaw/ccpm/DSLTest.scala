@@ -124,6 +124,21 @@ class DSLTest extends FlatSpec with Matchers {
       }
     }
   }
+  
+  it should "reject a repeated dependency" in {
+    a[DuplicateDependencyException] should be thrownBy {
+      new Plan {
+        add task 't0
+        add task 't1
+        add task 't2
+        add task 't3
+        't0 ~> 't1
+        't1 ~> 't2
+        't2 ~> 't3
+        't1 ~> 't2
+      }
+    }
+  }
 
   "The DSL for task duration" should "allow specification of duration via the DSL" in {
     val p = new Plan {
