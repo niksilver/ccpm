@@ -5,7 +5,7 @@ import org.scalatest.Matchers
 
 class DSLTest extends FlatSpec with Matchers {
 
-  "The DSL" should "be able to accept a Task with an ID and description" in {
+  "The DSL for adding tasks" should "be able to accept a Task with an ID and description" in {
     val p = new Plan {
       add task 't100 as "My task"
     }
@@ -55,7 +55,7 @@ class DSLTest extends FlatSpec with Matchers {
     tasks(4).id should equal('t15)
   }
 
-  it should "allow task dependencies to be expressed by ids" in {
+  "The DSL for dependencies" should "allow task dependencies to be expressed by ids" in {
     new Plan {
       add task 't0
       add task 't1
@@ -125,14 +125,14 @@ class DSLTest extends FlatSpec with Matchers {
     }
   }
 
-  it should "allow specification of duration via the DSL" in {
+  "The DSL for task duration" should "allow specification of duration via the DSL" in {
     val p = new Plan {
       add task 't0 duration 5
     }
     p.task('t0).duration should equal(5)
   }
 
-  it should "allow DSL syntax add task ... duration ... as ..." in {
+  it should "allow syntax add task ... duration ... as ..." in {
     val p = new Plan {
       add task 't0 duration 5 as "First task"
     }
@@ -140,7 +140,7 @@ class DSLTest extends FlatSpec with Matchers {
     p.task('t0).duration should equal(5)
   }
 
-  it should "allow DSL syntax add task ... as ... duration ..." in {
+  it should "allow syntax add task ... as ... duration ..." in {
     val p = new Plan {
       add task 't0 as "First task" duration 5
     }
@@ -148,7 +148,7 @@ class DSLTest extends FlatSpec with Matchers {
     p.task('t0).duration should equal(5)
   }
 
-  it should "allow declaring of resources" in {
+  "The DSL for resources" should "allow declaring of resources" in {
     new Plan {
       declare resource "Alice"
     }
