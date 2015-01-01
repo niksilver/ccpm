@@ -40,8 +40,17 @@ class Graph[T](g: Seq[(T,T)]) {
    * Return the nodes which are at the end of a path.
    */
   def ends: Seq[T] = {
-    val froms = (g map { _._1 })
+    val froms = g map { _._1 }
     val tos = (g map { _._2 }).distinct
     tos diff froms
+  }
+  
+  /**
+   * Return the nodes which are at the start of a path.
+   */
+  def starts: Seq[T] = {
+    val froms = (g map { _._1 }).distinct
+    val tos = g map { _._2 }
+    froms diff tos
   }
 }

@@ -50,4 +50,19 @@ class GraphTest extends FlatSpec with Matchers {
     g.ends should equal (Seq('d))
   }
   
+  "starts" should "be empty for an empty graph" in {
+    val g = new Graph(Nil)
+    g.starts should equal (Nil)
+  }
+  
+  it should "give the single start node if there's a single simple path" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd)))
+    g.starts should equal (Seq('a))
+  }
+  
+  it should "give the single start node if there are multiple in-between routes" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd), ('b -> 'd)))
+    g.starts should equal (Seq('a))
+  }
+  
 }
