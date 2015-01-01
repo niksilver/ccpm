@@ -8,6 +8,7 @@ import scala.collection.mutable.ListBuffer
 class Plan extends PlanVerbs {
 
   private[ccpm] val taskList = ListBuffer[Task]()
+  private[ccpm] val resourcesList = scala.collection.mutable.MutableList[String]()
   private[ccpm] val dependenciesList = scala.collection.mutable.MutableList[(Task, Task)]()
 
   /**
@@ -22,6 +23,11 @@ class Plan extends PlanVerbs {
     else
       tList(0)
   }
+  
+  /**
+   * Resources in the plan, in the order in which they were declared
+   */
+  def resources: Seq[String] = scala.collection.immutable.List(resourcesList: _*)
 
   /**
    * A list of task pairs `t0 -> t1` where `t0` has to finish

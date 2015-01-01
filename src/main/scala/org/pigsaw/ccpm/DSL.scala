@@ -44,7 +44,13 @@ trait PlanVerbs {
   }
   
   object declare {
-    def resource(res: String) = {}
+    
+    /**
+     * Method for the syntax `declare resource "Alice"`.
+     */
+    def resource(res: String) = {
+      resourcesList += res
+    }
   }
 
 }

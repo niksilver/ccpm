@@ -198,5 +198,15 @@ class PlanTest extends FlatSpec with Matchers {
       declare resource "Alice"
     }
   }
+  
+  it should "ensure declared resources can be retrieved" in {
+    val p = new Plan {
+      declare resource "Alice"
+      declare resource "Bob"
+    }
+    p.resources.length should equal (2)
+    p.resources should contain ("Alice")
+    p.resources should contain ("Bob")
+  }
 
 }
