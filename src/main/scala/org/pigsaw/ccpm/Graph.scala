@@ -1,5 +1,8 @@
 package org.pigsaw.ccpm
 
+/**
+ * An acyclic graph.
+ */
 class Graph[T](g: Seq[(T,T)]) {
   
   /**
@@ -31,5 +34,14 @@ class Graph[T](g: Seq[(T,T)]) {
     
     val isCyclic = canReachEnd(begin)
     !isCyclic
+  }
+  
+  /**
+   * Return the nodes which are at the end of a path.
+   */
+  def ends: Seq[T] = {
+    val froms = g map { _._1 }
+    val tos = g map { _._2 }
+    tos diff froms
   }
 }

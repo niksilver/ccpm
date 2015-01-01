@@ -5,7 +5,7 @@ import org.scalatest.Matchers
 
 class GraphTest extends FlatSpec with Matchers {
   
-  "Graph.remainsAcyclic" should "be true for an empty graph and ordinary edge" in {
+  "remainsAcyclic" should "be true for an empty graph and ordinary edge" in {
     val g: Graph[Symbol] = new Graph(Nil)
     val edge = ('a -> 'b)
     g.remainsAcyclic(edge) should be (true)
@@ -33,6 +33,16 @@ class GraphTest extends FlatSpec with Matchers {
     val g = new Graph(List(('a -> 'b), ('b -> 'c), ('b -> 'd)))
     val edge = ('a -> 'd)
     g.remainsAcyclic(edge) should be (true)
+  }
+  
+  "ends" should "be empty for an empty graph" in {
+    val g = new Graph(Nil)
+    g.ends should equal (Nil)
+  }
+  
+  it should "give the single end node if there's a single simple path" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd)))
+    g.ends should equal (Seq('d))
   }
   
 }
