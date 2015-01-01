@@ -45,4 +45,9 @@ class GraphTest extends FlatSpec with Matchers {
     g.ends should equal (Seq('d))
   }
   
+  it should "give the single end node if there are multiple in-between routes" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('a -> 'c), ('c -> 'd)))
+    g.ends should equal (Seq('d))
+  }
+  
 }
