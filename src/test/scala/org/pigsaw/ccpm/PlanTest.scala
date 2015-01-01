@@ -209,6 +209,15 @@ class PlanTest extends FlatSpec with Matchers {
     p.task('t0).resource should equal(Some("Kevin"))
   }
 
+  it should "specify the errant resource if a task uses an undeclared resource" in {
+    val exc = the [UnknownResourceException] thrownBy {
+    new Plan {
+      add task 't0 resource "Alice"
+    }
+    }
+    exc.getMessage() should include ("Alice")
+  }
+
   it should "allow DSL syntax add task ... resource ... as ..." in {
     val p = new Plan {
       declare resource "Kevin"

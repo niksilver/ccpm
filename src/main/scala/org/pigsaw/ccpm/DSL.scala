@@ -103,7 +103,7 @@ class DSLTask(t: Task, p: Plan) {
    */
   def resource(res: String): Task = {
     if (!p.resourcesList.contains(res))
-      throw new UnknownResourceException("Blah")
+      throw new UnknownResourceException(s"""Resource "$res" not previously declared""")
     val t2 = Task(t.id, t.description, t.duration, Some(res))
     replaceTask(t, t2)
     t2
