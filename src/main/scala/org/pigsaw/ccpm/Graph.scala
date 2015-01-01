@@ -1,12 +1,12 @@
 package org.pigsaw.ccpm
 
-object Graph {
+class Graph[T](g: Seq[(T,T)]) {
   
   /**
    * Given an acyclic graph `g`, does it remain acyclic
    * if we add the specified `edge`?
    */
-  def remainsAcyclic[T](g: Seq[(T,T)], edge: (T,T)): Boolean = {
+  def remainsAcyclic(edge: (T,T)): Boolean = {
       
     val from = edge._1
     val to = edge._2
