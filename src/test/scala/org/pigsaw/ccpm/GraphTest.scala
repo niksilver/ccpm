@@ -50,6 +50,13 @@ class GraphTest extends FlatSpec with Matchers {
     g.ends should equal (Seq('d))
   }
   
+  it should "give multiple end nodes if there are any" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd), ('a -> 'e)))
+    g.ends.length should equal (2)
+    g.ends should contain ('d)
+    g.ends should contain ('e)
+  }
+  
   "starts" should "be empty for an empty graph" in {
     val g = new Graph(Nil)
     g.starts should equal (Nil)
@@ -63,6 +70,13 @@ class GraphTest extends FlatSpec with Matchers {
   it should "give the single start node if there are multiple in-between routes" in {
     val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd), ('b -> 'd)))
     g.starts should equal (Seq('a))
+  }
+  
+  it should "give multiple start nodes if there are any" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd), ('z -> 'c)))
+    g.starts.length should equal (2)
+    g.starts should contain ('a)
+    g.starts should contain ('z)
   }
   
 }
