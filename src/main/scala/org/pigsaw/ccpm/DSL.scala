@@ -99,9 +99,11 @@ class DSLTask(t: Task, p: Plan) {
   
   /**
    * Method to define the resource for a task, as in
-   * `add task 't0 resource "Kevin"`
+   * `add task 't0 resource "Alice"`
    */
   def resource(res: String): Task = {
+    if (!p.resourcesList.contains(res))
+      throw new UnknownResourceException("Blah")
     val t2 = Task(t.id, t.description, t.duration, Some(res))
     replaceTask(t, t2)
     t2

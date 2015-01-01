@@ -153,60 +153,70 @@ class PlanTest extends FlatSpec with Matchers {
       }
     }
   }
-  
+
   it should "allow specification of duration via the DSL" in {
     val p = new Plan {
       add task 't0 duration 5
     }
-    p.task('t0).duration should equal (5)
+    p.task('t0).duration should equal(5)
   }
-  
+
   it should "allow DSL syntax add task ... duration ... as ..." in {
     val p = new Plan {
       add task 't0 duration 5 as "First task"
     }
-    p.task('t0).description should equal ("First task")
-    p.task('t0).duration should equal (5)
+    p.task('t0).description should equal("First task")
+    p.task('t0).duration should equal(5)
   }
-  
+
   it should "allow DSL syntax add task ... as ... duration ..." in {
     val p = new Plan {
       add task 't0 as "First task" duration 5
     }
-    p.task('t0).description should equal ("First task")
-    p.task('t0).duration should equal (5)
+    p.task('t0).description should equal("First task")
+    p.task('t0).duration should equal(5)
   }
-  
-  it should "allow specification of a resource via the DSL" in {
-    val p = new Plan {
-      add task 't0 resource "Kevin"
-    }
-    p.task('t0).resource should equal (Some("Kevin"))
-  }
-  
-  it should "allow DSL syntax add task ... resource ... as ..." in {
-    val p = new Plan {
-      add task 't0 resource "Kevin" as "First task"
-    }
-    p.task('t0).description should equal ("First task")
-    p.task('t0).duration should equal (0)
-    p.task('t0).resource should equal (Some("Kevin"))
-  }
-  
+
   it should "allow declaring of resources" in {
     new Plan {
       declare resource "Alice"
     }
   }
-  
+
   it should "ensure declared resources can be retrieved" in {
     val p = new Plan {
       declare resource "Alice"
       declare resource "Bob"
     }
-    p.resources.length should equal (2)
-    p.resources should contain ("Alice")
-    p.resources should contain ("Bob")
+    p.resources.length should equal(2)
+    p.resources should contain("Alice")
+    p.resources should contain("Bob")
+  }
+
+  it should "reject any task's resource that's not been declared" in {
+    a[UnknownResourceException] should be thrownBy {
+      new Plan {
+        add task 't0 resource "Alice" as "First task"
+      }
+    }
+  }
+
+  it should "allow specification of a resource for a task via the DSL" in {
+    val p = new Plan {
+      declare resource "Kevin"
+      add task 't0 resource "Kevin"
+    }
+    p.task('t0).resource should equal(Some("Kevin"))
+  }
+
+  it should "allow DSL syntax add task ... resource ... as ..." in {
+    val p = new Plan {
+      declare resource "Kevin"
+      add task 't0 resource "Kevin" as "First task"
+    }
+    p.task('t0).description should equal("First task")
+    p.task('t0).duration should equal(0)
+    p.task('t0).resource should equal(Some("Kevin"))
   }
 
 }
