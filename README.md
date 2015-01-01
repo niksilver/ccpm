@@ -28,8 +28,8 @@ Here is some other syntax:
   add task "Implement login"
   
   // Define a task with a resource
-  add task 'kz101 as "Rewire 3rd floor" resource "Alice"
+  add task 'rw3 as "Rewire 3rd floor" resource "Alice"
   
   // Everything
-  add task 'door as "Install automatic door" duration 2 resouce "Bob"
+  add task 'door as "Install automatic door" duration 2 resource "Bob"
 ```
