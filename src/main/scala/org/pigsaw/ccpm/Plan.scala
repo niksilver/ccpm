@@ -1,15 +1,9 @@
 package org.pigsaw.ccpm
 
-import scala.collection.mutable.ListBuffer
-
 /**
  * A project plan, which may or may not be a good one.
  */
 class Plan extends PlanVerbs {
-
-  private[ccpm] val taskList = ListBuffer[Task]()
-  private[ccpm] val resourcesList = scala.collection.mutable.MutableList[String]()
-  private[ccpm] val dependenciesList = scala.collection.mutable.MutableList[(Task, Task)]()
 
   /**
    * Tasks in the plan, in the order in which they were created.
