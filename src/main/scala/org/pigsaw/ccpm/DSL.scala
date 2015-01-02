@@ -27,10 +27,8 @@ trait PlanVerbs {
      * Method for the syntax `add task "My description"`
      */
     def task(desc: String) = {
-      val autoIds = taskList filter { t => Task.isAutoId(t.id) } map { _.id }
-      val idNums = autoIds map { _.name.drop(1).toInt }
-      val maxNum = idNums.fold(-1)(Math.max)
-      val nextId = Symbol("t" + (maxNum + 1))
+      val ids = taskList map { _.id}
+      val nextId = Task.nextId(ids)
       val t = Task(nextId, desc)
       taskList += t
     }

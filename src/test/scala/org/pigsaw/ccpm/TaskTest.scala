@@ -89,6 +89,21 @@ class TaskTest extends FlatSpec with Matchers {
     Task.DefaultDuration should equal (0)
   }
   
+  it should "generate the next auto-id (1)" in {
+    val id = Task.nextId(List('t5, 't3, 't4))
+    id should equal ('t6)
+  }
+  
+  it should "generate the next auto-id (2 - to avoid faking)" in {
+    val id = Task.nextId(List('a, 't7, 'c))
+    id should equal ('t8)
+  }
+  
+  it should "generate the default id if no others are of the auto format" in {
+    val id = Task.nextId(List('a, 'b, 'c))
+    id should equal (Task.DefaultId)
+  }
+  
   it should "identify an auto-id" in {
     Task.isAutoId('t0) should be (true)
     Task.isAutoId('t0t) should be (false)
