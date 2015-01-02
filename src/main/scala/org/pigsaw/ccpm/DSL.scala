@@ -3,6 +3,17 @@ package org.pigsaw.ccpm
 import scala.collection.mutable.ListBuffer
 
 /**
+ * Mutable data for a plan.
+ */
+class PlanContext {
+  val taskList = ListBuffer[Task]()
+  val resourcesList = scala.collection.mutable.MutableList[String]()
+  val dependenciesList = scala.collection.mutable.MutableList[(Task, Task)]()
+
+  def task(id: Symbol) = Task.task(taskList, id)
+}
+
+/**
  * The DSL for a `Plan` object. Example syntax:
  * {{{
  * new Plan {
@@ -14,12 +25,10 @@ import scala.collection.mutable.ListBuffer
 trait PlanVerbs {
   this: Plan =>
 
-  implicit def Task2DSLTask(t: Task) = new DSLTask(t, this)
-  implicit def Id2DSLTask(id: Symbol) = new DSLTask(task(id), this)
+  protected val pc = new PlanContext
 
-  protected val taskList = ListBuffer[Task]()
-  protected val resourcesList = scala.collection.mutable.MutableList[String]()
-  protected val dependenciesList = scala.collection.mutable.MutableList[(Task, Task)]()
+  implicit def Task2DSLTask(t: Task) = new DSLTask(t, pc)
+  implicit def Id2DSLTask(id: Symbol) = new DSLTask(task(id), pc)
 
   object add {
 
@@ -27,10 +36,10 @@ trait PlanVerbs {
      * Method for the syntax `add task "My description"`
      */
     def task(desc: String) = {
-      val ids = taskList map { _.id}
+      val ids = pc.taskList map { _.id }
       val nextId = Task.nextId(ids)
       val t = Task(nextId, desc)
-      taskList += t
+      pc.taskList += t
     }
 
     /**
@@ -38,10 +47,10 @@ trait PlanVerbs {
      */
     def task(id: Symbol): Task = {
       val t = Task(id)
-      if (taskList exists (_ isAVariationOf t))
+      if (pc.taskList exists (_ isAVariationOf t))
         throw new DuplicateTaskException("Found duplicate of task " + id)
       else {
-        taskList += t
+        pc.taskList += t
         t
       }
     }
@@ -53,67 +62,67 @@ trait PlanVerbs {
      * Method for the syntax `declare resource "Alice"`.
      */
     def resource(res: String) = {
-      resourcesList += res
+      pc.resourcesList += res
     }
+  }
+
+}
+
+/**
+ * Conversion of a `Task` that will allow it to be managed
+ * via the DSL.
+ */
+class DSLTask(t: Task, pc: PlanContext) {
+
+  private def replaceTask(tOld: Task, tNew: Task) {
+    pc.taskList -= tOld += tNew
+  }
+  /**
+   * Method for the syntax `add task 't100 as "My description"`
+   */
+  def as(desc: String): Task = {
+    val t2 = Task(t.id, desc, t.duration, t.resource)
+    replaceTask(t, t2)
+    t2
   }
 
   /**
-   * Conversion of a `Task` that will allow it to be managed
-   * via the DSL.
+   * Method for the syntax `'t0 ~> 't1`
    */
-  class DSLTask(t: Task, p: Plan) {
+  def ~>(id: Symbol): Task = {
+    val tLater = pc.task(id)
+    val dependency = (t -> tLater)
 
-    private def replaceTask(tOld: Task, tNew: Task) {
-      p.taskList -= tOld += tNew
-    }
-    /**
-     * Method for the syntax `add task 't100 as "My description"`
-     */
-    def as(desc: String): Task = {
-      val t2 = Task(t.id, desc, t.duration, t.resource)
-      replaceTask(t, t2)
-      t2
-    }
+    if (pc.dependenciesList contains dependency)
+      throw new DuplicateDependencyException(s"Already got $t ~> $tLater")
 
-    /**
-     * Method for the syntax `'t0 ~> 't1`
-     */
-    def ~>(id: Symbol): Task = {
-      val tLater = p.task(id)
-      val dependency = (t -> tLater)
+    val g = new Graph(pc.dependenciesList)
+    if (!g.remainsAcyclic(dependency))
+      throw new CyclicDependencyException(s"While adding $t ~> $tLater")
 
-      if (p.dependenciesList contains dependency)
-        throw new DuplicateDependencyException(s"Already got $t ~> $tLater")
-
-      val g = new Graph(p.dependenciesList)
-      if (!g.remainsAcyclic(dependency))
-        throw new CyclicDependencyException(s"While adding $t ~> $tLater")
-
-      p.dependenciesList += dependency
-      tLater
-    }
-
-    /**
-     * Method to define the duration of a task, as in
-     * `add task 't0 duration 5`
-     */
-    def duration(dur: Double): Task = {
-      val t2 = Task(t.id, t.description, dur, t.resource)
-      replaceTask(t, t2)
-      t2
-    }
-
-    /**
-     * Method to define the resource for a task, as in
-     * `add task 't0 resource "Alice"`
-     */
-    def resource(res: String): Task = {
-      if (!p.resourcesList.contains(res))
-        throw new UnknownResourceException(s"""Resource "$res" not previously declared""")
-      val t2 = Task(t.id, t.description, t.duration, Some(res))
-      replaceTask(t, t2)
-      t2
-    }
+    pc.dependenciesList += dependency
+    tLater
   }
 
+  /**
+   * Method to define the duration of a task, as in
+   * `add task 't0 duration 5`
+   */
+  def duration(dur: Double): Task = {
+    val t2 = Task(t.id, t.description, dur, t.resource)
+    replaceTask(t, t2)
+    t2
+  }
+
+  /**
+   * Method to define the resource for a task, as in
+   * `add task 't0 resource "Alice"`
+   */
+  def resource(res: String): Task = {
+    if (!pc.resourcesList.contains(res))
+      throw new UnknownResourceException(s"""Resource "$res" not previously declared""")
+    val t2 = Task(t.id, t.description, t.duration, Some(res))
+    replaceTask(t, t2)
+    t2
+  }
 }

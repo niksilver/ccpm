@@ -61,4 +61,17 @@ object Task {
     val maxNum = idNums.fold(-1)(Math.max)
     Symbol("t" + (maxNum + 1))
   }
+  
+  /**
+   * Given some tasks, get one by its id, or throw an
+   * `UnknownTaskException`.
+   */
+  def task(ts: Seq[Task], id: Symbol) = {
+    val tList = ts filter { _.id == id }
+    if (tList.length == 0)
+      throw new UnknownTaskException("No such task with id " + id)
+    else
+      tList(0)
+  }
+
 }
