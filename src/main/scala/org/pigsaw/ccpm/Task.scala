@@ -66,12 +66,11 @@ object Task {
    * Given some tasks, get one by its id, or throw an
    * `UnknownTaskException`.
    */
-  def task(ts: Seq[Task], id: Symbol) = {
-    val tList = ts filter { _.id == id }
-    if (tList.length == 0)
-      throw new UnknownTaskException("No such task with id " + id)
-    else
-      tList(0)
+  def task(ts: Seq[Task], id: Symbol): Task = {
+    (ts find { _.id == id}) match {
+      case Some(t) => t
+      case None => throw new UnknownTaskException("No such task with id " + id)
+    }
   }
 
 }
