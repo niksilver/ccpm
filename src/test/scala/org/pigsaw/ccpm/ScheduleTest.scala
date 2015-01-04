@@ -63,4 +63,15 @@ class ScheduleTest extends FlatSpec with Matchers {
     val sch1 = sch0.schedule(t0).schedule(t1)
     sch1.start(t0) should equal (sch1.start(t1))
   }
+  
+  it should "schedule a resource-conflicting task to be just before the resource is available" in {
+    val tAlice1 = new Task('a1, "First task", 2, Some("Alice"))
+    val tAlice2 = new Task('a2, "Second task", 3, Some("Alice"))
+
+    // Notice we schedule the last task first...
+    val sch = (new Schedule()).schedule(tAlice2).schedule(tAlice1)
+    val start1 = sch.start(tAlice1)
+    val start2 = sch.start(tAlice2)
+    (start1 + tAlice1.duration) should equal (start2)
+  }
 }
