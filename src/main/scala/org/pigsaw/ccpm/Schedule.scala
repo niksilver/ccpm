@@ -38,7 +38,7 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
       new Schedule(starts + (t -> 0.0))
     } else {
       val earliestStart = allLaterTasks map { starts(_) } reduce { Math.min(_, _) }
-      val tStart = earliestStart - t.duration
+      val tStart = earliestStart - t.halfDuration
       new Schedule(starts + (t -> tStart))
     }
   }
