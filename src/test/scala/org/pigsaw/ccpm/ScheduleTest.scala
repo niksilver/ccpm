@@ -27,4 +27,11 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch2.start(t0) should equal (5)
     sch2.start(t1) should equal (6)
   }
+  
+  it should "schedule the first task at some arbitrary time" in {
+    val sch1 = new Schedule()
+    val t = new Task('t0, "My task", 5, Some("Alice"))
+    val sch2 = sch1.schedule(t)
+    sch2.start(t) shouldBe an [Int]
+  }
 }
