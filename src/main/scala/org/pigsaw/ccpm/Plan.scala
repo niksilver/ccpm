@@ -8,7 +8,7 @@ class Plan extends PlanVerbs {
   /**
    * Tasks in the plan, in the order in which they were created.
    */
-  lazy val tasks: List[Task] = scala.collection.immutable.List(pc.tasks: _*)
+  lazy val tasks: Seq[Task] = scala.collection.immutable.List(pc.tasks: _*)
 
   /**
    * Retrieve a task by its id.
@@ -24,5 +24,5 @@ class Plan extends PlanVerbs {
    * A list of task pairs `t0 -> t1` where `t0` has to finish
    * before `t1` can start.
    */
-  lazy val dependencies: List[(Task, Task)] = scala.collection.immutable.List(pc.dependencies: _*)
+  lazy val dependencies: Seq[(Task, Task)] = scala.collection.immutable.List(pc.dependencies: _*)
 }
