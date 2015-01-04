@@ -59,6 +59,22 @@ class ScheduleTest extends FlatSpec with Matchers {
     }
   }
 
+  "Schedule.halfEnd" should "get the end times of several added half-tasks" in {
+    val t0 = new Task('t0, "My task", 2, Some("Alice"))
+    val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
+    val sch = new Schedule() + (t0, 5) + (t1, 6)
+    sch.halfEnd(t0) should equal (5 + t0.duration/2)
+    sch.halfEnd(t1) should equal (6 + t1.duration/2)
+  }
+
+  it should "throw an UnknownTaskException if we try to get the half-end time of an unknown task" in {
+    an[UnknownTaskException] should be thrownBy {
+      val t = new Task('t0, "My task", 5, Some("Alice"))
+      val sch = new Schedule()
+      sch.end(t)
+    }
+  }
+
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {
     val sch0 = new Schedule()
     val t = new Task('t0, "My task", 5, Some("Alice"))

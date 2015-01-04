@@ -28,6 +28,11 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
   }
 
   /**
+   * Get the end time of a given task, based on half its duration.
+   */
+  def halfEnd(t: Task): Double = { starts(t) + t.halfDuration }
+
+  /**
    * Schedule a task as late as possible avoiding resource conflicts.
    */
   def schedule(t: Task): Schedule = schedule(t, Nil)
