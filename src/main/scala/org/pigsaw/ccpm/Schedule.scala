@@ -21,6 +21,13 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
   }
 
   /**
+   * Get the end time of a given task.
+   */
+  def end(t: Task): Double = try { starts(t) + t.duration } catch {
+    case e: NoSuchElementException => throw new UnknownTaskException(t.toString)
+  }
+
+  /**
    * Schedule a task as late as possible avoiding resource conflicts.
    */
   def schedule(t: Task): Schedule = schedule(t, Nil)

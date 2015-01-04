@@ -26,7 +26,7 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch2.start(t) should equal (1.5)
   }
 
-  "Schedule.start" should "allow the addition of several new tasks and their start times" in {
+  "Schedule.start" should "get the start times of several added tasks" in {
     val t0 = new Task('t0, "My task", 2, Some("Alice"))
     val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
     val sch = new Schedule()
@@ -40,6 +40,22 @@ class ScheduleTest extends FlatSpec with Matchers {
       val t = new Task('t0, "My task", 5, Some("Alice"))
       val sch = new Schedule()
       sch.start(t)
+    }
+  }
+
+  "Schedule.end" should "get the end times of several added tasks" in {
+    val t0 = new Task('t0, "My task", 2, Some("Alice"))
+    val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
+    val sch = new Schedule() + (t0, 5) + (t1, 6)
+    sch.end(t0) should equal (5 + t0.duration)
+    sch.end(t1) should equal (6 + t1.duration)
+  }
+
+  it should "throw an UnknownTaskException if we try to get the end time of an unknown task" in {
+    an[UnknownTaskException] should be thrownBy {
+      val t = new Task('t0, "My task", 5, Some("Alice"))
+      val sch = new Schedule()
+      sch.end(t)
     }
   }
 
@@ -193,6 +209,23 @@ class ScheduleTest extends FlatSpec with Matchers {
     // t1 should start and finish just before the earliest task: t4
     // Remember, critical chain requires we schedule by half-duration
     (sch2.start(t1) + t1.halfDuration) should equal (sch2.start(t4))
+  }
+  
+  ignore should "schedule many tasks in the right order according to dependencies and resources" in {
+    // Here's our intended schedule:
+    // [id, half-duration, resource]
+    // 
+    // [start,0]
+    //    +---[a1, 3,     C]-+
+    //    +-[a2, 4,       D]-+
+    //    +-----[a3, 1.5, E]-+
+    //    |                  \[b1, 5,   A]--\
+    //    |                                 +------[b2, 5,    B]----\
+    //    +---------------------[c1, 3, B]\                         |
+    //    |                               +[c3, 5,   A]\            |
+    //    |                               |            +[c4, 2.5, C]\
+    //    \----------[c2, 4,  B]----------/                         |
+    //                                                              +[end,0]
   }
 
 }
