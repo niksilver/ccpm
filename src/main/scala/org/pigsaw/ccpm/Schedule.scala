@@ -23,5 +23,5 @@ class Schedule(starts: Map[Task, Int] = Nil.toMap) {
   /**
    * Schedule a task. The first task will get an arbitrary start time.
    */
-  def schedule(t: Task): Schedule = new Schedule(Map(t -> 0))
+  def schedule(t: Task): Schedule = new Schedule(starts + (t -> 0))
 }

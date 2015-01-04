@@ -37,9 +37,30 @@ class ScheduleTest extends FlatSpec with Matchers {
   }
 
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {
-    val sch1 = new Schedule()
+    val sch0 = new Schedule()
     val t = new Task('t0, "My task", 5, Some("Alice"))
-    val sch2 = sch1.schedule(t)
-    sch2.start(t) // Should return okay, in which case it must be an int
+    val sch1 = sch0.schedule(t)
+    noException should be thrownBy {
+      sch1.start(t)
+    }
+  }
+
+  it should "be able to schedule more than one task" in {
+    val sch0 = new Schedule()
+    val t0 = new Task('t0, "My task", 5, Some("Alice"))
+    val t1 = new Task('t1, "Task two", 5, Some("Bob"))
+    val sch1 = sch0.schedule(t0).schedule(t1)
+    noException should be thrownBy {
+      sch1.start(t0)
+      sch1.start(t1)
+    }
+  }
+
+  it should "schedule all non-conflicting end tasks at the same time" in {
+    val t0 = new Task('t0, "My task", 2, Some("Alice"))
+    val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
+    val sch0 = new Schedule()
+    val sch1 = sch0.schedule(t0).schedule(t1)
+    sch1.start(t0) should equal (sch1.start(t1))
   }
 }
