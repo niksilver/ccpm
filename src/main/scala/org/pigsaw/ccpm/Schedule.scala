@@ -27,8 +27,9 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
    * resource becomes available.
    */
   def schedule(t: Task): Schedule = {
-    if (starts.size > 0 && starts.keys.iterator.next.resource == t.resource) {
-      val tOld = starts.keys.iterator.next
+    val conflicted = starts.keys filter { _.resource == t.resource }
+    if (conflicted.size > 0) {
+      val tOld = conflicted.head
       val oldStart = starts(tOld)
       new Schedule(starts + (t -> (oldStart.toDouble - t.duration)))
     }
