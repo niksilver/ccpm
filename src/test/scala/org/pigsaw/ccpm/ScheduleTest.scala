@@ -18,6 +18,13 @@ class ScheduleTest extends FlatSpec with Matchers {
     val sch2 = sch + (t, 20)
     sch2.start(t) should equal (20)
   }
+  
+  it should "allow the addition of a new task at a non-integer time" in {
+    val t = new Task('t0, "My task", 5, Some("Alice"))
+    val sch = new Schedule()
+    val sch2 = sch + (t, 1.5)
+    sch2.start(t) should equal (1.5)
+  }
 
   "Schedule.start" should "allow the addition of several new tasks and their start times" in {
     val t0 = new Task('t0, "My task", 2, Some("Alice"))

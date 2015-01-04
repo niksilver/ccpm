@@ -11,7 +11,7 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
    * Add a task and its start time to the schedule, and
    * return the new schedule.
    */
-  def +(t: Task, when: Int): Schedule = new Schedule(starts + (t -> when))
+  def +(t: Task, when: Double): Schedule = new Schedule(starts + (t -> when))
 
   /**
    * Get the start time of a given task.
