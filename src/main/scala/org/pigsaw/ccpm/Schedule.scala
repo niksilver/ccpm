@@ -1,5 +1,7 @@
 package org.pigsaw.ccpm
 
+import java.util.NoSuchElementException
+
 /**
  * Start times for tasks
  */
@@ -14,7 +16,9 @@ class Schedule(starts: Map[Task, Int] = Nil.toMap) {
   /**
    * Get the start time of a given task.
    */
-  def start(t: Task): Int = starts(t)
+  def start(t: Task): Int = try { starts(t) } catch {
+    case e: NoSuchElementException => throw new UnknownTaskException(t.toString)
+  }
   
   /**
    * Schedule a task. The first task will get an arbitrary start time.
