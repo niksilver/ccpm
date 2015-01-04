@@ -29,9 +29,9 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
   def schedule(t: Task): Schedule = {
     val conflicted = starts.keys filter { _.resource == t.resource }
     if (conflicted.size > 0) {
-      val tOld = conflicted.head
-      val oldStart = starts(tOld)
-      new Schedule(starts + (t -> (oldStart.toDouble - t.duration)))
+      val earliestStart = conflicted map { starts(_) } reduce { Math.min(_, _) }
+      val tStart = earliestStart - t.duration
+      new Schedule(starts + (t -> tStart))
     }
     else {
       new Schedule(starts + (t -> 0))
