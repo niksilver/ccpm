@@ -34,14 +34,12 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
   def schedule(t: Task, laters: Seq[Task]): Schedule = {
     val resConflicted = starts.keys filter { _.resource == t.resource }
     val allLaterTasks = resConflicted ++ laters
-    val tStart = allLaterTasks.isEmpty match {
-      case true => 0.0
-      case false => {
-        val allLaterStarts = allLaterTasks map { starts(_) }
-        val earliestStart =  allLaterStarts reduce { Math.min(_, _) }
-        earliestStart - t.duration
-      }
+    if (allLaterTasks.isEmpty) {
+      new Schedule(starts + (t -> 0.0))
+    } else {
+      val earliestStart = allLaterTasks map { starts(_) } reduce { Math.min(_, _) }
+      val tStart = earliestStart - t.duration
+      new Schedule(starts + (t -> tStart))
     }
-    new Schedule(starts + (t -> tStart))
   }
 }
