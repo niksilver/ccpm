@@ -116,4 +116,21 @@ class ScheduleTest extends FlatSpec with Matchers {
     (start2 + tAlice2.duration) should equal (start3)
     (start1 + tAlice1.duration) should equal (start2)
   }
+
+  it should "schedule a task before a given other" in {
+    val t1 = new Task('t1, "Task one", 1, Some("Alice"))
+    val t2 = new Task('t2, "Task two", 2, Some("Bob"))
+    val t3 = new Task('t3, "Task three", 3, Some("Carol"))
+    val t4 = new Task('t4, "Task four", 4, Some("Dan"))
+    val t5 = new Task('t5, "Task five", 5, Some("Eve"))
+    
+    // We'll schedule all but t1
+    val sch1 = (new Schedule()).schedule(t5).schedule(t4).schedule(t3).schedule(t2)
+    
+    // Now schedule t1 to be before t3
+    val sch2 = sch1.schedule(t1, t3)
+    
+    (sch2.start(t1) + t1.duration) should equal (sch2.start(t3))
+  }
+
 }
