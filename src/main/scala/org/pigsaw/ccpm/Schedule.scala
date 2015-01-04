@@ -41,8 +41,9 @@ class Schedule(starts: Map[Task, Double] = Nil.toMap) {
   /**
    * Schedule a test before a given other one.
    */
-  def schedule(t: Task, later: Task): Schedule = {
-    val tStart = starts(later) - t.duration
+  def schedule(t: Task, laters: Seq[Task]): Schedule = {
+    val earliestStart = laters map { starts(_) } reduce { Math.min(_, _) }
+    val tStart = earliestStart - t.duration
     new Schedule(starts + (t -> tStart))
   }
 }
