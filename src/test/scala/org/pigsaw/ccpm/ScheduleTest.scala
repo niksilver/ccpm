@@ -2,8 +2,34 @@ package org.pigsaw.ccpm
 
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
+import org.scalatest.matchers.Matcher
+import org.scalatest.matchers.MatchResult
 
 class ScheduleTest extends FlatSpec with Matchers {
+
+  // The following definitions allow us to more easily assert
+  // that a half-duration task should come right before another task:
+  //
+  //   t1 should halfBeRightBefore t2
+  //
+  // See http://www.scalatest.org/user_guide/using_matchers#usingCustomMatchers
+  
+  case class MatchingSchedule(sch: Schedule)
+  
+  class TaskHalfBeRightBefore(tLater: Task, sch: Schedule) extends Matcher[Task] {
+    def apply(tEarlier: Task) = {
+      val halfEnd = sch.halfEnd(tEarlier)
+      val earlierStart = sch.start(tEarlier)
+      val laterStart = sch.start(tLater)
+      MatchResult(
+           halfEnd == laterStart,
+          s"$tEarlier with start $earlierStart did not come right before $tLater with start $laterStart",
+          s"$tEarlier with start $earlierStart came right before $tLater with start $laterStart"
+      )
+    }
+  }
+  
+  def halfBeRightBefore(tEarlier: Task)(implicit iSched: MatchingSchedule) = new TaskHalfBeRightBefore(tEarlier, iSched.sch)
 
   "Schedule.add" should "allow the addition of a new task and its start time (1)" in {
     val t = new Task('t0, "My task", 5, Some("Alice"))
@@ -73,6 +99,12 @@ class ScheduleTest extends FlatSpec with Matchers {
       val sch = new Schedule()
       sch.end(t)
     }
+  }
+  
+  "Schedule.resourceConflicts" should "be false if no tasks scheduled" in {
+    val sch = new Schedule()
+    val t = new Task('t, "My task", 5, Some("Alice"))
+    sch.resourceConflicts(t, 4.0) should be (false)
   }
 
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {
@@ -147,9 +179,10 @@ class ScheduleTest extends FlatSpec with Matchers {
     val sch2 = sch1.schedule(tAlice1)
     
     // Note critical chain requires scheduling to half task duration
-    sch2.halfEnd(tAlice3) should equal (sch2.start(tAlice4))
-    sch2.halfEnd(tAlice2) should equal (sch2.start(tAlice3))
-    sch2.halfEnd(tAlice1) should equal (sch2.start(tAlice2))
+    implicit val iSched = new MatchingSchedule(sch2)
+    tAlice3 should halfBeRightBefore (tAlice4)
+    tAlice2 should halfBeRightBefore (tAlice3)
+    tAlice1 should halfBeRightBefore (tAlice2)
   }
 
   it should "schedule a task before a given other" in {
@@ -190,6 +223,9 @@ class ScheduleTest extends FlatSpec with Matchers {
     // t1 should start and finish just before the earliest task: t4
     // Remember, critical chain requires we schedule by half-duration
     sch2.halfEnd(t1) should equal (sch2.start(t4))
+    
+    implicit val iSched = new MatchingSchedule(sch2)
+    t1 should halfBeRightBefore (t4)
   }
 
   it should "schedule a task before several given others or any with a resource conflict" in {
@@ -217,6 +253,33 @@ class ScheduleTest extends FlatSpec with Matchers {
   }
   
   ignore should "schedule many tasks in the right order according to dependencies and resources" in {
+    val tStart = Task('start)
+    val a1 = new Task('a1, "a1", 2*3, Some("C"))
+    val a2 = new Task('a2, "a2", 2*4, Some("D"))
+    val a3 = new Task('a3, "a3", 2*1.5, Some("E"))
+    val b1 = new Task('b1, "b1", 2*5, Some("A"))
+    val b2 = new Task('b2, "b2", 2*5, Some("B"))
+    val c1 = new Task('c1, "c1", 2*3, Some("B"))
+    val c2 = new Task('c2, "c2", 2*4, Some("B"))
+    val c3 = new Task('c3, "c3", 2*5, Some("A"))
+    val c4 = new Task('c4, "c4", 2*2.5, Some("C"))
+    val tEnd = Task('end)
+    
+    val deps = List(
+        tStart -> a1, tStart -> a2, tStart -> a3,
+        tStart -> c1, tStart -> c2,
+        a1 -> b1, a2 -> b1, a3 -> b1,
+        b1 -> b2,
+        c1 -> c3, c2 -> c3,
+        c3 -> c4,
+        b2 -> tEnd, c4 -> tEnd
+    )
+    
+    val tasks = List(tStart, a1, a2, a3, b1, b2, c1, c2, c3, c4, tEnd)
+    
+    val sch = (new Schedule()).schedule(tasks, deps)
+    implicit val iSched = new MatchingSchedule(sch)
+    
     // Here's our intended schedule:
     // [id, half-duration, resource]
     // 
@@ -224,13 +287,41 @@ class ScheduleTest extends FlatSpec with Matchers {
     //    +---[a1, 3,     C]-+
     //    +-[a2, 4,       D]-+
     //    +-----[a3, 1.5, E]-+
-    //    |                  \[b1, 5,   A]--\
-    //    |                                 +------[b2, 5,    B]----\
+    //    |                  \[b1, 5,   A]--------\
+    //    |                                       +[b2, 5,        B]\
     //    +---------------------[c1, 3, B]\                         |
     //    |                               +[c3, 5,   A]\            |
     //    |                               |            +[c4, 2.5, C]\
     //    \----------[c2, 4,  B]----------/                         |
     //                                                              +[end,0]
+    
+    // The sequence b1, b2, tEnd
+    
+    b2 should halfBeRightBefore (tEnd)
+    c4 should halfBeRightBefore (tEnd)
+    
+    // The sequence tStart, c1, c2, c3, c4, tEnd, including resource conflict c1, c2
+    
+    c3 should halfBeRightBefore (c4)
+    val laterOfC1AndC2 = if (sch.halfEnd(c1) > sch.halfEnd(c2)) c1 else c2
+    val earlierOfC1AndC2 = if (sch.start(c1) < sch.start(c2)) c1 else c2
+    laterOfC1AndC2 should halfBeRightBefore (c3)
+    earlierOfC1AndC2 should halfBeRightBefore (laterOfC1AndC2)
+    sch.halfEnd(tStart) should be < sch.start(c1)
+    sch.halfEnd(tStart) should be < sch.start(c2)
+    
+    // Resource conflict b1, c3
+    
+    b1 should halfBeRightBefore (c3)
+    
+    // The sequence tStart, a1, a2, a3, b1
+    
+    a1 should halfBeRightBefore (b1)
+    a2 should halfBeRightBefore (b1)
+    a3 should halfBeRightBefore (b1)
+    sch.halfEnd(tStart) should be < sch.start(a1)
+    a2 should halfBeRightBefore (b1)
+    sch.halfEnd(tStart) should be < sch.start(a3)
   }
 
 }
