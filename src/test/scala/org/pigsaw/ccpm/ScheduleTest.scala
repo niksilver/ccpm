@@ -115,12 +115,44 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch.resourceConflicts(t01, 18) should be (true)
   }
   
-  it should "be true if there's one task schedule and there's a clear resource conflict at the start" in {
+  it should "be true if there's one task scheduled and there's a clear resource conflict at the start" in {
     val t99 = Task('t99, "My 99", 5, Some("Alice"))
     val t01 = Task('t01, "My first", 5, Some("Alice"))
     val sch = new Schedule() + (t99, 20)
     // Remember we're working with half-durations
     sch.resourceConflicts(t01, 21) should be (true)
+  }
+  
+  it should "be true if there's one longer task scheduled (same resource) with the same start" in {
+    val t99 = Task('t99, "My 99", 5, Some("Alice"))
+    val t01 = Task('t01, "My first", 1, Some("Alice"))
+    val sch = new Schedule() + (t99, 20)
+    // Remember we're working with half-durations
+    sch.resourceConflicts(t01, 20) should be (true)
+  }
+  
+  it should "be true if there's one shorter task scheduled (same resource) with the same start" in {
+    val t99 = Task('t99, "My 99", 1, Some("Alice"))
+    val t01 = Task('t01, "My first", 5, Some("Alice"))
+    val sch = new Schedule() + (t99, 20)
+    // Remember we're working with half-durations
+    sch.resourceConflicts(t01, 20) should be (true)
+  }
+  
+  it should "be true if there's one longer task scheduled (same resource) with the same end" in {
+    val t99 = Task('t99, "My 99", 5, Some("Alice"))
+    val t01 = Task('t01, "My first", 1, Some("Alice"))
+    val sch = new Schedule() + (t99, 20)
+    // Remember we're working with half-durations
+    sch.resourceConflicts(t01, 22) should be (true)
+  }
+  
+  it should "be true if there's one shorter task scheduled (same resource) with the same end" in {
+    val t99 = Task('t99, "My 99", 1, Some("Alice"))
+    val t01 = Task('t01, "My first", 5, Some("Alice"))
+    val sch = new Schedule() + (t99, 20)
+    // Remember we're working with half-durations
+    sch.resourceConflicts(t01, 18) should be (true)
   }
 
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {
