@@ -179,6 +179,33 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch.resourceConflicts(t01, 21) should be (true)
   }
 
+  // ---
+    
+  it should "be false if existing task is zero duration but otherwise conflicts at the start" in {
+    val t99 = Task('t99, "My 99", 0, Some("Alice"))
+    val t01 = Task('t01, "My first", 5, Some("Alice"))
+    val sch = new Schedule() + (t99, 20)
+    // Remember we're working with half-durations
+    sch.resourceConflicts(t01, 20) should be (false)
+  }
+  
+  it should "be false if existing task is zero duration but otherwise conflicts at the end" in {
+    val t99 = Task('t99, "My 99", 0, Some("Alice"))
+    val t01 = Task('t01, "My first", 5, Some("Alice"))
+    val sch = new Schedule() + (t99, 20)
+    // Remember we're working with half-durations
+    sch.resourceConflicts(t01, 17.5) should be (false)
+  }
+  
+  it should "be true if existing task is zero duration, and sits in the middle of a resource-conflict" in {
+    val t99 = Task('t99, "My 99", 0, Some("Alice"))
+    val t01 = Task('t01, "My first", 5, Some("Alice"))
+    val sch = new Schedule() + (t99, 20)
+    // Remember we're working with half-durations
+    sch.resourceConflicts(t01, 19) should be (true)
+  }
+
+  // ---
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {
     val sch0 = new Schedule()
     val t = new Task('t0, "My task", 5, Some("Alice"))
