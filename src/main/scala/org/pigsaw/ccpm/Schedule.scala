@@ -63,7 +63,14 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     }
   }
   
-  def resourceConflicts(t: Task, start: Double): Boolean = false
+  def resourceConflicts(t: Task, tStart: Double): Boolean = {
+    val tHalfEnd = tStart + t.halfDuration
+    def conflictsWith(t2: Task) = {
+      (start(t2) < tHalfEnd && tHalfEnd < halfEnd(t2)) ||
+      (start(t2) < tStart && tStart < halfEnd(t2))
+    }
+    tasks exists { conflictsWith(_) }
+  }
 
   /**
    * Schedule some tasks respecting resource conflicts and dependencies.
