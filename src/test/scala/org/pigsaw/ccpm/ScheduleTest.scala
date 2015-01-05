@@ -218,6 +218,18 @@ class ScheduleTest extends FlatSpec with Matchers {
     // Remember we're working with half-durations
     sch.resourceConflicts(t01, 21) should be (false)
   }
+  
+  "Schedule.latestStart" should "work if no tasks scheduled (1)" in {
+    val sch = new Schedule()
+    val t = Task('t, "My first", 5, None)
+    sch.latestStart(t, 20) should equal (17.5)
+  }
+  
+  it should "work if no tasks scheduled (2 - to avoid faking)" in {
+    val sch = new Schedule()
+    val t = Task('t, "My first", 5, None)
+    sch.latestStart(t, 15) should equal (12.5)
+  }
 
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {
     val sch0 = new Schedule()

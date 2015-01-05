@@ -63,6 +63,10 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     }
   }
   
+  /**
+   * If the task `t` starts at time `tStart`, does it
+   * resource-conflict with any of the tasks scheduled so far?
+   */
   def resourceConflicts(t: Task, tStart: Double): Boolean = {
     val tHalfEnd = tStart + t.halfDuration
     def conflictsWith(t2: Task) = {
@@ -74,6 +78,13 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     def sameResources(t2: Task) = { t.resource.nonEmpty && t.resource == t2.resource }
     tasks filter { sameResources(_) } exists { conflictsWith(_) }
   }
+  
+  /**
+   * Return the latest possible start for a task which will have no
+   * resource conflicts with currently-scheduled tasks, and which
+   * does not allow the task to run later that `tLatest`.
+   */
+  def latestStart(t: Task, tLatest: Double): Double = { tLatest - t.halfDuration }
 
   /**
    * Schedule some tasks respecting resource conflicts and dependencies.
