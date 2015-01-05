@@ -71,7 +71,8 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
       (t.duration == 0 && start(t2) < tStart && tStart < halfEnd(t2)) ||
       (t2.duration == 0 && tStart < start(t2) && start(t2) < tHalfEnd)
     }
-    tasks exists { conflictsWith(_) }
+    def sameResources(t2: Task) = { t.resource.nonEmpty && t.resource == t2.resource }
+    tasks filter { sameResources(_) } exists { conflictsWith(_) }
   }
 
   /**
