@@ -221,14 +221,26 @@ class ScheduleTest extends FlatSpec with Matchers {
   
   "Schedule.latestStart" should "work if no tasks scheduled (1)" in {
     val sch = new Schedule()
-    val t = Task('t, "My first", 5, None)
+    val t = Task('t, "My first", 5, Some("Alice"))
     sch.latestStart(t, 20) should equal (17.5)
   }
   
   it should "work if no tasks scheduled (2 - to avoid faking)" in {
     val sch = new Schedule()
-    val t = Task('t, "My first", 5, None)
+    val t = Task('t, "My first", 5, Some("Alice"))
     sch.latestStart(t, 15) should equal (12.5)
+  }
+  
+  it should "work if several resource-conflicting tasks scheduled" in {
+    val t1 = Task('t1, "My one", 5, Some("Alice"))
+    val t2 = Task('t2, "My two", 5, Some("Alice"))
+    val t3 = Task('t3, "My three", 5, Some("Alice"))
+    val t4 = Task('t4, "My four", 5, Some("Alice"))
+    val sch = new Schedule() +
+    	(t4, 20) +      // Runs 20 - 22.5
+    	(t3, 16.5) +    // Runs 16.5 - 18
+    	(t2, 10)        // Runs 10 - 12.5
+    sch.latestStart(t1, 23) should equal (14.0)
   }
 
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {

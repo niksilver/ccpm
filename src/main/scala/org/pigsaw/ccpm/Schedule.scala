@@ -84,7 +84,14 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * resource conflicts with currently-scheduled tasks, and which
    * does not allow the task to run later that `tLatest`.
    */
-  def latestStart(t: Task, tLatest: Double): Double = { tLatest - t.halfDuration }
+  def latestStart(t: Task, tLatest: Double): Double = {
+    val firstGuess = List(tLatest - t.halfDuration)
+    val otherGuesses = tasks map { start(_) - t.halfDuration }
+    val allGuesses = firstGuess ++ otherGuesses
+    val goodGuesses = allGuesses filter { !resourceConflicts(t, _)}
+    val bestGuess = goodGuesses reduce { Math.max(_, _) }
+    bestGuess
+  }
 
   /**
    * Schedule some tasks respecting resource conflicts and dependencies.
