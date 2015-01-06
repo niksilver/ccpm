@@ -618,7 +618,7 @@ class ScheduleTest extends FlatSpec with Matchers {
     tStart should halfEndSomeTimeBefore (t3)
   }
 
-  ignore should "schedule many tasks in the right order according to dependencies and resources" in {
+  it should "schedule many tasks in the right order according to dependencies and resources" in {
     val tStart = Task('start)
     val a1 = new Task('a1, "a1", 2 * 3, Some("C"))
     val a2 = new Task('a2, "a2", 2 * 4, Some("D"))
