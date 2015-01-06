@@ -41,27 +41,41 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   /**
    * Schedule a task as late as possible avoiding resource conflicts.
    */
-  def schedule(t: Task): Schedule = schedule(t, Nil)
+  def scheduleDELETE_ME(t: Task): Schedule = schedule(t, Nil)
 
   /**
-   * Schedule a test before any given others,
-   * and before any with a resource conflict.
+   * Schedule a test before any given others (specified by `laters`),
+   * and without a resource conflict.
    * The task `t` will start as late as it can to fit these requirements.
    * The first task will get an arbitrary start time.
    */
   def schedule(t: Task, laters: Seq[Task]): Schedule = {
-    val resConflicted = starts.keys filter { _.resource == t.resource }
-    val allLaterTasks = resConflicted ++ laters
-    if (allLaterTasks.isEmpty) {
-      println(s"Scheduling task $t at 0.0")
-      new Schedule(starts + (t -> 0.0))
+    println(s"Schedule task $t")
+    if (laters.isEmpty) {
+      println(s"laters is empty - Scheduling task $t at 0.0")
+      val tStart = latestStart(t, 0.0)
+      new Schedule(starts + (t -> tStart))
     } else {
-      val earliestStart = allLaterTasks map { start(_) } reduce { Math.min(_, _) }
-      val tStart = earliestStart - t.halfDuration
-      println(s"Scheduling task $t at $tStart")
+      val mustntRunInto = laters map { start(_) } reduce { Math.min(_, _) }
+      println(s"mustntRunInto = $mustntRunInto")
+      val tStart = latestStart(t, mustntRunInto)
+      println(s"tStart = $tStart")
       new Schedule(starts + (t -> tStart))
     }
   }
+//  def schedule000(t: Task, laters: Seq[Task]): Schedule = {
+//    val resConflicted = starts.keys filter { _.resource == t.resource }
+//    val allLaterTasks = resConflicted ++ laters
+//    if (allLaterTasks.isEmpty) {
+//      println(s"Scheduling task $t at 0.0")
+//      new Schedule(starts + (t -> 0.0))
+//    } else {
+//      val earliestStart = allLaterTasks map { start(_) } reduce { Math.min(_, _) }
+//      val tStart = earliestStart - t.halfDuration
+//      println(s"Scheduling task $t at $tStart")
+//      new Schedule(starts + (t -> tStart))
+//    }
+//  }
   
   /**
    * If the task `t` starts at time `tStart`, does it
@@ -85,11 +99,16 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * does not allow the task to run later that `tLatest`.
    */
   def latestStart(t: Task, tLatest: Double): Double = {
-    val firstGuess = List(tLatest - t.halfDuration)
-    val otherGuesses = tasks map { start(_) - t.halfDuration }
-    val allGuesses = firstGuess ++ otherGuesses
+    val firstGuess = tLatest - t.halfDuration
+    val otherGuesses = tasks map { start(_) - t.halfDuration } filter { _ < firstGuess }
+    val allGuesses = List(firstGuess) ++ otherGuesses
     val goodGuesses = allGuesses filter { !resourceConflicts(t, _)}
     val bestGuess = goodGuesses reduce { Math.max(_, _) }
+    println(s"firstGuess = $firstGuess")
+    println(s"otherGuesses = $otherGuesses")
+    println(s"allGuesses = $allGuesses")
+    println(s"goodGuesses = $goodGuesses")
+    println(s"bestGuess = $bestGuess")
     bestGuess
   }
 
@@ -106,6 +125,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     sch.scheduleFollowOns(remaining, deps)
   }
   
+  // Schedule tasks to be at the end of the plan
   private def scheduleEnds(ends: Seq[Task]): Schedule = ends match {
     case Nil => this
     case t :: Nil => schedule(t)

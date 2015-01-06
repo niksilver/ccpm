@@ -242,6 +242,18 @@ class ScheduleTest extends FlatSpec with Matchers {
     	(t2, 10)        // Runs 10 - 12.5
     sch.latestStart(t1, 23) should equal (14.0)
   }
+  
+  it should "schedule before the latest start, even if there's a gap in tasks later" in {
+    val t1 = Task('t1, "My one", 5, Some("Alice"))
+    val t2 = Task('t2, "My two", 5, Some("Alice"))
+    val t3 = Task('t3, "My three", 5, Some("Alice"))
+    val t4 = Task('t4, "My four", 5, Some("Alice"))
+    val sch = new Schedule() +
+    	(t4, 20) +      // Runs 20 - 22.5
+    	(t3, 16.5) +    // Runs 16.5 - 18
+    	(t2, 10)        // Runs 10 - 12.5
+    sch.latestStart(t1, 13) should equal (7.5)
+  }
 
   "Schedule.schedule" should "schedule the first task at some arbitrary time" in {
     val sch0 = new Schedule()
@@ -263,12 +275,12 @@ class ScheduleTest extends FlatSpec with Matchers {
     }
   }
 
-  it should "schedule all non-conflicting end tasks at the same time" in {
+  it should "schedule all non-conflicting end tasks to end at the same time" in {
     val t0 = new Task('t0, "My task", 2, Some("Alice"))
     val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
     val sch0 = new Schedule()
     val sch1 = sch0.schedule(t0).schedule(t1)
-    sch1.start(t0) should equal (sch1.start(t1))
+    sch1.halfEnd(t0) should equal (sch1.halfEnd(t1))
   }
   
   it should "schedule a resource-conflicting task to be just before the resource is available" in {
@@ -296,6 +308,23 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     // Note critical chain requires scheduling to half task duration
     sch2.halfEnd(tAlice1) should equal (sch2.start(tAlice2))
+  }
+  
+  it should "schedule a resource-conflicting task between others if the time is available" in {
+    val tAlice1 = new Task('a1, "First task", 2, Some("Alice"))
+    val tAlice2 = new Task('a2, "Second task", 3, Some("Alice"))
+    val tAlice3 = new Task('a3, "Middle task", 3, Some("Alice"))
+    
+    // First we schedule two tasks with a gap
+    val sch1 = (new Schedule()) +
+    	(tAlice1, 10) +    // Runs 10 - 11
+    	(tAlice2, 6)       // Runs 6 - 7.5
+    
+    // Then we schedule one which should go in between
+    val sch2 = sch1.schedule(tAlice3)
+
+    // Note critical chain requires scheduling to half task duration
+    sch2.halfEnd(tAlice3) should equal (sch2.start(tAlice1))
   }
   
   it should "schedule a resource-conflicting task to be just before the resource is available"+
@@ -328,6 +357,7 @@ class ScheduleTest extends FlatSpec with Matchers {
     val t4 = new Task('t4, "Task four", 4, Some("Dan"))
     val t5 = new Task('t5, "Task five", 5, Some("Eve"))
     
+    println("---- schedule a task before a given other...")
     // We'll schedule all but t1
     val sch1 = (new Schedule()).schedule(t5).schedule(t4).schedule(t3).schedule(t2)
     
