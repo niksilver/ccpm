@@ -1,7 +1,5 @@
 package org.pigsaw.ccpm
 
-import java.util.NoSuchElementException
-
 /**
  * Start times for tasks
  */
