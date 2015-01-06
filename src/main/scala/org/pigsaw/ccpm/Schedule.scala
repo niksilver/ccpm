@@ -47,34 +47,6 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   def halfEnd(t: Task): Double = start(t) + t.halfDuration
 
   /**
-   * Schedule a task as late as possible avoiding resource conflicts.
-   */
-  def schedule(t: Task): Schedule = schedule(t, Nil)
-
-  /**
-   * Schedule a test before any given others (specified by `laters`),
-   * and without a resource conflict.
-   * If `laters` is empty then the latest half-end time for a task
-   * will be used as a backstop.
-   * The task `t` will start as late as it can to fit these requirements.
-   * If `laters` is empty and there are no tasks scheduled already then
-   * this first task will get an arbitrary start time.
-   */
-  def schedule(t: Task, laters: Seq[Task]): Schedule = {
-    if (laters.isEmpty && starts.isEmpty) {
-      new Schedule(starts + (t -> defaultStart))
-    } else if (laters.isEmpty && starts.nonEmpty) {
-      val mustntRunInto = tasks map { halfEnd(_) } reduce { Math.max(_, _) }
-      val tStart = latestStart(t, mustntRunInto)
-      new Schedule(starts + (t -> tStart))
-    } else {
-      val mustntRunInto = laters map { start(_) } reduce { Math.min(_, _) }
-      val tStart = latestStart(t, mustntRunInto)
-      new Schedule(starts + (t -> tStart))
-    }
-  }
-
-  /**
    * If the task `t` starts at time `tStart`, does it
    * resource-conflict with any of the tasks scheduled so far?
    */
@@ -105,6 +77,37 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   }
 
   /**
+   * Schedule a task as late as possible avoiding resource conflicts.
+   * The latest half-end time for a task will be used as a backstop,
+   * or (if there are no tasks scheduled) it will get
+   * the `defaultStart` time.
+   */
+  def schedule(t: Task): Schedule = schedule(t, Nil)
+
+  /**
+   * Schedule a test before any given others (specified by `laters`),
+   * and without a resource conflict.
+   * If `laters` is empty then the latest half-end time for a task
+   * will be used as a backstop.
+   * The task `t` will start as late as it can to fit these requirements.
+   * If `laters` is empty and there are no tasks scheduled already then
+   * this first task will get the `defaultStart` time.
+   */
+  def schedule(t: Task, laters: Seq[Task]): Schedule = {
+    if (laters.isEmpty && starts.isEmpty) {
+      new Schedule(starts + (t -> defaultStart))
+    } else if (laters.isEmpty && starts.nonEmpty) {
+      val mustntRunInto = tasks map { halfEnd(_) } reduce { Math.max(_, _) }
+      val tStart = latestStart(t, mustntRunInto)
+      new Schedule(starts + (t -> tStart))
+    } else {
+      val mustntRunInto = laters map { start(_) } reduce { Math.min(_, _) }
+      val tStart = latestStart(t, mustntRunInto)
+      new Schedule(starts + (t -> tStart))
+    }
+  }
+
+  /**
    * Schedule some tasks respecting resource conflicts and dependencies.
    */
   def schedule(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
@@ -129,7 +132,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     //     the earlier part hasn't. (Dangling pairs)
     // (b) Then remove all those pairs where the earlier part has a later
     //     dependency elsewhere that's not been scheduled. (Leaving so-called stable pairs)
-    // (c) Then narrow it down any where the later part starts
+    // (c) Then narrow it down to any where the later part starts
     //     latest of all.
     // (d) Then schedule that, and repeat
     val danglingPairs = deps filter { pair => isScheduled(pair._2) && !isScheduled(pair._1) }
