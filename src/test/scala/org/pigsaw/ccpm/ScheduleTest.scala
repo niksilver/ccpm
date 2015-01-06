@@ -481,7 +481,6 @@ class ScheduleTest extends FlatSpec with Matchers {
 
   "schedule(Seq[Task], dependencies)" should "schedule the latest-ending tasks first "+
   		"(1 - latest-ending task is in middle of others)" in {
-    println("------ (1)")
     val tStart = Task('start)
     val t1 = new Task('t1, "t1", 2 * 3, Some("A"))
     val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
@@ -595,7 +594,6 @@ class ScheduleTest extends FlatSpec with Matchers {
     // before scheduling t1, even though t3 has a
     // later start.
 
-    println("--------------- not schedule a task before scheduling all its follow-on tasks")
     val tStart = Task('start)
     val t1 = new Task('t1, "t1", 2 * 4, Some("A"))
     val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
@@ -642,8 +640,6 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val tasks = List(tStart, a1, a2, a3, b1, b2, c1, c2, c3, c4, tEnd)
 
-    println
-    println("----- schedule(Seq[Task], dependencies)")
     val sch = (new Schedule()).schedule(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 

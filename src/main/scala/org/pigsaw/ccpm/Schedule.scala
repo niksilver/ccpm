@@ -18,7 +18,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * The tasks in the schedule.
    */
   lazy val taskSet: Set[Task] = starts.keySet
-  
+
   /**
    * Is this task scheduled?
    */
@@ -62,9 +62,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * this first task will get an arbitrary start time.
    */
   def schedule(t: Task, laters: Seq[Task]): Schedule = {
-    //println(s"Schedule task $t")
     if (laters.isEmpty && starts.isEmpty) {
-      //println(s"laters is empty - Scheduling task $t at 0.0")
       new Schedule(starts + (t -> defaultStart))
     } else if (laters.isEmpty && starts.nonEmpty) {
       val mustntRunInto = tasks map { halfEnd(_) } reduce { Math.max(_, _) }
@@ -72,25 +70,10 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
       new Schedule(starts + (t -> tStart))
     } else {
       val mustntRunInto = laters map { start(_) } reduce { Math.min(_, _) }
-      //println(s"mustntRunInto = $mustntRunInto")
       val tStart = latestStart(t, mustntRunInto)
-      //println(s"tStart = $tStart")
       new Schedule(starts + (t -> tStart))
     }
   }
-  //  def schedule000(t: Task, laters: Seq[Task]): Schedule = {
-  //    val resConflicted = starts.keys filter { _.resource == t.resource }
-  //    val allLaterTasks = resConflicted ++ laters
-  //    if (allLaterTasks.isEmpty) {
-  //      println(s"Scheduling task $t at 0.0")
-  //      new Schedule(starts + (t -> 0.0))
-  //    } else {
-  //      val earliestStart = allLaterTasks map { start(_) } reduce { Math.min(_, _) }
-  //      val tStart = earliestStart - t.halfDuration
-  //      println(s"Scheduling task $t at $tStart")
-  //      new Schedule(starts + (t -> tStart))
-  //    }
-  //  }
 
   /**
    * If the task `t` starts at time `tStart`, does it
@@ -119,11 +102,6 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val allGuesses = List(firstGuess) ++ otherGuesses
     val goodGuesses = allGuesses filter { !resourceConflicts(t, _) }
     val bestGuess = goodGuesses reduce { Math.max(_, _) }
-    //    println(s"firstGuess = $firstGuess")
-    //    println(s"otherGuesses = $otherGuesses")
-    //    println(s"allGuesses = $allGuesses")
-    //    println(s"goodGuesses = $goodGuesses")
-    println(s"bestGuess for $t = $bestGuess")
     bestGuess
   }
 
@@ -141,13 +119,10 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   }
 
   // Schedule tasks to be at the end of the plan
-  private def scheduleEnds(ends: Seq[Task]): Schedule = {
-    println("----------- scheduleEnds")
-    ends match {
-      case Nil => this
-      case t :: Nil => schedule(t)
-      case t :: tOthers => schedule(t).scheduleEnds(tOthers)
-    }
+  private def scheduleEnds(ends: Seq[Task]): Schedule = ends match {
+    case Nil => this
+    case t :: Nil => schedule(t)
+    case t :: tOthers => schedule(t).scheduleEnds(tOthers)
   }
 
   private def scheduleFollowOns(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
@@ -159,29 +134,20 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     // (c) Then narrow it down any where the later part starts
     //     latest of all.
     // (d) Then schedule that, and repeat
-    println("---------------- scheduleFollowOns")
     val scheduled = taskSet
     val danglingPairs = deps filter { pair => (scheduled contains pair._2) && !(scheduled contains pair._1) }
     def hasAnUnscheduledLater(t: Task) = { deps exists { pair => pair._1 == t && !isScheduled(pair._2) } }
     val stablePairs = danglingPairs filterNot { pair => hasAnUnscheduledLater(pair._1) }
-    println(s"ts = $ts")
-    println(s"danglingPairs = $danglingPairs")
-    println(s"stablePairs = $stablePairs")
     if (stablePairs.isEmpty) {
-      println("stablePairs is empty; returning this")
       this
     } else {
-      def laterStartingPair(p1: (Task,Task), p2: (Task,Task)) =
+      def laterStartingPair(p1: (Task, Task), p2: (Task, Task)) =
         if (start(p1._2) > start(p2._2)) p1 else p2
       val latestStartingPair = stablePairs reduce { laterStartingPair(_, _) }
       val t = latestStartingPair._1
-      println(s"Going to schedule task t = $t which pairs with ${latestStartingPair._2} starting ${start(latestStartingPair._2)}")
       val laters = deps filter { _._1 == t } map { _._2 } filter { taskSet contains _ }
       val sch = schedule(t, laters)
       val remaining = ts filter { _ != t }
-      println(s"laters = $laters")
-      println(s"remaining = $remaining")
-      println("Recursing... -------------")
       sch.scheduleFollowOns(remaining, deps)
     }
   }
