@@ -1,5 +1,7 @@
 package org.pigsaw.ccpm
 
+import scala.annotation.tailrec
+
 /**
  * Start times for tasks
  */
@@ -120,12 +122,15 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   }
 
   // Schedule tasks to be at the end of the plan
-  private def scheduleEnds(ends: Seq[Task]): Schedule = ends match {
+  @tailrec
+  private def scheduleEnds(ends: Seq[Task]): Schedule =
+    ends match {
     case Nil => this
     case t :: Nil => schedule(t)
     case t :: tOthers => schedule(t).scheduleEnds(tOthers)
   }
 
+  @tailrec
   private def scheduleFollowOns(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
     // Of all the earlier/later dependencies
     // (a) pick out all those where the later part has been scheduled but
