@@ -18,6 +18,11 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * The tasks in the schedule.
    */
   lazy val taskSet: Set[Task] = starts.keySet
+  
+  /**
+   * Is this task scheduled?
+   */
+  def isScheduled(t: Task): Boolean = { taskSet contains t }
 
   /**
    * Add a task and its start time to the schedule, and
@@ -148,23 +153,27 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   private def scheduleFollowOns(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
     // Of all the earlier/later dependencies
     // (a) pick out all those where the later part has been scheduled but
-    //     the earlier part hasn't.
-    // (b) Then narrow it down any where the later part starts
+    //     the earlier part hasn't. (Dangling pairs)
+    // (b) Then remove all those pairs where the earlier part has a later
+    //     dependency elsewhere that's not been scheduled. (Leaving so-called stable pairs)
+    // (c) Then narrow it down any where the later part starts
     //     latest of all.
-    // (c) Then schedule that, and repeat
+    // (d) Then schedule that, and repeat
     println("---------------- scheduleFollowOns")
     val scheduled = taskSet
     val danglingPairs = deps filter { pair => (scheduled contains pair._2) && !(scheduled contains pair._1) }
+    def hasAnUnscheduledLater(t: Task) = { deps exists { pair => pair._1 == t && !isScheduled(pair._2) } }
+    val stablePairs = danglingPairs filterNot { pair => hasAnUnscheduledLater(pair._1) }
     println(s"ts = $ts")
-    println(s"Scheduled = $scheduled")
     println(s"danglingPairs = $danglingPairs")
-    if (danglingPairs.isEmpty) {
-      println("tEarliers is empty; returning this")
+    println(s"stablePairs = $stablePairs")
+    if (stablePairs.isEmpty) {
+      println("stablePairs is empty; returning this")
       this
     } else {
       def laterStartingPair(p1: (Task,Task), p2: (Task,Task)) =
         if (start(p1._2) > start(p2._2)) p1 else p2
-      val latestStartingPair = danglingPairs reduce { laterStartingPair(_, _) }
+      val latestStartingPair = stablePairs reduce { laterStartingPair(_, _) }
       val t = latestStartingPair._1
       println(s"Going to schedule task t = $t which pairs with ${latestStartingPair._2} starting ${start(latestStartingPair._2)}")
       val laters = deps filter { _._1 == t } map { _._2 } filter { taskSet contains _ }

@@ -481,6 +481,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
   "schedule(Seq[Task], dependencies)" should "schedule the latest-ending tasks first "+
   		"(1 - latest-ending task is in middle of others)" in {
+    println("------ (1)")
     val tStart = Task('start)
     val t1 = new Task('t1, "t1", 2 * 3, Some("A"))
     val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
@@ -580,6 +581,42 @@ class ScheduleTest extends FlatSpec with Matchers {
     tStart should halfEndSomeTimeBefore (t2)
     tStart should halfEndRightBefore (t3)
   }
+  
+  it should "not schedule a task before scheduling all its follow-on tasks" in {
+    // Here's our intended schedule:
+    // [id, half-duration, resource]
+    // 
+    // [start,0]
+    //    +-[t1, 4,       A]-+
+    //    |                  \-[t2, 4,       B]-+
+    //    \--------------------------[t3, 2, C]-+
+    //                                          \[end,0]
+    // It should not schedule start
+    // before scheduling t1, even though t3 has a
+    // later start.
+
+    println("--------------- not schedule a task before scheduling all its follow-on tasks")
+    val tStart = Task('start)
+    val t1 = new Task('t1, "t1", 2 * 4, Some("A"))
+    val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
+    val t3 = new Task('t3, "t3", 2 * 2, Some("C"))
+    val tEnd = Task('end)
+
+    val deps = List(
+      tStart -> t1, t1 -> t2, t2 -> tEnd,
+      tStart -> t3, t3 -> tEnd)
+
+    val tasks = List(tStart, t1, t2, t3, tEnd)
+
+    val sch = (new Schedule()).schedule(tasks, deps)
+    implicit val iSched = new MatchingSchedule(sch)
+
+    t2 should halfEndRightBefore (tEnd)
+    t3 should halfEndRightBefore (tEnd)
+    t1 should halfEndRightBefore (t2)
+    tStart should halfEndRightBefore (t1)
+    tStart should halfEndSomeTimeBefore (t3)
+  }
 
   ignore should "schedule many tasks in the right order according to dependencies and resources" in {
     val tStart = Task('start)
@@ -588,7 +625,7 @@ class ScheduleTest extends FlatSpec with Matchers {
     val a3 = new Task('a3, "a3", 2 * 1.5, Some("E"))
     val b1 = new Task('b1, "b1", 2 * 5, Some("A"))
     val b2 = new Task('b2, "b2", 2 * 5, Some("B"))
-    val c1 = new Task('c1, "c1", 2 * 3, Some("B"))
+    val c1 = new Task('c1, "c1", 2 * 2, Some("B"))
     val c2 = new Task('c2, "c2", 2 * 4, Some("B"))
     val c3 = new Task('c3, "c3", 2 * 5, Some("A"))
     val c4 = new Task('c4, "c4", 2 * 2.5, Some("C"))
@@ -605,7 +642,8 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val tasks = List(tStart, a1, a2, a3, b1, b2, c1, c2, c3, c4, tEnd)
 
-    println("----- schedule(Seq[Task], dependencies")
+    println
+    println("----- schedule(Seq[Task], dependencies)")
     val sch = (new Schedule()).schedule(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
@@ -618,7 +656,7 @@ class ScheduleTest extends FlatSpec with Matchers {
     //    +-----[a3, 1.5, E]-+
     //    |                  \[b1, 5,   A]--------\
     //    |                                       +[b2, 5,        B]\
-    //    +---------------------[c1, 3, B]\                         |
+    //    +---------------------[c1, 2, B]\                         |
     //    |                               +[c3, 5,   A]\            |
     //    |                               |            +[c4, 2.5, C]\
     //    \----------[c2, 4,  B]----------/                         |
