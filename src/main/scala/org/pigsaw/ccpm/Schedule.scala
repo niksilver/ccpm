@@ -33,8 +33,9 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   /**
    * Get the start time of a given task.
    */
-  def start(t: Task): Double = try { starts(t) } catch {
-    case e: NoSuchElementException => throw new UnknownTaskException(t.toString)
+  def start(t: Task): Double = starts.get(t) match {
+    case Some(start) => start
+    case None => throw new UnknownTaskException(t.toString)
   }
 
   /**
@@ -83,9 +84,9 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val tHalfEnd = tStart + t.halfDuration
     def conflictsWith(t2: Task) = {
       (t.duration > 0 && start(t2) < tHalfEnd && tHalfEnd <= halfEnd(t2)) ||
-        (t.duration > 0 && start(t2) <= tStart && tStart < halfEnd(t2)) ||
-        (t.duration == 0 && start(t2) < tStart && tStart < halfEnd(t2)) ||
-        (t2.duration == 0 && tStart < start(t2) && start(t2) < tHalfEnd)
+      (t.duration > 0 && start(t2) <= tStart && tStart < halfEnd(t2)) ||
+      (t.duration == 0 && start(t2) < tStart && tStart < halfEnd(t2)) ||
+      (t2.duration == 0 && tStart < start(t2) && start(t2) < tHalfEnd)
     }
     def sameResources(t2: Task) = { t.resource.nonEmpty && t.resource == t2.resource }
     tasks filter { sameResources(_) } exists { conflictsWith(_) }
@@ -96,8 +97,8 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * resource conflicts with currently-scheduled tasks, and which
    * does not allow the task to run later that `tLatest`.
    */
-  def latestStart(t: Task, tLatest: Double): Double = {
-    val firstGuess = tLatest - t.halfDuration
+  def latestStart(t: Task, latest: Double): Double = {
+    val firstGuess = latest - t.halfDuration
     val otherGuesses = tasks map { start(_) - t.halfDuration } filter { _ < firstGuess }
     val allGuesses = List(firstGuess) ++ otherGuesses
     val goodGuesses = allGuesses filter { !resourceConflicts(t, _) }
@@ -113,8 +114,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val g = new Graph(deps)
     val ends = g.ends
     val sch = scheduleEnds(ends)
-    val schedTs = sch.starts.keySet
-    val remaining = ts filterNot { schedTs contains _ }
+    val remaining = sch.tasks.toSeq
     sch.scheduleFollowOns(remaining, deps)
   }
 
@@ -134,8 +134,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     // (c) Then narrow it down any where the later part starts
     //     latest of all.
     // (d) Then schedule that, and repeat
-    val scheduled = taskSet
-    val danglingPairs = deps filter { pair => (scheduled contains pair._2) && !(scheduled contains pair._1) }
+    val danglingPairs = deps filter { pair => isScheduled(pair._2) && !isScheduled(pair._1) }
     def hasAnUnscheduledLater(t: Task) = { deps exists { pair => pair._1 == t && !isScheduled(pair._2) } }
     val stablePairs = danglingPairs filterNot { pair => hasAnUnscheduledLater(pair._1) }
     if (stablePairs.isEmpty) {
@@ -145,7 +144,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
         if (start(p1._2) > start(p2._2)) p1 else p2
       val latestStartingPair = stablePairs reduce { laterStartingPair(_, _) }
       val t = latestStartingPair._1
-      val laters = deps filter { _._1 == t } map { _._2 } filter { taskSet contains _ }
+      val laters = deps filter { _._1 == t } map { _._2 } filter { isScheduled(_) }
       val sch = schedule(t, laters)
       val remaining = ts filter { _ != t }
       sch.scheduleFollowOns(remaining, deps)
