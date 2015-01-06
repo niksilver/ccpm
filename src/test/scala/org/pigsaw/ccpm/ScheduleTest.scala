@@ -581,6 +581,33 @@ class ScheduleTest extends FlatSpec with Matchers {
     tStart should halfEndRightBefore (t3)
   }
   
+  it should "work even with no dependencies and non-conflicting tasks" in {
+    val t1 = new Task('t1, "t1", 2 * 3, Some("A"))
+    val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
+    val t3 = new Task('t3, "t3", 2 * 1.5, Some("C"))
+
+    val deps = Nil
+    val tasks = List(t1, t2, t3)
+    val sch = (new Schedule()).schedule(tasks, deps)
+    
+    sch.halfEnd(t1) should equal (sch.halfEnd(t2))
+    sch.halfEnd(t2) should equal (sch.halfEnd(t3))
+  }
+  
+  it should "work even with no dependencies and conflicting tasks" in {
+    val t1 = new Task('t1, "t1", 2 * 3, Some("Alice"))
+    val t2 = new Task('t2, "t2", 2 * 4, Some("Alice"))
+    val t3 = new Task('t3, "t3", 2 * 1.5, Some("Alice"))
+
+    val deps = Nil
+    val tasks = List(t1, t2, t3)
+    val sch = (new Schedule()).schedule(tasks, deps)
+    
+    val earliest = sch.earliestStart(tasks)
+    val latest = sch.latestHalfEnd(tasks)
+    (latest - earliest) should equal (3 + 4 + 1.5)
+  }
+  
   it should "not schedule a task before scheduling all its follow-on tasks" in {
     // Here's our intended schedule:
     // [id, half-duration, resource]
@@ -685,6 +712,17 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch.halfEnd(tStart) should be < sch.start(a1)
     tStart should halfEndRightBefore (a2)
     sch.halfEnd(tStart) should be < sch.start(a3)
+  }
+  
+  "adjustStart" should "adjust start times to given base" in {
+    val t1 = Task('t1, "My first", 5, Some("Alice"))
+    val t2 = Task('t2, "My second", 4, Some("Alice"))
+    val sch1 = (new Schedule()).schedule(List(t1, t2), Nil)
+    val schAdjusted = sch1.adjustStart(0)
+
+    val tasks = List(t1, t2)
+    schAdjusted.earliestStart(tasks) should equal (0)
+    schAdjusted.latestHalfEnd(tasks) should equal (4.5)
   }
 
 }

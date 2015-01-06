@@ -1,6 +1,7 @@
 package org.pigsaw.ccpm
 
 import scala.annotation.tailrec
+import scala.collection.TraversableLike
 
 /**
  * Start times for tasks
@@ -77,7 +78,17 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val bestGuess = goodGuesses reduce { Math.max(_, _) }
     bestGuess
   }
-
+  
+  /**
+   * Get the earliest start time of all the given tasks.
+   */
+  def earliestStart(ts: Iterable[Task]): Double = ts map { start(_) } reduce { Math.min(_, _) }
+  
+  /**
+   * Get the latest half-end time of all the given tasks.
+   */
+  def latestHalfEnd(ts: Iterable[Task]): Double = ts map { halfEnd(_) } reduce { Math.max(_, _) }
+  
   /**
    * Schedule a task as late as possible avoiding resource conflicts.
    * The latest half-end time for a task will be used as a backstop,
@@ -99,11 +110,11 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     if (laters.isEmpty && starts.isEmpty) {
       new Schedule(starts + (t -> defaultStart))
     } else if (laters.isEmpty && starts.nonEmpty) {
-      val mustntRunInto = tasks map { halfEnd(_) } reduce { Math.max(_, _) }
+      val mustntRunInto = latestHalfEnd(tasks)
       val tStart = latestStart(t, mustntRunInto)
       new Schedule(starts + (t -> tStart))
     } else {
-      val mustntRunInto = laters map { start(_) } reduce { Math.min(_, _) }
+      val mustntRunInto = earliestStart(laters)
       val tStart = latestStart(t, mustntRunInto)
       new Schedule(starts + (t -> tStart))
     }
@@ -115,9 +126,9 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   def schedule(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
     // First schedule the end tasks, then follow on from there
     val g = new Graph(deps)
-    val ends = g.ends
+    val ends = if (g.ends.nonEmpty) g.ends else ts
     val sch = scheduleEnds(ends)
-    val remaining = sch.tasks.toSeq
+    val remaining = ts filter { !sch.isScheduled(_) }
     sch.scheduleFollowOns(remaining, deps)
   }
 
@@ -155,6 +166,25 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
       val remaining = ts filter { _ != t }
       sch.scheduleFollowOns(remaining, deps)
     }
+  }
+  
+  /**
+   * Create a new schedule which is just like this one, but
+   * all the start times have been shifted so that the earliest
+   * time is as given (`base`). 
+   */
+  def adjustStart(base: Double): Schedule = {
+    val earliest = earliestStart(tasks)
+    val starts2 = starts map { kv => (kv._1, kv._2 - earliest + base ) }
+    new Schedule(starts2)
+  }
+  
+  /**
+   * Describe the schedule as a `String`.
+   */
+  def roughInfo: String = {
+    val ts = tasks map { t => t.toString + ": " + start(t) + " to " + halfEnd(t) }
+    ts.mkString("\n")
   }
 
 }
