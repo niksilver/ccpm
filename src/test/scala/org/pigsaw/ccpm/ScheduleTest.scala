@@ -500,9 +500,9 @@ class ScheduleTest extends FlatSpec with Matchers {
     // [id, half-duration, resource]
     // 
     // [start,0]
-    //    +---[t1, 3,     C]-+
-    //    +-[t2, 4,       D]-+
-    //    +-----[t3, 1.5, E]-+
+    //    +---[t1, 3,     A]-+
+    //    +-[t2, 4,       B]-+
+    //    +-----[t3, 1.5, C]-+
     //                       \[end,0]
 
     t1 should halfEndRightBefore (tEnd)
@@ -511,6 +511,74 @@ class ScheduleTest extends FlatSpec with Matchers {
     tStart should halfEndSomeTimeBefore (t1)
     tStart should halfEndRightBefore (t2)
     tStart should halfEndSomeTimeBefore (t3)
+  }
+
+  "schedule(Seq[Task], dependencies)" should "schedule the latest-ending tasks first "+
+  		"(2 - latest-ending task before the others)" in {
+    val tStart = Task('start)
+    val t1 = new Task('t1, "t1", 2 * 4, Some("A"))
+    val t2 = new Task('t2, "t2", 2 * 3, Some("B"))
+    val t3 = new Task('t3, "t3", 2 * 1.5, Some("C"))
+    val tEnd = Task('end)
+
+    val deps = List(
+      tStart -> t1, tStart -> t2, tStart -> t3,
+      t1 -> tEnd, t2 -> tEnd, t3 -> tEnd)
+
+    val tasks = List(tStart, t1, t2, t3, tEnd)
+
+    val sch = (new Schedule()).schedule(tasks, deps)
+    implicit val iSched = new MatchingSchedule(sch)
+
+    // Here's our intended schedule:
+    // [id, half-duration, resource]
+    // 
+    // [start,0]
+    //    +-[t1, 4,       A]-+
+    //    +---[t2, 3,     B]-+
+    //    +-----[t3, 1.5, C]-+
+    //                       \[end,0]
+
+    t1 should halfEndRightBefore (tEnd)
+    t2 should halfEndRightBefore (tEnd)
+    t3 should halfEndRightBefore (tEnd)
+    tStart should halfEndRightBefore (t1)
+    tStart should halfEndSomeTimeBefore (t2)
+    tStart should halfEndSomeTimeBefore (t3)
+  }
+
+  "schedule(Seq[Task], dependencies)" should "schedule the latest-ending tasks first "+
+  		"(3 - latest-ending task after the others)" in {
+    val tStart = Task('start)
+    val t1 = new Task('t1, "t1", 2 * 1.5, Some("A"))
+    val t2 = new Task('t2, "t2", 2 * 3, Some("B"))
+    val t3 = new Task('t3, "t3", 2 * 4, Some("C"))
+    val tEnd = Task('end)
+
+    val deps = List(
+      tStart -> t1, tStart -> t2, tStart -> t3,
+      t1 -> tEnd, t2 -> tEnd, t3 -> tEnd)
+
+    val tasks = List(tStart, t1, t2, t3, tEnd)
+
+    val sch = (new Schedule()).schedule(tasks, deps)
+    implicit val iSched = new MatchingSchedule(sch)
+
+    // Here's our intended schedule:
+    // [id, half-duration, resource]
+    // 
+    // [start,0]
+    //    +-----[t1, 1.5, C]-+
+    //    +---[t2, 3,     B]-+
+    //    +-[t3, 4,       A]-+
+    //                       \[end,0]
+
+    t1 should halfEndRightBefore (tEnd)
+    t2 should halfEndRightBefore (tEnd)
+    t3 should halfEndRightBefore (tEnd)
+    tStart should halfEndSomeTimeBefore (t1)
+    tStart should halfEndSomeTimeBefore (t2)
+    tStart should halfEndRightBefore (t3)
   }
 
   ignore should "schedule many tasks in the right order according to dependencies and resources" in {
