@@ -493,7 +493,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val tasks = List(tStart, t1, t2, t3, tEnd)
 
-    val sch = (new Schedule()).schedule(tasks, deps)
+    val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
@@ -527,7 +527,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val tasks = List(tStart, t1, t2, t3, tEnd)
 
-    val sch = (new Schedule()).schedule(tasks, deps)
+    val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
@@ -561,7 +561,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val tasks = List(tStart, t1, t2, t3, tEnd)
 
-    val sch = (new Schedule()).schedule(tasks, deps)
+    val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
@@ -588,7 +588,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val deps = Nil
     val tasks = List(t1, t2, t3)
-    val sch = (new Schedule()).schedule(tasks, deps)
+    val sch = Schedule.make(tasks, deps)
     
     sch.halfEnd(t1) should equal (sch.halfEnd(t2))
     sch.halfEnd(t2) should equal (sch.halfEnd(t3))
@@ -601,7 +601,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val deps = Nil
     val tasks = List(t1, t2, t3)
-    val sch = (new Schedule()).schedule(tasks, deps)
+    val sch = Schedule.make(tasks, deps)
     
     val earliest = sch.earliestStart(tasks)
     val latest = sch.latestHalfEnd(tasks)
@@ -633,7 +633,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val tasks = List(tStart, t1, t2, t3, tEnd)
 
-    val sch = (new Schedule()).schedule(tasks, deps)
+    val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
     t2 should halfEndRightBefore (tEnd)
@@ -667,7 +667,7 @@ class ScheduleTest extends FlatSpec with Matchers {
 
     val tasks = List(tStart, a1, a2, a3, b1, b2, c1, c2, c3, c4, tEnd)
 
-    val sch = (new Schedule()).schedule(tasks, deps)
+    val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
@@ -717,7 +717,7 @@ class ScheduleTest extends FlatSpec with Matchers {
   "adjustStart" should "adjust start times to given base" in {
     val t1 = Task('t1, "My first", 5, Some("Alice"))
     val t2 = Task('t2, "My second", 4, Some("Alice"))
-    val sch1 = (new Schedule()).schedule(List(t1, t2), Nil)
+    val sch1 = Schedule.make(List(t1, t2), Nil)
     val schAdjusted = sch1.adjustStart(0)
 
     val tasks = List(t1, t2)

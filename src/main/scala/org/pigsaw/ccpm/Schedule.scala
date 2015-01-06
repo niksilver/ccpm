@@ -199,4 +199,9 @@ object Schedule {
    */
   val defaultStart = 0.0
 
+  /**
+   * Make a new schedule with the given tasks and dependencies.
+   */
+  def make(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule =
+    (new Schedule()).schedule(ts, deps)
 }
