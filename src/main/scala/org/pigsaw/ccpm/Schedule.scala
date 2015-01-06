@@ -142,7 +142,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
         if (start(p1._2) > start(p2._2)) p1 else p2
       val latestStartingPair = stablePairs reduce { laterStartingPair(_, _) }
       val t = latestStartingPair._1
-      val laters = deps filter { _._1 == t } map { _._2 } filter { isScheduled(_) }
+      val laters = stablePairs filter { _._1 == t } map { _._2 }
       val sch = schedule(t, laters)
       val remaining = ts filter { _ != t }
       sch.scheduleFollowOns(remaining, deps)
