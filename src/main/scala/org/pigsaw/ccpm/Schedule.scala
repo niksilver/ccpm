@@ -57,9 +57,9 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val tHalfEnd = tStart + t.halfDuration
     def conflictsWith(t2: Task) = {
       (t.duration > 0 && start(t2) < tHalfEnd && tHalfEnd <= halfEnd(t2)) ||
-      (t.duration > 0 && start(t2) <= tStart && tStart < halfEnd(t2)) ||
-      (t.duration == 0 && start(t2) < tStart && tStart < halfEnd(t2)) ||
-      (t2.duration == 0 && tStart < start(t2) && start(t2) < tHalfEnd)
+        (t.duration > 0 && start(t2) <= tStart && tStart < halfEnd(t2)) ||
+        (t.duration == 0 && start(t2) < tStart && tStart < halfEnd(t2)) ||
+        (t2.duration == 0 && tStart < start(t2) && start(t2) < tHalfEnd)
     }
     def sameResources(t2: Task) = { t.resource.nonEmpty && t.resource == t2.resource }
     tasks filter { sameResources(_) } exists { conflictsWith(_) }
@@ -78,17 +78,17 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val bestGuess = goodGuesses reduce { Math.max(_, _) }
     bestGuess
   }
-  
+
   /**
    * Get the earliest start time of all the given tasks.
    */
   def earliestStart(ts: Iterable[Task]): Double = ts map { start(_) } reduce { Math.min(_, _) }
-  
+
   /**
    * Get the latest half-end time of all the given tasks.
    */
   def latestHalfEnd(ts: Iterable[Task]): Double = ts map { halfEnd(_) } reduce { Math.max(_, _) }
-  
+
   /**
    * Schedule a task as late as possible avoiding resource conflicts.
    * The latest half-end time for a task will be used as a backstop,
@@ -136,10 +136,10 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   @tailrec
   private def scheduleEnds(ends: Seq[Task]): Schedule =
     ends match {
-    case Nil => this
-    case t :: Nil => schedule(t)
-    case t :: tOthers => schedule(t).scheduleEnds(tOthers)
-  }
+      case Nil => this
+      case t :: Nil => schedule(t)
+      case t :: tOthers => schedule(t).scheduleEnds(tOthers)
+    }
 
   @tailrec
   private def scheduleFollowOns(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
@@ -167,24 +167,47 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
       sch.scheduleFollowOns(remaining, deps)
     }
   }
-  
+
   /**
    * Create a new schedule which is just like this one, but
    * all the start times have been shifted so that the earliest
-   * time is as given (`base`). 
+   * time is as given (`base`).
    */
   def adjustStart(base: Double): Schedule = {
     val earliest = earliestStart(tasks)
-    val starts2 = starts map { kv => (kv._1, kv._2 - earliest + base ) }
+    val starts2 = starts map { kv => (kv._1, kv._2 - earliest + base) }
     new Schedule(starts2)
   }
-  
+
   /**
    * Describe the schedule as a `String`.
    */
-  def roughInfo: String = {
-    val ts = tasks map { t => t.toString + ": " + start(t) + " to " + halfEnd(t) }
+  def roughInfo: String = adjustStart(0).roughInfo0
+  
+  // Here the earliest start is at 0
+  private def roughInfo0: String = {
+    val scale = 4
+    val maxId = tasks map { _.id.toString.length } reduce { Math.max(_, _) }
+    val sortedTasks = tasks.toSeq sortBy { _.id.toString }
+    val ts = sortedTasks map { t =>
+      val label = force(t.id.toString, maxId, " ")
+      val size = t.halfDuration * scale
+      val block = asBlock(t, size.toInt)
+      val indentSize = (start(t) * scale).toInt
+      val indent = " " * indentSize
+      label + indent + "  " + block
+    }
     ts.mkString("\n")
+  }
+  
+  private def asBlock(t: Task, width: Int): String = {
+    val msg = t.resource.getOrElse("")
+    "[" + force(msg, width - 2, "-") + "]"
+  }
+
+  private def force(str: String, size: Int, padding: String) = {
+    //str.padTo(size, padding).take(size).mkString
+    (str + (padding * size)).take(size).mkString
   }
 
 }

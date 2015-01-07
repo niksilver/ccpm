@@ -712,6 +712,8 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch.halfEnd(tStart) should be < sch.start(a1)
     tStart should halfEndRightBefore (a2)
     sch.halfEnd(tStart) should be < sch.start(a3)
+    
+    // println(sch.roughInfo)
   }
   
   "adjustStart" should "adjust start times to given base" in {
