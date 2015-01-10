@@ -59,21 +59,21 @@ class Graph[T](g: Seq[(T, T)]) {
   /**
    * Get all the paths through this acyclic graph.
    */
-  def paths: Seq[Seq[T]] = {
-    pathsFrom(starts)
-  }
+  def paths: Seq[Seq[T]] = pathsFrom(starts)
 
-  private def pathsAfter(source: T): Seq[Seq[T]] = {
-    targets(source) match {
-      case Nil => Seq(Nil)
-      case targs => pathsFrom(targs)
-    }
-  }
-
+  // Get all the paths from (and including) the given node.
   private def pathsFrom(source: Seq[T]): Seq[Seq[T]] = {
     for {
       next <- source
       path <- pathsAfter(next)
-    } yield next +: path
+    } yield (next +: path)
   }
+
+  // Get all the paths after (and therefore excluding) the given node.
+  private def pathsAfter(source: T): Seq[Seq[T]] =
+    targets(source) match {
+      case Nil => Seq(Nil)
+      case targs => pathsFrom(targs)
+    }
+
 }
