@@ -59,9 +59,13 @@ class Graph[T](g: Seq[(T,T)]) {
    * Get all the paths through this acyclic graph.
    */
   def paths: Seq[Seq[T]] = {
-    val sts = starts
-    val pths = sts(0)
-    Seq(sts ++: pathsFrom(pths))
+//    val sts = starts
+//    val pths = sts(0)
+//    Seq(sts ++: pathsFrom(pths))
+    
+    for {
+      start <- starts
+    } yield (start +: pathsFrom(start))
   }
   
   private def pathsFrom(source: T): Seq[T] = {
