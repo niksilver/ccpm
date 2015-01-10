@@ -103,4 +103,9 @@ class GraphTest extends FlatSpec with Matchers {
     g.paths.length should equal (4)
   }
   
+  it should "behave correctly if graph is empty" in {
+    val g: Graph[Nothing] = new Graph(Nil)
+    g.paths should equal (Nil)
+  }
+  
 }
