@@ -4,6 +4,10 @@ package org.pigsaw.ccpm
  * An acyclic graph.
  */
 class Graph[T](g: Seq[(T,T)]) {
+    
+    /** Get all each target node available from a given node
+     */
+    def targets(node: T): Seq[T] = g filter { _._1 == node } map { _._2 }
   
   /**
    * Given an acyclic graph `g`, does it remain acyclic
@@ -23,9 +27,6 @@ class Graph[T](g: Seq[(T,T)]) {
     
     val end = from
     val begin = to
-    
-    // Get all each target node available from a given node
-    def targets(node: T): Seq[T] = g filter { _._1 == node } map { _._2 }
     
     def canReachEnd(start: T): Boolean = {
       val nexts = targets(start)
@@ -52,5 +53,21 @@ class Graph[T](g: Seq[(T,T)]) {
     val froms = (g map { _._1 }).distinct
     val tos = g map { _._2 }
     froms diff tos
+  }
+  
+  /**
+   * Get all the paths through this acyclic graph.
+   */
+  def paths: Seq[Seq[T]] = {
+    val sts = starts
+    val pths = sts(0)
+    Seq(sts ++: pathsFrom(pths))
+  }
+  
+  private def pathsFrom(source: T): Seq[T] = {
+    targets(source) match {
+      case Nil => Nil
+      case targs => targs(0) +: pathsFrom(targs(0))
+    }
   }
 }

@@ -79,4 +79,9 @@ class GraphTest extends FlatSpec with Matchers {
     g.starts should contain ('z)
   }
   
+  "path" should "extract a single path when there is just one" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd)))
+    g.paths should equal (Seq(Seq('a, 'b, 'c, 'd)))
+  }
+  
 }
