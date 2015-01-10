@@ -91,4 +91,16 @@ class GraphTest extends FlatSpec with Matchers {
     g.paths.length should equal (2)
   }
   
+  it should "extract four paths when two start points converge, then diverge" in {
+    val g = new Graph(List(
+        ('a1 -> 'b), ('a2 -> 'b),
+        ('b -> 'c),
+        ('c -> 'd1), ('c -> 'd2)))
+    g.paths should contain (Seq('a1, 'b, 'c, 'd1))
+    g.paths should contain (Seq('a2, 'b, 'c, 'd1))
+    g.paths should contain (Seq('a1, 'b, 'c, 'd2))
+    g.paths should contain (Seq('a2, 'b, 'c, 'd2))
+    g.paths.length should equal (4)
+  }
+  
 }
