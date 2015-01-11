@@ -12,6 +12,13 @@ case class Task(id: Symbol, description: String, duration: Double, resource: Opt
   def isAVariationOf(t: Task) = (id == t.id)
 
   lazy val halfDuration: Double = duration / 2
+  
+  /**
+   * True if and only if this and `t2` both have `Some` resource
+   * and they are they are equal.
+   */
+  def sameResource(t2: Task): Boolean = { resource.nonEmpty && resource == t2.resource }
+
 }
 
 object Task {

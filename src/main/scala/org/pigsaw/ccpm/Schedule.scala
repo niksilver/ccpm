@@ -61,8 +61,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
         (t.duration == 0 && start(t2) < tStart && tStart < halfEnd(t2)) ||
         (t2.duration == 0 && tStart < start(t2) && start(t2) < tHalfEnd)
     }
-    def sameResources(t2: Task) = { t.resource.nonEmpty && t.resource == t2.resource }
-    tasks filter { sameResources(_) } exists { conflictsWith(_) }
+    tasks filter { t.sameResource(_) } exists { conflictsWith(_) }
   }
 
   /**
@@ -183,7 +182,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * Describe the schedule as a `String`.
    */
   def roughInfo: String = adjustStart(0).roughInfo0
-  
+
   // Here the earliest start is at 0
   private def roughInfo0: String = {
     val scale = 4
@@ -199,7 +198,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     }
     ts.mkString("\n")
   }
-  
+
   private def asBlock(t: Task, width: Int): String = {
     val msg = t.resource.getOrElse("")
     "[" + force(msg, width - 2, "-") + "]"
@@ -209,20 +208,40 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     //str.padTo(size, padding).take(size).mkString
     (str + (padding * size)).take(size).mkString
   }
-  
+
   /**
    * Get all pairs of tasks where the half-end time of the first
    * is the start time of the second. This is regardless of
    * whether there is any dependency between them.
    * Zero-length tasks are entirely ignored.
    */
-  def adjacentTasks: Seq[Tuple2[Task,Task]] =
+  def adjacentTasks: Seq[Tuple2[Task, Task]] = {
+    def cond(t1: Task, t2: Task) = true
+    adjacentTasks({ (_, _) => true})
+  }
+  
+  // Find adjacent tasks where the tasks also meet
+  // a given condition.
+  //
+  def adjacentTasks(cond: (Task,Task) => Boolean): Seq[Tuple2[Task, Task]] = {
     for {
       (task1, start1) <- starts.toSeq
-      (task2, start2) <- starts
+      (task2, start2) <- (starts filter { td => cond(task1, td._1) })
       if task1.duration != 0 && task2.duration != 0 && halfEnd(task1) == start2
     } yield (task1, task2)
+  }
 
+
+  /**
+   * Get all pairs of tasks where the half-end time of the first
+   * is the start time of the second and they use the same
+   * resources. This is regardless of
+   * whether there is any other dependency between them.
+   * Zero-length tasks are entirely ignored.
+   */
+  def resourceAdjacentTasks: Seq[Tuple2[Task, Task]] =
+    adjacentTasks( _.sameResource(_))
+    
 }
 
 /**
