@@ -746,6 +746,14 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch.adjacentTasks should be (Seq((t1, t2)))
   }
   
+  it should "ignore zero-length tasks" in {
+    val t1 = Task('t1, "My first", 5, None)
+    val t2 = Task('t2, "Milestone", 0, None)
+    val t3 = Task('t3, "My second", 4, None)
+    val sch = new Schedule() + (t1, 0) + (t2, 2.5) + (t3, 2.5)
+    sch.adjacentTasks should be (Seq((t1, t3)))
+  }
+  
   it should "not say that a zero-length task is adjacent to itself" in {
     val t1 = Task('t1, "My first", 0, None)
     val sch = new Schedule() + (t1, 0)
