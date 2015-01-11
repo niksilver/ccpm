@@ -777,11 +777,18 @@ class ScheduleTest extends FlatSpec with Matchers {
     sch.resourceAdjacentTasks should be (Nil)
   }
   
-  "resourceAdjacentTasks" should "return adjacent tasks with same resources" in {
+  it should "return adjacent tasks with same resources" in {
     val t1 = Task('t1, "My first", 5, Some("Alice"))
     val t2 = Task('t2, "My second", 4, Some("Alice"))
     val sch = new Schedule() + (t1, 0) + (t2, 2.5)
     sch.resourceAdjacentTasks should be (Seq((t1, t2)))
   }
-
+  
+  it should "return adjacent tasks with same resources even if not all adjacent tasks have same resources" in {
+    val t1 = Task('t1, "My first", 5, None)
+    val t2 = Task('t2, "My end", 2, Some("Bob"))
+    val t3 = Task('t3, "My parallel first", 4, Some("Bob"))
+    val sch = new Schedule() + (t1, 0) + (t2, 2.5) + (t3, 0.5)
+    sch.resourceAdjacentTasks should equal (Seq((t3, t2)))
+  }
 }
