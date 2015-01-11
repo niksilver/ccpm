@@ -209,6 +209,18 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     //str.padTo(size, padding).take(size).mkString
     (str + (padding * size)).take(size).mkString
   }
+  
+  /**
+   * Get all pairs of tasks where the half-end time of the first
+   * is the start time of the second. This is regardless of
+   * whether there is any dependency between them.
+   */
+  def adjacentTasks: Seq[Tuple2[Task,Task]] =
+    for {
+      (task1, start1) <- starts.toSeq
+      (task2, start2) <- starts
+      if task1 != task2 && halfEnd(task1) == start2
+    } yield (task1, task2)
 
 }
 

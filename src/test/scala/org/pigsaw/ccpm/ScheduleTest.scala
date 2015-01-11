@@ -726,5 +726,30 @@ class ScheduleTest extends FlatSpec with Matchers {
     schAdjusted.earliestStart(tasks) should equal (0)
     schAdjusted.latestHalfEnd(tasks) should equal (4.5)
   }
+  
+  "adjacentTasks" should "be empty if no tasks scheduled" in {
+    val sch = new Schedule()
+    sch.adjacentTasks should be (Nil)
+  }
+  
+  it should "be empty if no tasks are adjacent" in {
+    val t1 = Task('t1, "My first", 5, Some("Alice"))
+    val t2 = Task('t2, "My second", 4, Some("Alice"))
+    val sch = new Schedule() + (t1, 0) + (t2, 20)
+    sch.adjacentTasks should be (Nil)
+  }
+  
+  it should "show one adjacent pair if there are two tasks and they're adjacent" in {
+    val t1 = Task('t1, "My first", 5, Some("Alice"))
+    val t2 = Task('t2, "My second", 4, Some("Alice"))
+    val sch = new Schedule() + (t1, 0) + (t2, 2.5)
+    sch.adjacentTasks should be (Seq((t1, t2)))
+  }
+  
+  it should "not say that a zero-length task is adjacent to itself" in {
+    val t1 = Task('t1, "My first", 0, None)
+    val sch = new Schedule() + (t1, 0)
+    sch.adjacentTasks should be (Nil)
+  }
 
 }
