@@ -759,5 +759,15 @@ class ScheduleTest extends FlatSpec with Matchers {
     val sch = new Schedule() + (t1, 0)
     sch.adjacentTasks should be (Nil)
   }
+  
+  it should "return multiple pairs when appropriate" in {
+    val t1 = Task('t1, "My first", 5, None)
+    val t2 = Task('t2, "My end", 2, None)
+    val t3 = Task('t3, "My parallel first", 4, None)
+    val sch = new Schedule() + (t1, 0) + (t2, 2.5) + (t3, 0.5)
+    sch.adjacentTasks should contain ((t1, t2))
+    sch.adjacentTasks should contain ((t3, t2))
+    sch.adjacentTasks.length should equal (2)
+  }
 
 }
