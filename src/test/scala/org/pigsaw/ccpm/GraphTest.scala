@@ -108,4 +108,19 @@ class GraphTest extends FlatSpec with Matchers {
     g.paths should equal (Nil)
   }
   
+  "hasEdge" should "return false for empty graph" in {
+    val g: Graph[Symbol] = new Graph(Nil)
+    g.hasEdge('a -> 'b) should be (false)
+  }
+  
+  it should "return true if the edge is burried in the graph" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd)))
+    g.hasEdge('b -> 'c) should be (true)
+  }
+  
+  it should "return false if the edge is not burried in the graph" in {
+    val g = new Graph(List(('a -> 'b), ('b -> 'c), ('c -> 'd)))
+    g.hasEdge('x -> 'y) should be (false)
+  }
+  
 }

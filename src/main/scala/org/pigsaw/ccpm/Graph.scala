@@ -1,5 +1,7 @@
 package org.pigsaw.ccpm
 
+import scala.annotation.tailrec
+
 /**
  * An acyclic graph.
  */
@@ -10,6 +12,11 @@ class Graph[T](g: Seq[(T, T)]) {
    */
   def targets(node: T): Seq[T] = g filter { _._1 == node } map { _._2 }
 
+  /**
+   * Does the graph have a given edge?
+   */
+  def hasEdge(e: Tuple2[T,T]): Boolean = { g contains e }
+  
   /**
    * Given an acyclic graph `g`, does it remain acyclic
    * if we add the specified `edge`?
