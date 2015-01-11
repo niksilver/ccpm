@@ -223,7 +223,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   // Find adjacent tasks where the tasks also meet
   // a given condition.
   //
-  def adjacentTasks(cond: (Task,Task) => Boolean): Seq[Tuple2[Task, Task]] = {
+  private def adjacentTasks(cond: (Task,Task) => Boolean): Seq[Tuple2[Task, Task]] = {
     for {
       (task1, start1) <- starts.toSeq
       (task2, start2) <- (starts filter { td => cond(task1, td._1) })

@@ -5,7 +5,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.Matcher
 import org.scalatest.matchers.MatchResult
 
-class ScheduleTest extends FlatSpec with Matchers with ScheduleMatchers {
+class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
   
   "Schedule.add" should "allow the addition of a new task and its start time (1)" in {
     val t = new Task('t0, "My task", 5, Some("Alice"))
