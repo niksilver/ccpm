@@ -30,4 +30,12 @@ class Plan extends PlanVerbs {
    * A schedule for this plan.
    */
   lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
+  
+  /**
+   * Get all possible chains for this plan
+   */
+  lazy val chains: Seq[Seq[Task]] = {
+    val g = new Graph(dependencies)
+    g.paths
+  }
 }
