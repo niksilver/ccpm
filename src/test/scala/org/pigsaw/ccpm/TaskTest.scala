@@ -31,7 +31,7 @@ class TaskTest extends FlatSpec with Matchers {
     Task('t101).description should equal (Task.DefaultDescription)
   }
   
-  it should "detect another task with same id is a variation of it" in {
+  "isAVariationof" should "detect another task with same id is a variation of it" in {
     val t1 = Task('t100, "First task")
     val t2 = Task('t100, "Another task")
     (t1 isAVariationOf t2) should equal (true)
@@ -43,7 +43,7 @@ class TaskTest extends FlatSpec with Matchers {
     (t1 isAVariationOf t2) should equal (false)
   }
   
-  it should "have a default duration of zero" in {
+  "duration" should "have a default duration of zero" in {
     val t = Task('t100)
     t.duration should equal (0)
   }
@@ -58,18 +58,42 @@ class TaskTest extends FlatSpec with Matchers {
     t.duration should equal (2.5)
   }
   
-  it should "allow the extraction of half duration" in {
+  "halfDuration" should "allow the extraction of half duration" in {
     val t = Task('t100, 12)
     t.halfDuration should equal (6)
   }
   
-  it should "be constructable with an optional resource" in {
+  "Task(..., resource)" should "be constructable with an optional resource" in {
     new Task('t100, "My task", 4, Some("Bob"))
   }
   
   it should "have a default resource of None" in {
     val t = Task('t100)
     t.resource should equal (None)
+  }
+  
+  "sameResource" should "be false if either resource requirement is None" in {
+    val t1 = Task('t1, "My task one", 4, Some("Alice"))
+    val t2 = Task('t2, "My task two", 4, None)
+    val t3 = Task('t3, "My task three", 4, None)
+    
+    t1.sameResource(t2) should equal (false)
+    t2.sameResource(t1) should equal (false)
+    t2.sameResource(t3) should equal (false)
+  }
+  
+  it should "be true if both resource requirements are the same" in {
+    val t1 = Task('t1, "My task one", 4, Some("Alice"))
+    val t2 = Task('t2, "My task two", 5, Some("Alice"))
+    
+    t1.sameResource(t2) should equal (true)
+  }
+  
+  it should "be false if both tasks have some, but different, resource requirements" in {
+    val t1 = Task('t1, "My task one", 4, Some("Alice"))
+    val t2 = Task('t2, "My task two", 4, Some("Bob"))
+    
+    t1.sameResource(t2) should equal (false)
   }
   
   "The Task object" should "give the default id" in {
