@@ -24,7 +24,7 @@ class PlanContext {
  * }}}
  */
 trait PlanVerbs {
-  this: Plan =>
+  this: ScriptedPlan =>
 
   protected val pc = new PlanContext
 

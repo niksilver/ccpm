@@ -6,7 +6,7 @@ import org.scalatest.Matchers
 class DSLTest extends FlatSpec with Matchers {
 
   "The DSL for adding tasks" should "be able to accept a Task with an ID and description" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task 't100 as "My task"
     }
     p.tasks.length should equal(1)
@@ -14,7 +14,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   it should "give a task with just an id the default description" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task 't22
     }
     (p.tasks)(0) should equal(Task('t22, Task.DefaultDescription))
@@ -22,7 +22,7 @@ class DSLTest extends FlatSpec with Matchers {
 
   it should "reject a second task with the same id for tasks without descriptions" in {
     a[DuplicateTaskException] should be thrownBy {
-      new Plan {
+      new ScriptedPlan {
         add task 't33
         add task 't33
       }
@@ -31,7 +31,7 @@ class DSLTest extends FlatSpec with Matchers {
 
   it should "reject a second task with the same id for tasks with descriptions" in {
     a[DuplicateTaskException] should be thrownBy {
-      new Plan {
+      new ScriptedPlan {
         add task 't33 as "Task one"
         add task 't33 as "Task two"
       }
@@ -39,7 +39,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   it should "generate unique task ids for tasks that need them" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task "Task one"
       add task 't13 as "Task two"
       add task "Task three"
@@ -56,7 +56,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   "The DSL for dependencies" should "allow task dependencies to be expressed by ids" in {
-    new Plan {
+    new ScriptedPlan {
       add task 't0
       add task 't1
       't0 ~> 't1
@@ -64,7 +64,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   it should "allow task dependencies to be expressed by chaining ids" in {
-    new Plan {
+    new ScriptedPlan {
       add task 't0
       add task 't1
       add task 't2
@@ -74,7 +74,7 @@ class DSLTest extends FlatSpec with Matchers {
 
   it should "throw an exception if earlier task id does not exist" in {
     an[UnknownTaskException] should be thrownBy {
-      new Plan {
+      new ScriptedPlan {
         add task 't0
         add task 't1
         'xxx ~> 't1
@@ -84,7 +84,7 @@ class DSLTest extends FlatSpec with Matchers {
 
   it should "throw an exception if later task id does not exist" in {
     an[UnknownTaskException] should be thrownBy {
-      new Plan {
+      new ScriptedPlan {
         add task 't0
         add task 't1
         't0 ~> 'xxx
@@ -93,7 +93,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   it should "allow extraction of dependencies" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task 't0
       add task 't1
       't0 ~> 't1
@@ -102,7 +102,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   it should "allow extraction of chained dependencies" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task 't0
       add task 't1
       add task 't2
@@ -114,7 +114,7 @@ class DSLTest extends FlatSpec with Matchers {
 
   it should "reject cyclic dependencies" in {
     a[CyclicDependencyException] should be thrownBy {
-      new Plan {
+      new ScriptedPlan {
         add task 't0
         add task 't1
         add task 't2
@@ -127,7 +127,7 @@ class DSLTest extends FlatSpec with Matchers {
   
   it should "reject a repeated dependency" in {
     a[DuplicateDependencyException] should be thrownBy {
-      new Plan {
+      new ScriptedPlan {
         add task 't0
         add task 't1
         add task 't2
@@ -141,14 +141,14 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   "The DSL for task duration" should "allow specification of duration via the DSL" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task 't0 duration 5
     }
     p.task('t0).duration should equal(5)
   }
 
   it should "allow syntax add task ... duration ... as ..." in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task 't0 duration 5 as "First task"
     }
     p.task('t0).description should equal("First task")
@@ -156,7 +156,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   it should "allow syntax add task ... as ... duration ..." in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       add task 't0 as "First task" duration 5
     }
     p.task('t0).description should equal("First task")
@@ -164,13 +164,13 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   "The DSL for resources" should "allow declaring of resources" in {
-    new Plan {
+    new ScriptedPlan {
       declare resource "Alice"
     }
   }
 
   it should "ensure declared resources can be retrieved" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       declare resource "Alice"
       declare resource "Bob"
     }
@@ -181,14 +181,14 @@ class DSLTest extends FlatSpec with Matchers {
 
   it should "reject any task's resource that's not been declared" in {
     a[UnknownResourceException] should be thrownBy {
-      new Plan {
+      new ScriptedPlan {
         add task 't0 resource "Alice" as "First task"
       }
     }
   }
 
   it should "allow specification of a resource for a task via the DSL" in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       declare resource "Kevin"
       add task 't0 resource "Kevin"
     }
@@ -197,7 +197,7 @@ class DSLTest extends FlatSpec with Matchers {
 
   it should "specify the errant resource if a task uses an undeclared resource" in {
     val exc = the [UnknownResourceException] thrownBy {
-    new Plan {
+    new ScriptedPlan {
       add task 't0 resource "Alice"
     }
     }
@@ -205,7 +205,7 @@ class DSLTest extends FlatSpec with Matchers {
   }
 
   it should "allow DSL syntax add task ... resource ... as ..." in {
-    val p = new Plan {
+    val p = new ScriptedPlan {
       declare resource "Kevin"
       add task 't0 resource "Kevin" as "First task"
     }
