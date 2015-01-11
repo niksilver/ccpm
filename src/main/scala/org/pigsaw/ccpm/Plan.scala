@@ -25,4 +25,9 @@ class Plan extends PlanVerbs {
    * before `t1` can start.
    */
   lazy val dependencies: Seq[(Task, Task)] = scala.collection.immutable.List(pc.dependencies: _*)
+  
+  /**
+   * A schedule for this plan.
+   */
+  lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
 }
