@@ -17,7 +17,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
     val sch0 = new Schedule()
     val sch1 = sch0.schedule(t0).schedule(t1)
-    sch1.halfEnd(t0) should equal (sch1.halfEnd(t1))
+    sch1.end(t0) should equal (sch1.end(t1))
   }
 
   it should "schedule a non-conflicting tasks to end at the latest time, even if there's an earlier task" in {
@@ -28,7 +28,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     	(t0, 20) +    // Ends at 21
     	(t1, 25)      // Ends at 26.5
     val sch2 = sch1.schedule(t2)
-    sch2.halfEnd(t2) should equal (sch2.halfEnd(t1))
+    sch2.end(t2) should equal (sch2.end(t1))
   }
 
   it should "schedule a resource-conflicting task to be just before the resource is available "+
@@ -39,8 +39,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // Notice we schedule the last task first...
     val sch = (new Schedule()).schedule(tAlice2).schedule(tAlice1)
 
-    // Note critical chain requires scheduling to half task duration
-    sch.halfEnd(tAlice1) should equal (sch.start(tAlice2))
+    sch.end(tAlice1) should equal (sch.start(tAlice2))
   }
 
   it should "schedule a resource-conflicting task to be just before the resource is available "+
@@ -52,8 +51,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // Notice we schedule the last task first...
     val sch = (new Schedule() + (tAlice2, tAlice2Start)).schedule(tAlice1)
 
-    // Note critical chain requires scheduling to half task duration
-    sch.halfEnd(tAlice1) should equal (sch.start(tAlice2))
+    sch.end(tAlice1) should equal (sch.start(tAlice2))
   }
 
   it should "schedule a resource-conflicting task to be just before the resource is available "+
@@ -65,8 +63,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // Notice we schedule the last task first...
     val sch = (new Schedule() + (tAlice2, tAlice2Start)).schedule(tAlice1)
 
-    // Note critical chain requires scheduling to half task duration
-    sch.halfEnd(tAlice1) should equal (sch.start(tAlice2))
+    sch.end(tAlice1) should equal (sch.start(tAlice2))
   }
 
   it should "schedule a resource-conflicting task to be just before the resource is available" +
@@ -81,14 +78,13 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
       // Then we schedule the resource-conflicting task
       val sch2 = sch1.schedule(tAlice1)
 
-      // Note critical chain requires scheduling to half task duration
-      sch2.halfEnd(tAlice1) should equal (sch2.start(tAlice2))
+      sch2.end(tAlice1) should equal (sch2.start(tAlice2))
     }
 
   it should "schedule a resource-conflicting task between others if the time is available" in {
-    val tAlice1 = new Task('a1, "First task", 2, Some("Alice"))
-    val tAlice2 = new Task('a2, "Second task", 3, Some("Alice"))
-    val tAlice3 = new Task('a3, "Middle task", 3, Some("Alice"))
+    val tAlice1 = new Task('a1, "First task", 1, Some("Alice"))
+    val tAlice2 = new Task('a2, "Second task", 1.5, Some("Alice"))
+    val tAlice3 = new Task('a3, "Middle task", 1.5, Some("Alice"))
 
     // First we schedule two tasks with a gap
     val sch1 = (new Schedule()) +
@@ -98,14 +94,13 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // Then we schedule one which should go in between
     val sch2 = sch1.schedule(tAlice3)
 
-    // Note critical chain requires scheduling to half task duration
-    sch2.halfEnd(tAlice3) should equal (sch2.start(tAlice1))
+    sch2.end(tAlice3) should equal (sch2.start(tAlice1))
   }
 
   it should "schedule a resource-conflicting task after another if the time is available" in {
-    val t1 = new Task('t1, "First task", 2, Some("Alice"))
-    val t2 = new Task('t2, "Second task", 3, Some("Alice"))
-    val t3 = new Task('t3, "Third task", 3, Some("Bob"))
+    val t1 = new Task('t1, "First task", 1, Some("Alice"))
+    val t2 = new Task('t2, "Second task", 1.5, Some("Alice"))
+    val t3 = new Task('t3, "Third task", 1.5, Some("Bob"))
 
     // First we schedule two tasks with a gap
     val sch1 = (new Schedule()) +
@@ -115,8 +110,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // Then we schedule one which should go right at the end
     val sch2 = sch1.schedule(t1)
 
-    // Note critical chain requires scheduling to half task duration
-    sch2.halfEnd(t1) should equal (sch2.halfEnd(t3))
+    sch2.end(t1) should equal (sch2.end(t3))
   }
 
   it should "schedule a resource-conflicting task to be just before the resource is available" +
@@ -135,11 +129,10 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
       // Then we schedule the resource-conflicting task
       val sch2 = sch1.schedule(tAlice1)
 
-      // Note critical chain requires scheduling to half task duration
       implicit val iSched = new MatchingSchedule(sch2)
-      tAlice3 should halfEndRightBefore (tAlice4)
-      tAlice2 should halfEndRightBefore (tAlice3)
-      tAlice1 should halfEndRightBefore (tAlice2)
+      tAlice3 should endRightBefore (tAlice4)
+      tAlice2 should endRightBefore (tAlice3)
+      tAlice1 should endRightBefore (tAlice2)
     }
 
   "scheduleBefore" should "schedule a task before a given other" in {
@@ -155,8 +148,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // Now schedule t1 to be before t3
     val sch2 = sch1.scheduleBefore(t1, List(t3))
 
-    // Note critical chain requires scheduling to half task duration
-    sch2.halfEnd(t1) should equal (sch2.start(t3))
+    sch2.end(t1) should equal (sch2.start(t3))
   }
 
   it should "schedule a task before several given others" in {
@@ -178,11 +170,10 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val sch2 = sch1.scheduleBefore(t1, List(t3, t4, t2))
 
     // t1 should start and finish just before the earliest task: t4
-    // Remember, critical chain requires we schedule by half-duration
-    sch2.halfEnd(t1) should equal (sch2.start(t4))
+    sch2.end(t1) should equal (sch2.start(t4))
 
     implicit val iSched = new MatchingSchedule(sch2)
-    t1 should halfEndRightBefore (t4)
+    t1 should endRightBefore (t4)
   }
 
   it should "schedule a task before several given others or any with a resource conflict" in {
@@ -205,16 +196,15 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val sch2 = sch1.scheduleBefore(t1, List(t3, t2))
 
     // t1 should start and finish just before the earliest task: t4
-    // Remember, critical chain requires we schedule by half-duration
-    sch2.halfEnd(t1) should equal (sch2.start(t4))
+    sch2.end(t1) should equal (sch2.start(t4))
   }
 
   "Schedule.make" should "schedule the latest-ending tasks first "+
   		"(1 - latest-ending task is in middle of others)" in {
     val tStart = Task('start)
-    val t1 = new Task('t1, "t1", 2 * 3, Some("A"))
-    val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
-    val t3 = new Task('t3, "t3", 2 * 1.5, Some("C"))
+    val t1 = new Task('t1, "t1", 3, Some("A"))
+    val t2 = new Task('t2, "t2", 4, Some("B"))
+    val t3 = new Task('t3, "t3", 1.5, Some("C"))
     val tEnd = Task('end)
 
     val deps = List(
@@ -227,7 +217,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
-    // [id, half-duration, resource]
+    // [id, duration, resource]
     // 
     // [start,0]
     //    +---[t1, 3,     A]-+
@@ -235,20 +225,20 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     //    +-----[t3, 1.5, C]-+
     //                       \[end,0]
 
-    t1 should halfEndRightBefore (tEnd)
-    t2 should halfEndRightBefore (tEnd)
-    t3 should halfEndRightBefore (tEnd)
-    tStart should halfEndSomeTimeBefore (t1)
-    tStart should halfEndRightBefore (t2)
-    tStart should halfEndSomeTimeBefore (t3)
+    t1 should endRightBefore (tEnd)
+    t2 should endRightBefore (tEnd)
+    t3 should endRightBefore (tEnd)
+    tStart should endSomeTimeBefore (t1)
+    tStart should endRightBefore (t2)
+    tStart should endSomeTimeBefore (t3)
   }
 
   it should "schedule the latest-ending tasks first "+
   		"(2 - latest-ending task before the others)" in {
     val tStart = Task('start)
-    val t1 = new Task('t1, "t1", 2 * 4, Some("A"))
-    val t2 = new Task('t2, "t2", 2 * 3, Some("B"))
-    val t3 = new Task('t3, "t3", 2 * 1.5, Some("C"))
+    val t1 = new Task('t1, "t1", 4, Some("A"))
+    val t2 = new Task('t2, "t2", 3, Some("B"))
+    val t3 = new Task('t3, "t3", 1.5, Some("C"))
     val tEnd = Task('end)
 
     val deps = List(
@@ -261,7 +251,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
-    // [id, half-duration, resource]
+    // [id, duration, resource]
     // 
     // [start,0]
     //    +-[t1, 4,       A]-+
@@ -269,20 +259,20 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     //    +-----[t3, 1.5, C]-+
     //                       \[end,0]
 
-    t1 should halfEndRightBefore (tEnd)
-    t2 should halfEndRightBefore (tEnd)
-    t3 should halfEndRightBefore (tEnd)
-    tStart should halfEndRightBefore (t1)
-    tStart should halfEndSomeTimeBefore (t2)
-    tStart should halfEndSomeTimeBefore (t3)
+    t1 should endRightBefore (tEnd)
+    t2 should endRightBefore (tEnd)
+    t3 should endRightBefore (tEnd)
+    tStart should endRightBefore (t1)
+    tStart should endSomeTimeBefore (t2)
+    tStart should endSomeTimeBefore (t3)
   }
 
   it should "schedule the latest-ending tasks first "+
   		"(3 - latest-ending task after the others)" in {
     val tStart = Task('start)
-    val t1 = new Task('t1, "t1", 2 * 1.5, Some("A"))
-    val t2 = new Task('t2, "t2", 2 * 3, Some("B"))
-    val t3 = new Task('t3, "t3", 2 * 4, Some("C"))
+    val t1 = new Task('t1, "t1", 1.5, Some("A"))
+    val t2 = new Task('t2, "t2", 3, Some("B"))
+    val t3 = new Task('t3, "t3", 4, Some("C"))
     val tEnd = Task('end)
 
     val deps = List(
@@ -295,7 +285,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
-    // [id, half-duration, resource]
+    // [id, duration, resource]
     // 
     // [start,0]
     //    +-----[t1, 1.5, C]-+
@@ -303,44 +293,44 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     //    +-[t3, 4,       A]-+
     //                       \[end,0]
 
-    t1 should halfEndRightBefore (tEnd)
-    t2 should halfEndRightBefore (tEnd)
-    t3 should halfEndRightBefore (tEnd)
-    tStart should halfEndSomeTimeBefore (t1)
-    tStart should halfEndSomeTimeBefore (t2)
-    tStart should halfEndRightBefore (t3)
+    t1 should endRightBefore (tEnd)
+    t2 should endRightBefore (tEnd)
+    t3 should endRightBefore (tEnd)
+    tStart should endSomeTimeBefore (t1)
+    tStart should endSomeTimeBefore (t2)
+    tStart should endRightBefore (t3)
   }
   
   it should "work even with no dependencies and non-conflicting tasks" in {
-    val t1 = new Task('t1, "t1", 2 * 3, Some("A"))
-    val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
-    val t3 = new Task('t3, "t3", 2 * 1.5, Some("C"))
+    val t1 = new Task('t1, "t1", 3, Some("A"))
+    val t2 = new Task('t2, "t2", 4, Some("B"))
+    val t3 = new Task('t3, "t3", 1.5, Some("C"))
 
     val deps = Nil
     val tasks = List(t1, t2, t3)
     val sch = Schedule.make(tasks, deps)
     
-    sch.halfEnd(t1) should equal (sch.halfEnd(t2))
-    sch.halfEnd(t2) should equal (sch.halfEnd(t3))
+    sch.end(t1) should equal (sch.end(t2))
+    sch.end(t2) should equal (sch.end(t3))
   }
   
   it should "work even with no dependencies and conflicting tasks" in {
-    val t1 = new Task('t1, "t1", 2 * 3, Some("Alice"))
-    val t2 = new Task('t2, "t2", 2 * 4, Some("Alice"))
-    val t3 = new Task('t3, "t3", 2 * 1.5, Some("Alice"))
+    val t1 = new Task('t1, "t1", 3, Some("Alice"))
+    val t2 = new Task('t2, "t2", 4, Some("Alice"))
+    val t3 = new Task('t3, "t3", 1.5, Some("Alice"))
 
     val deps = Nil
     val tasks = List(t1, t2, t3)
     val sch = Schedule.make(tasks, deps)
     
     val earliest = sch.earliestStart(tasks)
-    val latest = sch.latestHalfEnd(tasks)
+    val latest = sch.latestEnd(tasks)
     (latest - earliest) should equal (3 + 4 + 1.5)
   }
   
   it should "not schedule a task before scheduling all its follow-on tasks" in {
     // Here's our intended schedule:
-    // [id, half-duration, resource]
+    // [id, duration, resource]
     // 
     // [start,0]
     //    +-[t1, 4,       A]-+
@@ -352,9 +342,9 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // later start.
 
     val tStart = Task('start)
-    val t1 = new Task('t1, "t1", 2 * 4, Some("A"))
-    val t2 = new Task('t2, "t2", 2 * 4, Some("B"))
-    val t3 = new Task('t3, "t3", 2 * 2, Some("C"))
+    val t1 = new Task('t1, "t1", 4, Some("A"))
+    val t2 = new Task('t2, "t2", 4, Some("B"))
+    val t3 = new Task('t3, "t3", 2, Some("C"))
     val tEnd = Task('end)
 
     val deps = List(
@@ -366,24 +356,24 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
-    t2 should halfEndRightBefore (tEnd)
-    t3 should halfEndRightBefore (tEnd)
-    t1 should halfEndRightBefore (t2)
-    tStart should halfEndRightBefore (t1)
-    tStart should halfEndSomeTimeBefore (t3)
+    t2 should endRightBefore (tEnd)
+    t3 should endRightBefore (tEnd)
+    t1 should endRightBefore (t2)
+    tStart should endRightBefore (t1)
+    tStart should endSomeTimeBefore (t3)
   }
 
   it should "schedule many tasks in the right order according to dependencies and resources" in {
     val tStart = Task('start)
-    val a1 = new Task('a1, "a1", 2 * 3, Some("C"))
-    val a2 = new Task('a2, "a2", 2 * 4, Some("D"))
-    val a3 = new Task('a3, "a3", 2 * 1.5, Some("E"))
-    val b1 = new Task('b1, "b1", 2 * 5, Some("A"))
-    val b2 = new Task('b2, "b2", 2 * 5, Some("B"))
-    val c1 = new Task('c1, "c1", 2 * 2, Some("B"))
-    val c2 = new Task('c2, "c2", 2 * 4, Some("B"))
-    val c3 = new Task('c3, "c3", 2 * 5, Some("A"))
-    val c4 = new Task('c4, "c4", 2 * 2.5, Some("C"))
+    val a1 = new Task('a1, "a1", 3, Some("C"))
+    val a2 = new Task('a2, "a2", 4, Some("D"))
+    val a3 = new Task('a3, "a3", 1.5, Some("E"))
+    val b1 = new Task('b1, "b1", 5, Some("A"))
+    val b2 = new Task('b2, "b2", 5, Some("B"))
+    val c1 = new Task('c1, "c1", 2, Some("B"))
+    val c2 = new Task('c2, "c2", 4, Some("B"))
+    val c3 = new Task('c3, "c3", 5, Some("A"))
+    val c4 = new Task('c4, "c4", 2.5, Some("C"))
     val tEnd = Task('end)
 
     val deps = List(
@@ -401,7 +391,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
-    // [id, half-duration, resource]
+    // [id, duration, resource]
     // 
     // [start,0]
     //    +---[a1, 3,     C]-+
@@ -417,31 +407,31 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
 
     // The sequence b1, b2, tEnd
 
-    b2 should halfEndRightBefore (tEnd)
-    c4 should halfEndRightBefore (tEnd)
+    b2 should endRightBefore (tEnd)
+    c4 should endRightBefore (tEnd)
 
     // The sequence tStart, c1, c2, c3, c4, tEnd, including resource conflict c1, c2
 
-    c3 should halfEndRightBefore (c4)
-    val laterOfC1AndC2 = if (sch.halfEnd(c1) > sch.halfEnd(c2)) c1 else c2
+    c3 should endRightBefore (c4)
+    val laterOfC1AndC2 = if (sch.end(c1) > sch.end(c2)) c1 else c2
     val earlierOfC1AndC2 = if (sch.start(c1) < sch.start(c2)) c1 else c2
-    laterOfC1AndC2 should halfEndRightBefore (c3)
-    earlierOfC1AndC2 should halfEndRightBefore (laterOfC1AndC2)
-    sch.halfEnd(tStart) should be < sch.start(c1)
-    sch.halfEnd(tStart) should be < sch.start(c2)
+    laterOfC1AndC2 should endRightBefore (c3)
+    earlierOfC1AndC2 should endRightBefore (laterOfC1AndC2)
+    sch.end(tStart) should be < sch.start(c1)
+    sch.end(tStart) should be < sch.start(c2)
 
     // Resource conflict b1, c3
 
-    b1 should halfEndRightBefore (c3)
+    b1 should endRightBefore (c3)
 
     // The sequence tStart, a1, a2, a3, b1
 
-    a1 should halfEndRightBefore (b1)
-    a2 should halfEndRightBefore (b1)
-    a3 should halfEndRightBefore (b1)
-    sch.halfEnd(tStart) should be < sch.start(a1)
-    tStart should halfEndRightBefore (a2)
-    sch.halfEnd(tStart) should be < sch.start(a3)
+    a1 should endRightBefore (b1)
+    a2 should endRightBefore (b1)
+    a3 should endRightBefore (b1)
+    sch.end(tStart) should be < sch.start(a1)
+    tStart should endRightBefore (a2)
+    sch.end(tStart) should be < sch.start(a3)
     
     // println(sch.roughInfo)
   }

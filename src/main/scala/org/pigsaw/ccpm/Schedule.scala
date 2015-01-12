@@ -45,21 +45,16 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   def end(t: Task): Double = start(t) + t.duration
 
   /**
-   * Get the end time of a given task, based on half its duration.
-   */
-  def halfEnd(t: Task): Double = start(t) + t.halfDuration
-
-  /**
    * If the task `t` starts at time `tStart`, does it
    * resource-conflict with any of the tasks scheduled so far?
    */
   def resourceConflicts(t: Task, tStart: Double): Boolean = {
-    val tHalfEnd = tStart + t.halfDuration
+    val tEnd = tStart + t.duration
     def conflictsWith(t2: Task) = {
-      (t.duration > 0 && start(t2) < tHalfEnd && tHalfEnd <= halfEnd(t2)) ||
-        (t.duration > 0 && start(t2) <= tStart && tStart < halfEnd(t2)) ||
-        (t.duration == 0 && start(t2) < tStart && tStart < halfEnd(t2)) ||
-        (t2.duration == 0 && tStart < start(t2) && start(t2) < tHalfEnd)
+      (t.duration > 0 && start(t2) < tEnd && tEnd <= end(t2)) ||
+        (t.duration > 0 && start(t2) <= tStart && tStart < end(t2)) ||
+        (t.duration == 0 && start(t2) < tStart && tStart < end(t2)) ||
+        (t2.duration == 0 && tStart < start(t2) && start(t2) < tEnd)
     }
     tasks filter { t.sameResource(_) } exists { conflictsWith(_) }
   }
@@ -70,8 +65,8 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * does not allow the task to run later that `tLatest`.
    */
   def latestStart(t: Task, latest: Double): Double = {
-    val firstGuess = latest - t.halfDuration
-    val otherGuesses = tasks map { start(_) - t.halfDuration } filter { _ < firstGuess }
+    val firstGuess = latest - t.duration
+    val otherGuesses = tasks map { start(_) - t.duration } filter { _ < firstGuess }
     val allGuesses = List(firstGuess) ++ otherGuesses
     val goodGuesses = allGuesses filter { !resourceConflicts(t, _) }
     val bestGuess = goodGuesses reduce { Math.max(_, _) }
@@ -84,13 +79,13 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   def earliestStart(ts: Iterable[Task]): Double = ts map { start(_) } reduce { Math.min(_, _) }
 
   /**
-   * Get the latest half-end time of all the given tasks.
+   * Get the latest end time of all the given tasks.
    */
-  def latestHalfEnd(ts: Iterable[Task]): Double = ts map { halfEnd(_) } reduce { Math.max(_, _) }
+  def latestEnd(ts: Iterable[Task]): Double = ts map { end(_) } reduce { Math.max(_, _) }
 
   /**
    * Schedule a task as late as possible avoiding resource conflicts.
-   * The latest half-end time for a task will be used as a backstop,
+   * The latest end time for a task will be used as a backstop,
    * or (if there are no tasks scheduled) it will get
    * the `defaultStart` time.
    */
@@ -99,7 +94,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   /**
    * Schedule a test before any given others (specified by `laters`),
    * and without a resource conflict.
-   * If `laters` is empty then the latest half-end time for a task
+   * If `laters` is empty then the latest end time for a task
    * will be used as a backstop.
    * The task `t` will start as late as it can to fit these requirements.
    * If `laters` is empty and there are no tasks scheduled already then
@@ -109,7 +104,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     if (laters.isEmpty && starts.isEmpty) {
       new Schedule(starts + (t -> defaultStart))
     } else if (laters.isEmpty && starts.nonEmpty) {
-      val mustntRunInto = latestHalfEnd(tasks)
+      val mustntRunInto = latestEnd(tasks)
       val tStart = latestStart(t, mustntRunInto)
       new Schedule(starts + (t -> tStart))
     } else {
@@ -190,7 +185,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val sortedTasks = tasks.toSeq sortBy { _.id.toString }
     val ts = sortedTasks map { t =>
       val label = force(t.id.toString, maxId, " ")
-      val size = t.halfDuration * scale
+      val size = t.duration * scale
       val block = asBlock(t, size.toInt)
       val indentSize = (start(t) * scale).toInt
       val indent = " " * indentSize
@@ -227,7 +222,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     for {
       (task1, start1) <- starts.toSeq
       (task2, start2) <- (starts filter { td => cond(task1, td._1) })
-      if task1.duration != 0 && task2.duration != 0 && halfEnd(task1) == start2
+      if task1.duration != 0 && task2.duration != 0 && end(task1) == start2
     } yield (task1, task2)
   }
 

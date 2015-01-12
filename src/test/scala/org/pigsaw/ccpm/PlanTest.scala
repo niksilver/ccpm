@@ -36,7 +36,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     }
     val sch = p.schedule
     implicit val iSched = MatchingSchedule(sch)
-    t1 should halfEndRightBefore (t2)
+    t1 should endRightBefore (t2)
   }
 
   "chains" should "return paths if no resource conflicts" in {

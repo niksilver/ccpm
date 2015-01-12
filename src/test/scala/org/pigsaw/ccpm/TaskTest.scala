@@ -58,11 +58,6 @@ class TaskTest extends FlatSpec with Matchers {
     t.duration should equal (2.5)
   }
   
-  "halfDuration" should "allow the extraction of half duration" in {
-    val t = Task('t100, 12)
-    t.halfDuration should equal (6)
-  }
-  
   "Task(..., resource)" should "be constructable with an optional resource" in {
     new Task('t100, "My task", 4, Some("Bob"))
   }

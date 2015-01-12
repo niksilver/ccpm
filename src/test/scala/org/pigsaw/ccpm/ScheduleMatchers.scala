@@ -17,37 +17,37 @@ trait ScheduleMatchers {
 
   case class MatchingSchedule(sch: Schedule)
 
-  class TaskHalfEndRightBefore(tLater: Task, sch: Schedule) extends Matcher[Task] {
+  class TaskEndRightBefore(tLater: Task, sch: Schedule) extends Matcher[Task] {
     def apply(tEarlier: Task) = {
-      val halfEnd = sch.halfEnd(tEarlier)
+      val end = sch.end(tEarlier)
       val earlierStart = sch.start(tEarlier)
       val laterStart = sch.start(tLater)
       MatchResult(
-        halfEnd == laterStart,
+        end == laterStart,
         s"$tEarlier with start $earlierStart did not come right before $tLater with start $laterStart",
         s"$tEarlier with start $earlierStart came right before $tLater with start $laterStart")
     }
   }
 
-  def halfEndRightBefore(tEarlier: Task)(implicit iSched: MatchingSchedule) = new TaskHalfEndRightBefore(tEarlier, iSched.sch)
+  def endRightBefore(tEarlier: Task)(implicit iSched: MatchingSchedule) = new TaskEndRightBefore(tEarlier, iSched.sch)
 
   // The following definitions allow us to more easily assert
   // that a half-duration task should come some time before another task:
   //
   //   t1 should halfEndSomeTimeBefore t2
 
-  class TaskHalfEndSomeTimeBefore(tLater: Task, sch: Schedule) extends Matcher[Task] {
+  class TaskEndSomeTimeBefore(tLater: Task, sch: Schedule) extends Matcher[Task] {
     def apply(tEarlier: Task) = {
-      val halfEnd = sch.halfEnd(tEarlier)
+      val end = sch.end(tEarlier)
       val earlierStart = sch.start(tEarlier)
       val laterStart = sch.start(tLater)
       MatchResult(
-        halfEnd <= laterStart,
+        end <= laterStart,
         s"$tEarlier with start $earlierStart did not half-end some time before $tLater with start $laterStart",
         s"$tEarlier with start $earlierStart half-ended some time before $tLater with start $laterStart")
     }
   }
 
-  def halfEndSomeTimeBefore(tEarlier: Task)(implicit iSched: MatchingSchedule) = new TaskHalfEndSomeTimeBefore(tEarlier, iSched.sch)
+  def endSomeTimeBefore(tEarlier: Task)(implicit iSched: MatchingSchedule) = new TaskEndSomeTimeBefore(tEarlier, iSched.sch)
 
 }

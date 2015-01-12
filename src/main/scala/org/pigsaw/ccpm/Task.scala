@@ -1,7 +1,11 @@
 package org.pigsaw.ccpm
 
 /**
- * A task in the project plan
+ * A task in the project plan. The `duration` is the duration of the
+ * task as we will work with it in the plan. So if we're doing CCPM
+ * then the duration should be set as the 50%-likelihood completion time.
+ * If you want to capture something else, like the 95%-likelihood completion
+ * time as well, then you should consider subclassing this.
  */
 case class Task(id: Symbol, description: String, duration: Double, resource: Option[String]) {
 
@@ -10,8 +14,6 @@ case class Task(id: Symbol, description: String, duration: Double, resource: Opt
    * the ids are the same.
    */
   def isAVariationOf(t: Task) = (id == t.id)
-
-  lazy val halfDuration: Double = duration / 2
   
   /**
    * True if and only if this and `t2` both have `Some` resource
