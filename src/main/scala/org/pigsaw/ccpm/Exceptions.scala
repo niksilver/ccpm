@@ -6,7 +6,6 @@ class ProjectException(msg: String) extends Exception(msg) {
 
 class DuplicateTaskException(msg: String) extends ProjectException(msg)
 class UnknownTaskException(msg: String) extends ProjectException(msg)
-class NoTasksException extends ProjectException
 class UnknownResourceException(msg: String) extends ProjectException(msg)
 class CyclicDependencyException(msg: String) extends ProjectException(msg)
 class DuplicateDependencyException(msg: String) extends ProjectException(msg)

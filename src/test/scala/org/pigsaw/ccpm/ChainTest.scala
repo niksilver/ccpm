@@ -32,4 +32,11 @@ class ChainTest extends FlatSpec with Matchers {
   it should "give zero if the chain is empty" in {
     Chain(Nil).length should equal (0)
   }
+  
+  it should "give the task duration if there's only one task" in {
+    val t0 = new Task('t0, "Only task", 5, Some("Alice"))
+
+    val chain = Chain(Seq(t0))
+    chain.length should equal (5)
+  }
 }

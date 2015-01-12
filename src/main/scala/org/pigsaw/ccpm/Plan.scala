@@ -14,7 +14,7 @@ trait Plan {
    * Retrieve a task by its id.
    */
   def task(id: Symbol) = Task.task(tasks, id)
-  
+
   /**
    * Resources in the plan.
    */
@@ -25,12 +25,12 @@ trait Plan {
    * before `t1` can start.
    */
   val dependencies: Seq[(Task, Task)]
-  
+
   /**
    * A schedule for this plan.
    */
   lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
-  
+
   /**
    * Get all possible chains for this plan. This includes non-critical chains.
    */
@@ -42,16 +42,20 @@ trait Plan {
     val chainedGraph = new Graph(chainedDependencies)
     chainedGraph.paths
   }
-  
+
   /**
    * Get the longest chain.
    */
   lazy val criticalChain: Seq[Task] = {
-    if (tasks.isEmpty)
-      throw new NoTasksException
-    val wrappedChains = chains map { Chain(_) }
-    val longest = wrappedChains reduce { (longest, current) => if (current.length > longest.length) current else longest }
-    longest.toSeq
+    if (tasks.isEmpty) {
+      Nil
+    } else if (tasks.length == 1) {
+      tasks
+    } else {
+      val wrappedChains = chains map { Chain(_) }
+      val longest = wrappedChains reduce { (longest, current) => if (current.length > longest.length) current else longest }
+      longest.toSeq
+    }
   }
 }
 
