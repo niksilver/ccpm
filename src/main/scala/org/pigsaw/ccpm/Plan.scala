@@ -54,6 +54,13 @@ trait Plan {
       longest.toSeq
     }
   }
+  
+  /**
+   * Get all paths that are distinct from the critical chain.
+   * Each task will be on exactly one path, and none of the
+   * tasks will be on the critical chain. 
+   */
+  def nonCriticalPaths: Seq[Seq[Task]] = Nil
 }
 
 /**

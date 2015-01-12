@@ -202,4 +202,8 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     chain should equal (Seq(t0))
     Chain(chain).length should equal (3)
   }
+  
+  "nonCriticalPaths" should "be empty for an empty plan" in {
+      EmptyPlan.nonCriticalPaths should equal (Nil)
+  }
 }
