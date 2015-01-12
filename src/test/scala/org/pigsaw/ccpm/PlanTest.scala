@@ -134,7 +134,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
       val dependencies = Seq((t1 -> t4), (t2 -> t3), (t3 -> t4))
     }
     val chains = p.chains
-    
+
     chains should contain theSameElementsAs (Seq(
       Seq(t2, t1, t4),
       Seq(t2, t3, t4)))
@@ -159,7 +159,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
       val dependencies = Seq((t1 -> t4), (t2 -> t3), (t3 -> t4))
     }
     val chains = p.chains
-    
+
     chains should contain theSameElementsAs (Seq(
       Seq(t1, t4),
       Seq(t2, t3, t4)))
@@ -181,29 +181,160 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
       val tasks = Seq(t1, t2, t3, t4, t5)
       val dependencies = Seq((t1 -> t3), (t2 -> t3), (t3 -> t4), (t5 -> t4))
     }
-    
+
     val chain = p.criticalChain
     chain should equal (Seq(t2, t5, t4))
-    Chain(chain).length should equal (5+5+5)
+    Chain(chain).length should equal (5 + 5 + 5)
   }
-  
+
   it should "return the empty sequence if there are no chains at all (no tasks)" in {
-      EmptyPlan.criticalChain should equal (Nil)
+    EmptyPlan.criticalChain should equal (Nil)
   }
-  
+
   it should "work if there's only one task" in {
     val t0 = Task('t0, "The only one", 3, None)
     val p = new Plan {
       val tasks = Seq(t0)
       val dependencies = Nil
     }
-    
+
     val chain = p.criticalChain
     chain should equal (Seq(t0))
     Chain(chain).length should equal (3)
   }
-  
+
   "nonCriticalPaths" should "be empty for an empty plan" in {
-      EmptyPlan.nonCriticalPaths should equal (Nil)
+    EmptyPlan.nonCriticalPaths should equal (Nil)
   }
+
+  it should "work for a simple two-path project" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 6, Some("Bob"))
+    val t3 = Task('t3, "Task three", 7, Some("Carol"))
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3)
+      val dependencies = Seq((t1 -> t3), (t2 -> t3))
+    }
+
+    p.nonCriticalPaths should equal (Seq(Seq(t1)))
+  }
+
+  it should "work for a two-path project with paths length >= 2" in {
+
+    // Our plan is
+    //
+    //     [a1]-[a2]\
+    // [b1  ]-[b2  ]+[b3  ]
+
+    val a1 = Task('a1, 3)
+    val a2 = Task('a2, 3)
+    val b1 = Task('b1, 5)
+    val b2 = Task('b2, 5)
+    val b3 = Task('b3, 5)
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b1, b2, b3)
+      val dependencies = Seq(
+        (a1 -> a2), (a2 -> b3),
+        (b1 -> b2), (b2 -> b3))
+    }
+    p.nonCriticalPaths should equal (Seq(a1, b2))
+  }
+
+  it should "work for a three-path project with paths length >= 2" in {
+
+    //     [a1]-[a2]\
+    // [b1  ]-[b2  ]+[b3  ]
+    //     [c1]-[c2]/
+
+    val (a1, a2) = (Task('a1, 3), Task('a2, 3))
+    val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
+    val (c1, c2) = (Task('c1, 3), Task('c2, 3))
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val dependencies = Seq(
+        (a1 -> a2), (a2 -> b3),
+        (b1 -> b2), (b2 -> b3),
+        (c1 -> c2), (c2 -> b3))
+    }
+    p.nonCriticalPaths should contain theSameElementsAs Seq(
+      Seq(a1, a2),
+      Seq(c1, c2))
+  }
+
+  it should "work when paths feed out and back in to the critical chain" in {
+
+    //       /----[a1]-[a2]\
+    // [b1  ]+[b2  ]+[b3  ]+[b4  ]
+    //       \----[c1]-[c2]/
+    //
+    // Critical chain is b1, b2, b3, b4
+
+    val (a1, a2) = (Task('a1, 3), Task('a2, 3))
+    val (b1, b2, b3, b4) = (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5))
+    val (c1, c2) = (Task('c1, 4), Task('c2, 4))
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b1, b2, b3, b4, c1, c2)
+      val dependencies = Seq(
+        (b1 -> a1), (a1 -> a2), (a2 -> b4),
+        (b1 -> b2), (b2 -> b3), (b3 -> b4),
+        (b1 -> c1), (c1 -> c2), (c2 -> b4))
+    }
+    p.nonCriticalPaths should contain theSameElementsAs Seq(
+      Seq(a1, a2),
+      Seq(c1, c2))
+  }
+
+  it should "work when paths weave in and out of the critical chain" in {
+
+    //       /--[a1]-[a2]\
+    // [b1  ]+[b2       ]+[b3 ]+[b4       ]+[b5    ]
+    //                         \--[c1]-[c2]/
+    //
+    // Critical chain is b1, b2, b3, b4, b5
+    // The path b1, a1, a2, b3, c1, c2, b5 weaves in and out of it
+
+    val (a1, a2) = (Task('a1, 2), Task('a2, 2))
+    val (b1, b2, b3, b4, b5) =
+      (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5), Task('b5, 5))
+    val (c1, c2) = (Task('c1, 2), Task('c2, 2))
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b1, b2, b3, b4, b5, c1, c2)
+      val dependencies = Seq(
+        (b1 -> a1), (a1 -> a2), (a2 -> b3),
+        (b1 -> b2), (b2 -> b3), (b3 -> b4), (b4 -> b5),
+        (b3 -> c1), (c1 -> c2), (c2 -> b5))
+    }
+    p.nonCriticalPaths should contain theSameElementsAs Seq(
+      Seq(a1, a2),
+      Seq(c1, c2))
+  }
+  
+  it should "work when paths are entirely independent" in {
+
+    //            [a1]-[a2]
+    // [b1  ]-[b2  ]+[b3  ]
+    //            [c1]-[c2]
+    
+    fail("Implement me!")
+  }
+  
+  it should "work when the ends don't join up" in {
+
+    //       /----[a1]-[a2]
+    // [b1  ]+[b2  ]+[b3  ]
+    //       \----[c1]-[c2]
+    
+    fail("Implement me!")
+  }
+  
+  it should "work when non-critcal paths have sub-branches" in {
+
+    //       /----[a1]+[a2]-[a3]-[a4]\
+    //       |        \[i2]-[i3]/    |
+	//       |                       |
+    // [b1  ]+[b2       ]+[b3       ]+[b4   ]
+    
+    fail("Implement me!")
+  }
+
 }

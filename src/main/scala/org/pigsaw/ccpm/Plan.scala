@@ -58,9 +58,14 @@ trait Plan {
   /**
    * Get all paths that are distinct from the critical chain.
    * Each task will be on exactly one path, and none of the
-   * tasks will be on the critical chain. 
+   * tasks will be on the critical chain.
+   * That means that all the tasks in all the non-critical
+   * paths and the critical chain combined is exactly all
+   * the tasks in the plan, with no repeats.
    */
-  def nonCriticalPaths: Seq[Seq[Task]] = Nil
+  def nonCriticalPaths: Seq[Seq[Task]] = {
+    tasks filterNot { criticalChain contains _ } map { Seq(_) }
+  }
 }
 
 /**
