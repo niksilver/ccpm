@@ -94,7 +94,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * or (if there are no tasks scheduled) it will get
    * the `defaultStart` time.
    */
-  def schedule(t: Task): Schedule = schedule(t, Nil)
+  def schedule(t: Task): Schedule = scheduleBefore(t, Nil)
 
   /**
    * Schedule a test before any given others (specified by `laters`),
@@ -105,7 +105,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * If `laters` is empty and there are no tasks scheduled already then
    * this first task will get the `defaultStart` time.
    */
-  def schedule(t: Task, laters: Seq[Task]): Schedule = {
+  def scheduleBefore(t: Task, laters: Seq[Task]): Schedule = {
     if (laters.isEmpty && starts.isEmpty) {
       new Schedule(starts + (t -> defaultStart))
     } else if (laters.isEmpty && starts.nonEmpty) {
@@ -161,7 +161,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
       val latestStartingPair = stablePairs reduce { laterStartingPair(_, _) }
       val t = latestStartingPair._1
       val laters = stablePairs filter { _._1 == t } map { _._2 }
-      val sch = schedule(t, laters)
+      val sch = scheduleBefore(t, laters)
       val remaining = ts filter { _ != t }
       sch.scheduleFollowOns(remaining, deps)
     }

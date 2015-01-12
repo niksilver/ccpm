@@ -5,7 +5,7 @@ import org.scalatest.FlatSpec
 
 class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatchers {
 
-  "schedule(Task, Nil)" should "schedule the first task at some arbitrary time" in {
+  "schedule(Task)" should "schedule the first task at some arbitrary time" in {
     val sch0 = new Schedule()
     val t = new Task('t0, "My task", 5, Some("Alice"))
     val sch1 = sch0.schedule(t)
@@ -142,7 +142,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
       tAlice1 should halfEndRightBefore (tAlice2)
     }
 
-  "schedule(Task, Seq[Tasks])" should "schedule a task before a given other" in {
+  "scheduleBefore" should "schedule a task before a given other" in {
     val t1 = new Task('t1, "Task one", 1, Some("Alice"))
     val t2 = new Task('t2, "Task two", 2, Some("Bob"))
     val t3 = new Task('t3, "Task three", 3, Some("Carol"))
@@ -153,7 +153,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val sch1 = (new Schedule()).schedule(t5).schedule(t4).schedule(t3).schedule(t2)
 
     // Now schedule t1 to be before t3
-    val sch2 = sch1.schedule(t1, List(t3))
+    val sch2 = sch1.scheduleBefore(t1, List(t3))
 
     // Note critical chain requires scheduling to half task duration
     sch2.halfEnd(t1) should equal (sch2.start(t3))
@@ -169,13 +169,13 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // We'll schedule t2, t3, and t4 all before t5
     // but won't yet schedule t1
     val sch1 = (new Schedule()).schedule(t5).
-      schedule(t4, List(t5)).
-      schedule(t3, List(t5)).
-      schedule(t2, List(t5))
+      scheduleBefore(t4, List(t5)).
+      scheduleBefore(t3, List(t5)).
+      scheduleBefore(t2, List(t5))
 
     // Now schedule t1 to be before t4, t3 and t2
     // We're careful to put the earliest task, t4, in the middle
-    val sch2 = sch1.schedule(t1, List(t3, t4, t2))
+    val sch2 = sch1.scheduleBefore(t1, List(t3, t4, t2))
 
     // t1 should start and finish just before the earliest task: t4
     // Remember, critical chain requires we schedule by half-duration
@@ -195,21 +195,21 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // We'll schedule t2, t3, and t4 all before t5
     // but won't yet schedule t1
     val sch1 = (new Schedule()).schedule(t5).
-      schedule(t4, List(t5)).
-      schedule(t3, List(t5)).
-      schedule(t2, List(t5))
+      scheduleBefore(t4, List(t5)).
+      scheduleBefore(t3, List(t5)).
+      scheduleBefore(t2, List(t5))
 
     // Now schedule t1 to be before t3 and t2.
     // We don't list t4; it should work out itself that it needs
     // to avoid this resource-conflicting task
-    val sch2 = sch1.schedule(t1, List(t3, t2))
+    val sch2 = sch1.scheduleBefore(t1, List(t3, t2))
 
     // t1 should start and finish just before the earliest task: t4
     // Remember, critical chain requires we schedule by half-duration
     sch2.halfEnd(t1) should equal (sch2.start(t4))
   }
 
-  "schedule(Seq[Task], dependencies)" should "schedule the latest-ending tasks first "+
+  "Schedule.make" should "schedule the latest-ending tasks first "+
   		"(1 - latest-ending task is in middle of others)" in {
     val tStart = Task('start)
     val t1 = new Task('t1, "t1", 2 * 3, Some("A"))
@@ -243,7 +243,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     tStart should halfEndSomeTimeBefore (t3)
   }
 
-  "schedule(Seq[Task], dependencies)" should "schedule the latest-ending tasks first "+
+  it should "schedule the latest-ending tasks first "+
   		"(2 - latest-ending task before the others)" in {
     val tStart = Task('start)
     val t1 = new Task('t1, "t1", 2 * 4, Some("A"))
@@ -277,7 +277,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     tStart should halfEndSomeTimeBefore (t3)
   }
 
-  "schedule(Seq[Task], dependencies)" should "schedule the latest-ending tasks first "+
+  it should "schedule the latest-ending tasks first "+
   		"(3 - latest-ending task after the others)" in {
     val tStart = Task('start)
     val t1 = new Task('t1, "t1", 2 * 1.5, Some("A"))
