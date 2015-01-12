@@ -4,7 +4,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 
 class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
-  
+
   "resources" should "return all resources" in {
     val t1 = Task('t1, "Task one", 1, Some("Alice"))
     val t2 = Task('t2, "Task two", 1, Some("Bob"))
@@ -15,7 +15,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     }
     p.resources should contain theSameElementsAs Seq("Alice", "Bob", "Carol")
   }
-  
+
   it should "not repeat resources, even if they're in several tasks" in {
     val t1 = Task('t1, "Task one", 1, Some("Alice"))
     val t2 = Task('t2, "Task two", 1, Some("Alice"))
@@ -26,38 +26,33 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     }
     p.resources should contain theSameElementsAs Seq("Alice", "Carol")
   }
-  
+
   "schedule" should "produce a sensible schedule" in {
-    val p = new ScriptedPlan {
-      declare resource "Alice"
-      declare resource "Bob"
-      add task 't1 as "Task one" duration 5 resource "Alice"
-      add task 't2 as "Task two" duration 3 resource "Bob"
-      't1 ~> 't2
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 3, Some("Bob"))
+    val p = new Plan {
+      val tasks = Seq(t1, t2)
+      val dependencies = Seq((t1 -> t2))
     }
     val sch = p.schedule
     implicit val iSched = MatchingSchedule(sch)
-    p.task('t1) should halfEndRightBefore (p.task('t2))
+    t1 should halfEndRightBefore (t2)
   }
-  
+
   "chains" should "return paths if no resource conflicts" in {
-    val p = new ScriptedPlan {
-      add task 'a1 duration 1
-      add task 'a2 duration 1
-      add task 'b  duration 1
-      add task 'c  duration 1
-      add task 'd1 duration 1
-      add task 'd2 duration 1
-      'a1 ~> 'b ~> 'c ~> 'd1
-      'a2 ~> 'b
-      'c ~> 'd2
+    val a1 = Task('a1, 1)
+    val a2 = Task('a2, 1)
+    val b = Task('b, 1)
+    val c = Task('c, 1)
+    val d1 = Task('d1, 1)
+    val d2 = Task('d2, 1)
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b, c, d1, d2)
+      val dependencies = Seq(
+        (a1 -> b), (a2 -> b),
+        (b -> c),
+        (c -> d1), (c -> d2))
     }
-    val a1 = p.task('a1)
-    val a2 = p.task('a2)
-    val b  = p.task('b)
-    val c  = p.task('c)
-    val d1 = p.task('d1)
-    val d2 = p.task('d2)
     val chains = p.chains
     chains should contain (Seq(a1, b, c, d1))
     chains should contain (Seq(a1, b, c, d2))
