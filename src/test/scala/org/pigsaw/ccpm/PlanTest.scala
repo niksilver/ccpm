@@ -60,5 +60,33 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     chains should contain (Seq(a2, b, c, d2))
     chains.length should equal (4)
   }
+  
+  it should "include adjacent resources in chains if there are any" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 4, Some("Alice"))
+    val t3 = Task('t3, "Task three", 3, Some("Alice"))
+    
+    // The schedule will be
+    //             [t1 Alice]\                     [t1 Alice]----------\
+    //   [t2 Alice]----------+[t3 Alice]     or              [t2 Alice]+[t3 Alice]
+    //
+    // The chains will be
+    //             /[t1 Alice]\                     [t1 Alice]+----------\
+    //   [t2 Alice]+----------+[t3 Alice]     or              \[t2 Alice]+[t3 Alice]
+    
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3)
+      val dependencies = Seq((t1 -> t3), (t2 -> t3))
+    }
+    val chains = p.chains
+    println(p.schedule.roughInfo)
+    chains should (
+        contain (Seq(t2, t1, t3)) or
+        contain (Seq(t1, t2, t3)))
+    chains should (
+        contain (Seq(t2, t3)) or
+        contain (Seq(t1, t3)))
+    chains.length should equal (2)
+  }
 
 }

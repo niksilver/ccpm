@@ -32,11 +32,15 @@ trait Plan {
   lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
   
   /**
-   * Get all possible chains for this plan
+   * Get all possible chains for this plan. This includes non-critical chains.
    */
   lazy val chains: Seq[Seq[Task]] = {
     val g = new Graph(dependencies)
-    g.paths
+    val resPairs = schedule.resourceAdjacentTasks
+    val newResPairs = resPairs filterNot { pair => g.hasEdge(pair) }
+    val chainedDependencies = dependencies ++ newResPairs
+    val chainedGraph = new Graph(chainedDependencies)
+    chainedGraph.paths
   }
   
 }
