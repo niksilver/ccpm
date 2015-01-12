@@ -47,8 +47,18 @@ trait Plan {
    * Get the longest chain.
    */
   lazy val criticalChain: Seq[Task] = {
+    if (tasks.isEmpty)
+      throw new NoTasksException
     val wrappedChains = chains map { Chain(_) }
     val longest = wrappedChains reduce { (longest, current) => if (current.length > longest.length) current else longest }
     longest.toSeq
   }
+}
+
+/**
+ * A `Plan` with no tasks and no dependencies.
+ */
+object EmptyPlan extends Plan {
+  val tasks = Nil
+  val dependencies = Nil
 }

@@ -182,9 +182,14 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
       val dependencies = Seq((t1 -> t3), (t2 -> t3), (t3 -> t4), (t5 -> t4))
     }
     
-    
     val chain = p.criticalChain
     chain should equal (Seq(t2, t5, t4))
     Chain(chain).length should equal (5+5+5)
+  }
+  
+  it should "throw an exception if there are no chains at all (no tasks)" in {
+    a [NoTasksException] should be thrownBy {
+      EmptyPlan.criticalChain
+    }
   }
 }
