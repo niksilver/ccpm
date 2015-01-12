@@ -165,4 +165,23 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
       Seq(t2, t3, t4)))
   }
 
+  ignore /*"criticalChain"*/ should "extract the longest chain" in {
+    val t1 = Task('t1, "Task one", 3, Some("Bob"))
+    val t2 = Task('t2, "Task two", 5, Some("Alice"))
+    val t3 = Task('t3, "Task three", 3, Some("Bob"))
+    val t4 = Task('t4, "Task four", 5, Some("Alice"))
+    val t5 = Task('t5, "Task five", 5, Some("Alice"))
+
+    // The schedule will be
+    //         [t1 Bob]\
+    //   [t2  Alice]---+[t3 Bob]+[t4  Alice]
+    //               [t5  Alice]/
+
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3, t4, t5)
+      val dependencies = Seq((t1 -> t3), (t2 -> t3), (t3 -> t4), (t5 -> t4))
+    }
+    
+    p.criticalChain should equal (Seq(t2, t5, t4))
+  }
 }

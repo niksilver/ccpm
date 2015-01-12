@@ -43,4 +43,8 @@ trait Plan {
     chainedGraph.paths
   }
   
+  /**
+   * Get the longest chain.
+   */
+  lazy val criticalChain: Seq[Task] = Nil
 }
