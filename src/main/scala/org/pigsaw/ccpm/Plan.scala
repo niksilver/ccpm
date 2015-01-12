@@ -47,9 +47,7 @@ trait Plan {
    * Get the longest chain.
    */
   lazy val criticalChain: Seq[Task] = {
-    if (tasks.isEmpty) {
-      Nil
-    } else if (tasks.length == 1) {
+    if (tasks.length <= 1) {
       tasks
     } else {
       val longest = chains map { Chain(_) } reduce { _ max _ }
