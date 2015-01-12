@@ -1,14 +1,16 @@
 package org.pigsaw.ccpm
 
+import scala.collection.IterableLike
+
 /**
  * A chain of tasks
  */
-case class Chain (s: Seq[Task]) {
+case class Chain(s: Seq[Task]) {
   
   /** Return the underlying sequence of tasks.
    */
   def toSeq: Seq[Task] = s
-  
+    
   /**
    * Get the length of the chain, which is the sum of
    * all the task durations.

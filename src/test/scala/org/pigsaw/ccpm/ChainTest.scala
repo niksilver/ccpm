@@ -28,4 +28,8 @@ class ChainTest extends FlatSpec with Matchers {
     val chain = Chain(Seq(t1, t2, t3))
     chain.length should equal (5+4+3)
   }
+  
+  it should "give zero if the chain is empty" in {
+    Chain(Nil).length should equal (0)
+  }
 }

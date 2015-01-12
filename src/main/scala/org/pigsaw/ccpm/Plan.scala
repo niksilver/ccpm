@@ -46,5 +46,9 @@ trait Plan {
   /**
    * Get the longest chain.
    */
-  lazy val criticalChain: Seq[Task] = Nil
+  lazy val criticalChain: Seq[Task] = {
+    val wrappedChains = chains map { Chain(_) }
+    val longest = wrappedChains reduce { (longest, current) => if (current.length > longest.length) current else longest }
+    longest.toSeq
+  }
 }
