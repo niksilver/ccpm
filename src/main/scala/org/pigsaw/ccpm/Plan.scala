@@ -18,7 +18,7 @@ trait Plan {
   /**
    * Resources in the plan.
    */
-  val resources: Seq[String]
+  lazy val resources: Seq[String] = (tasks map { _.resource }).flatten.distinct
 
   /**
    * A list of task pairs `t0 -> t1` where `t0` has to finish
