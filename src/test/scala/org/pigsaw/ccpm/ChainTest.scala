@@ -10,4 +10,22 @@ class ChainTest extends FlatSpec with Matchers {
     val chain = Chain(s)
     chain.toSeq should equal (s)
   }
+
+  "length" should "give the total length of all durations in the chain (1)" in {
+    val t1 = new Task('t1, "My task", 2, Some("Alice"))
+    val t2 = new Task('t2, "Task 2", 3, Some("Bob"))
+    val t3 = new Task('t3, "Task 3", 4, Some("Carol"))
+
+    val chain = Chain(Seq(t1, t2, t3))
+    chain.length should equal (2+3+4)
+  }
+
+  it should "give the total length of all durations in the chain (2 - to avoid faking)" in {
+    val t1 = new Task('t1, "My task", 5, Some("Alice"))
+    val t2 = new Task('t2, "Task 2", 4, Some("Bob"))
+    val t3 = new Task('t3, "Task 3", 3, Some("Carol"))
+
+    val chain = Chain(Seq(t1, t2, t3))
+    chain.length should equal (5+4+3)
+  }
 }
