@@ -60,12 +60,12 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     chains should contain (Seq(a2, b, c, d2))
     chains.length should equal (4)
   }
-  
+
   it should "include adjacent resources in chains if there are any" in {
     val t1 = Task('t1, "Task one", 5, Some("Alice"))
     val t2 = Task('t2, "Task two", 4, Some("Alice"))
     val t3 = Task('t3, "Task three", 3, Some("Alice"))
-    
+
     // The schedule will be
     //             [t1 Alice]\                     [t1 Alice]----------\
     //   [t2 Alice]----------+[t3 Alice]     or              [t2 Alice]+[t3 Alice]
@@ -73,19 +73,96 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     // The chains will be
     //             /[t1 Alice]\                    [t1 Alice]+----------\
     //   [t2 Alice]+----------+[t3 Alice]    or              \[t2 Alice]+[t3 Alice]
-    
+
     val p = new Plan {
       val tasks = Seq(t1, t2, t3)
       val dependencies = Seq((t1 -> t3), (t2 -> t3))
     }
     val chains = p.chains
     chains should (
-        contain (Seq(t2, t1, t3)) or
-        contain (Seq(t1, t2, t3)))
+      contain (Seq(t2, t1, t3)) or
+      contain (Seq(t1, t2, t3)))
     chains should (
-        contain (Seq(t2, t3)) or
-        contain (Seq(t1, t3)))
+      contain (Seq(t2, t3)) or
+      contain (Seq(t1, t3)))
     chains.length should equal (2)
+  }
+
+  it should "include zero-length tasks in chains" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 4, Some("Alice"))
+    val tEnd = Task('tEnd, "End", 0, None)
+
+    // The schedule will be
+    //             [t1 Alice]\                 [t1 Alice]----------\
+    //   [t2 Alice]----------+[tEnd]     or              [t2 Alice]+[tEnd]
+    //
+    // The chains will be
+    //             /[t1 Alice]\                [t1 Alice]+----------\
+    //   [t2 Alice]+----------+[tEnd]    or              \[t2 Alice]+[tEnd]
+
+    val p = new Plan {
+      val tasks = Seq(t1, t2, tEnd)
+      val dependencies = Seq((t1 -> tEnd), (t2 -> tEnd))
+    }
+    val chains = p.chains
+    chains should (
+      contain (Seq(t2, t1, tEnd)) or
+      contain (Seq(t1, t2, tEnd)))
+    chains should (
+      contain (Seq(t2, tEnd)) or
+      contain (Seq(t1, tEnd)))
+    chains.length should equal (2)
+  }
+
+  it should "handle a mix of conflicting and non-conflicting tasks" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 5, Some("Alice"))
+    val t3 = Task('t3, "Task three", 3, Some("Bob"))
+    val t4 = Task('t4, "Task four", 5, Some("Alice"))
+
+    // The schedule will be
+    //             [t1  Alice]\
+    //   [t2 Alice]---[t3 Bob]+[t4 Alice]
+    //
+    // The chains will be
+    //             /[t1  Alice]\
+    //   [t2 Alice]+---[t3 Bob]+[t4 Alice]
+
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3, t4)
+      val dependencies = Seq((t1 -> t4), (t2 -> t3), (t3 -> t4))
+    }
+    val chains = p.chains
+    
+    chains should contain theSameElementsAs (Seq(
+      Seq(t2, t1, t4),
+      Seq(t2, t3, t4)))
+  }
+
+  it should "not include non-dependent, non-resource-adjacent tasks" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 5, Some("Alice"))
+    val t3 = Task('t3, "Task three", 8, Some("Bob"))
+    val t4 = Task('t4, "Task four", 5, Some("Alice"))
+
+    // The schedule will be
+    //                [t1 Alice]\
+    //   [t2 Alice]-[t3     Bob]+[t4 Alice]
+    //
+    // The chains will be
+    //                [t1 Alice]\
+    //   [t2 Alice]-[t3     Bob]+[t4 Alice]
+
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3, t4)
+      val dependencies = Seq((t1 -> t4), (t2 -> t3), (t3 -> t4))
+    }
+    val chains = p.chains
+    
+    chains should contain theSameElementsAs (Seq(
+      Seq(t1, t4),
+      Seq(t2, t3, t4)))
   }
 
 }
