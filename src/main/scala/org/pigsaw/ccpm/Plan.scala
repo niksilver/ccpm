@@ -52,8 +52,7 @@ trait Plan {
     } else if (tasks.length == 1) {
       tasks
     } else {
-      val wrappedChains = chains map { Chain(_) }
-      val longest = wrappedChains reduce { (longest, current) => if (current.length > longest.length) current else longest }
+      val longest = chains map { Chain(_) } reduce { _ max _ }
       longest.toSeq
     }
   }

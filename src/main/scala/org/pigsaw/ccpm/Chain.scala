@@ -16,4 +16,9 @@ case class Chain(s: Seq[Task]) {
    * all the task durations.
    */
   def length: Double = s.foldLeft(0.0)( _ + _.duration )
+  
+  /**
+   * Return the longest chain: either this or `that`
+   */
+  def max(that: Chain) = if (length > that.length) this else that
 }
