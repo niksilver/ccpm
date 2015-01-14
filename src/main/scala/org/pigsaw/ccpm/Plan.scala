@@ -54,7 +54,7 @@ trait Plan {
       longest.toSeq
     }
   }
-  
+
   /**
    * Get all paths that are distinct from the critical chain.
    * Each task will be on exactly one path, and none of the
@@ -64,7 +64,45 @@ trait Plan {
    * the tasks in the plan, with no repeats.
    */
   def nonCriticalPaths: Seq[Seq[Task]] = {
-    tasks filterNot { criticalChain contains _ } map { Seq(_) }
+    val paths = (new Graph(dependencies)).paths
+    buildSlices(paths, Nil, criticalChain)
+  }
+
+  /**
+   * Given some paths, return the slices found from removing
+   * all the excluded tasks. Initially the excluded tasks are
+   * those on the critical chain, but as more slices are
+   * found so the tasks on those slices are added to the excluded
+   * list.
+   */
+  private def buildSlices(paths: Seq[Seq[Task]], acc: Seq[Seq[Task]], excluded: Seq[Task]): Seq[Seq[Task]] = {
+    paths match {
+      case Nil => acc
+      case path :: rest => {
+        val (newAcc, newExcluded) = slicePath(path, acc, excluded)
+        buildSlices(rest, newAcc, newExcluded)
+      }
+    }
+  }
+
+  /**
+   * Given a path, return the slices found from
+   * removing all the `excluded` tasks.
+   * @param path  The path to slice.
+   * @param acc   The accumulated slices found so far
+   * @excluded    Tasks to exclude, to leave the slices
+   * @returns   A pair: The slices, and the excluded tasks (which are
+   *            an amalgam of the tasks in the slices)
+   */
+  private def slicePath(path: Seq[Task], acc: Seq[Seq[Task]], excluded: Seq[Task]): (Seq[Seq[Task]], Seq[Task]) = {
+    if (path.isEmpty) {
+      (acc, excluded)
+    } else {
+      val usable = path dropWhile { excluded contains _ }
+      val (slice, next) = usable span { t => !(excluded contains t) }
+      val newAcc = if (slice.isEmpty) acc else slice +: acc
+      slicePath(next, newAcc, slice ++: excluded)
+    }
   }
 }
 

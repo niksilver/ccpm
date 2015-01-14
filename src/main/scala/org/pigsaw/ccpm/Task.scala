@@ -21,6 +21,7 @@ case class Task(id: Symbol, description: String, duration: Double, resource: Opt
    */
   def sameResource(t2: Task): Boolean = { resource.nonEmpty && resource == t2.resource }
 
+  override def toString() = id.toString
 }
 
 object Task {

@@ -237,7 +237,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
         (a1 -> a2), (a2 -> b3),
         (b1 -> b2), (b2 -> b3))
     }
-    p.nonCriticalPaths should equal (Seq(a1, b2))
+    p.nonCriticalPaths should equal (Seq(Seq(a1, a2)))
   }
 
   it should "work for a three-path project with paths length >= 2" in {
@@ -315,7 +315,19 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     // [b1  ]-[b2  ]+[b3  ]
     //            [c1]-[c2]
     
-    fail("Implement me!")
+    val (a1, a2) = (Task('a1, 3), Task('a2, 3))
+    val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
+    val (c1, c2) = (Task('c1, 3), Task('c2, 3))
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val dependencies = Seq(
+        (a1 -> a2),
+        (b1 -> b2), (b2 -> b3),
+        (c1 -> c2))
+    }
+    p.nonCriticalPaths should contain theSameElementsAs Seq(
+      Seq(a1, a2),
+      Seq(c1, c2))
   }
   
   it should "work when the ends don't join up" in {
@@ -324,7 +336,40 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     // [b1  ]+[b2  ]+[b3  ]
     //       \----[c1]-[c2]
     
-    fail("Implement me!")
+    val (a1, a2) = (Task('a1, 3), Task('a2, 3))
+    val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
+    val (c1, c2) = (Task('c1, 3), Task('c2, 3))
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val dependencies = Seq(
+        (b1-> a1), (a1 -> a2),
+        (b1 -> b2), (b2 -> b3),
+        (b1 -> c1), (c1 -> c2))
+    }
+    p.nonCriticalPaths should contain theSameElementsAs Seq(
+      Seq(a1, a2),
+      Seq(c1, c2))
+  }
+  
+  it should "work when the starts don't join up" in {
+
+    //     [a1]-[a2]\
+    // [b1  ]+[b2  ]+[b3  ]
+    //     [c1]-[c2]/
+    
+    val (a1, a2) = (Task('a1, 3), Task('a2, 3))
+    val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
+    val (c1, c2) = (Task('c1, 3), Task('c2, 3))
+    val p = new Plan {
+      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val dependencies = Seq(
+        (a1 -> a2), (a2 -> b3),
+        (b1 -> b2), (b2 -> b3),
+        (c1 -> c2), (c2 -> b3))
+    }
+    p.nonCriticalPaths should contain theSameElementsAs Seq(
+      Seq(a1, a2),
+      Seq(c1, c2))
   }
   
   it should "work when non-critcal paths have sub-branches" in {
@@ -334,7 +379,19 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
 	//       |                       |
     // [b1  ]+[b2       ]+[b3       ]+[b4   ]
     
-    fail("Implement me!")
+    val (a1, a2, a3, a4) = (Task('a1, 2), Task('a2, 2), Task('a3, 2), Task('a4, 2))
+    val (i2, i3) = (Task('i2, 2), Task('i3, 2))
+    val (b1, b2, b3, b4) = (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5))
+    val p = new Plan {
+      val tasks = Seq(a1, a2, i2, i3, b1, b2, b3)
+      val dependencies = Seq(
+        (b1 -> a1), (a1 -> a2), (a2 -> a3), (a3 -> a4), (a4 -> b4),
+        (a1 -> i2), (i2 -> i3), (i3 -> a4),
+        (b1 -> b2), (b2 -> b3), (b3 -> b4))
+    }
+    p.nonCriticalPaths should (
+        (contain theSameElementsAs Seq(Seq(a1, a2, a3, a4), Seq(i2, i3))) or
+        (contain theSameElementsAs Seq(Seq(a1, i2, i3, a4), Seq(a2, a3))))
   }
 
 }
