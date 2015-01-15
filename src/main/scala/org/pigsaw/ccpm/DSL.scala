@@ -98,7 +98,7 @@ class DSLTask(t: Task, pc: PlanContext) {
     if (pc.dependencies contains dependency)
       throw new DuplicateDependencyException(s"Already got $t ~> $tLater")
 
-    val g = new Graph(pc.dependencies)
+    val g = new Graph(pc.dependencies.toSet)
     if (!g.remainsAcyclic(dependency))
       throw new CyclicDependencyException(s"While adding $t ~> $tLater")
 

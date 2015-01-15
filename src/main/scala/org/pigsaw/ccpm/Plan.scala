@@ -18,23 +18,23 @@ trait Plan {
   /**
    * Resources in the plan.
    */
-  lazy val resources: Seq[String] = (tasks map { _.resource }).flatten.distinct
+  lazy val resources: Set[String] = (tasks map { _.resource }).flatten.toSet
 
   /**
    * A list of task pairs `t0 -> t1` where `t0` has to finish
    * before `t1` can start.
    */
-  val dependencies: Seq[(Task, Task)]
+  val dependencies: Set[(Task, Task)]
 
   /**
    * A schedule for this plan.
    */
-  lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
+  lazy val schedule: Schedule = Schedule.make(tasks.toSet, dependencies)
 
   /**
    * Get all possible chains for this plan. This includes non-critical chains.
    */
-  lazy val chains: Seq[Seq[Task]] = {
+  lazy val chains: Set[Seq[Task]] = {
     val g = new Graph(dependencies)
     val resPairs = schedule.resourceAdjacentTasks
     val newResPairs = resPairs filterNot { pair => g.hasEdge(pair) }
@@ -63,9 +63,9 @@ trait Plan {
    * paths and the critical chain combined is exactly all
    * the tasks in the plan, with no repeats.
    */
-  def nonCriticalPaths: Seq[Seq[Task]] = {
+  def nonCriticalPaths: Set[Seq[Task]] = {
     val paths = (new Graph(dependencies)).paths
-    buildSlices(paths, Nil, criticalChain)
+    buildSlices(paths, Set(), criticalChain.toSet)
   }
 
   /**
@@ -75,11 +75,12 @@ trait Plan {
    * found so the tasks on those slices are added to the excluded
    * list.
    */
-  private def buildSlices(paths: Seq[Seq[Task]], acc: Seq[Seq[Task]], excluded: Seq[Task]): Seq[Seq[Task]] = {
-    paths match {
-      case Nil => acc
-      case path :: rest => {
-        val (newAcc, newExcluded) = slicePath(path, acc, excluded)
+  private def buildSlices(paths: Set[Seq[Task]], acc: Set[Seq[Task]], excluded: Set[Task]): Set[Seq[Task]] = {
+    paths.size match {
+      case 0 => acc
+      case _ => {
+        val (path, rest) = paths.splitAt(1)
+        val (newAcc, newExcluded) = slicePath(path.head, acc, excluded)
         buildSlices(rest, newAcc, newExcluded)
       }
     }
@@ -94,13 +95,13 @@ trait Plan {
    * @returns   A pair: The slices, and the excluded tasks (which are
    *            an amalgam of the tasks in the slices)
    */
-  private def slicePath(path: Seq[Task], acc: Seq[Seq[Task]], excluded: Seq[Task]): (Seq[Seq[Task]], Seq[Task]) = {
+  private def slicePath(path: Seq[Task], acc: Set[Seq[Task]], excluded: Set[Task]): (Set[Seq[Task]], Set[Task]) = {
     if (path.isEmpty) {
       (acc, excluded)
     } else {
       val usable = path dropWhile { excluded contains _ }
       val (slice, next) = usable span { t => !(excluded contains t) }
-      val newAcc = if (slice.isEmpty) acc else slice +: acc
+      val newAcc = if (slice.isEmpty) acc else acc + slice
       slicePath(next, newAcc, slice ++: excluded)
     }
   }
@@ -111,5 +112,5 @@ trait Plan {
  */
 object EmptyPlan extends Plan {
   val tasks = Nil
-  val dependencies = Nil
+  val dependencies = Set[(Task, Task)]()
 }

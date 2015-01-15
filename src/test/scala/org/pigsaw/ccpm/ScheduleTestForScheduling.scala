@@ -146,7 +146,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val sch1 = (new Schedule()).schedule(t5).schedule(t4).schedule(t3).schedule(t2)
 
     // Now schedule t1 to be before t3
-    val sch2 = sch1.scheduleBefore(t1, List(t3))
+    val sch2 = sch1.scheduleBefore(t1, Set(t3))
 
     sch2.end(t1) should equal (sch2.start(t3))
   }
@@ -161,13 +161,13 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // We'll schedule t2, t3, and t4 all before t5
     // but won't yet schedule t1
     val sch1 = (new Schedule()).schedule(t5).
-      scheduleBefore(t4, List(t5)).
-      scheduleBefore(t3, List(t5)).
-      scheduleBefore(t2, List(t5))
+      scheduleBefore(t4, Set(t5)).
+      scheduleBefore(t3, Set(t5)).
+      scheduleBefore(t2, Set(t5))
 
     // Now schedule t1 to be before t4, t3 and t2
     // We're careful to put the earliest task, t4, in the middle
-    val sch2 = sch1.scheduleBefore(t1, List(t3, t4, t2))
+    val sch2 = sch1.scheduleBefore(t1, Set(t3, t4, t2))
 
     // t1 should start and finish just before the earliest task: t4
     sch2.end(t1) should equal (sch2.start(t4))
@@ -186,14 +186,14 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     // We'll schedule t2, t3, and t4 all before t5
     // but won't yet schedule t1
     val sch1 = (new Schedule()).schedule(t5).
-      scheduleBefore(t4, List(t5)).
-      scheduleBefore(t3, List(t5)).
-      scheduleBefore(t2, List(t5))
+      scheduleBefore(t4, Set(t5)).
+      scheduleBefore(t3, Set(t5)).
+      scheduleBefore(t2, Set(t5))
 
     // Now schedule t1 to be before t3 and t2.
     // We don't list t4; it should work out itself that it needs
     // to avoid this resource-conflicting task
-    val sch2 = sch1.scheduleBefore(t1, List(t3, t2))
+    val sch2 = sch1.scheduleBefore(t1, Set(t3, t2))
 
     // t1 should start and finish just before the earliest task: t4
     sch2.end(t1) should equal (sch2.start(t4))
@@ -207,13 +207,13 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val t3 = new Task('t3, "t3", 1.5, Some("C"))
     val tEnd = Task('end)
 
-    val deps = List(
+    val deps = Set(
       tStart -> t1, tStart -> t2, tStart -> t3,
       t1 -> tEnd, t2 -> tEnd, t3 -> tEnd)
 
     val tasks = List(tStart, t1, t2, t3, tEnd)
 
-    val sch = Schedule.make(tasks, deps)
+    val sch = Schedule.make(tasks.toSet, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
@@ -241,13 +241,13 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val t3 = new Task('t3, "t3", 1.5, Some("C"))
     val tEnd = Task('end)
 
-    val deps = List(
+    val deps = Set(
       tStart -> t1, tStart -> t2, tStart -> t3,
       t1 -> tEnd, t2 -> tEnd, t3 -> tEnd)
 
     val tasks = List(tStart, t1, t2, t3, tEnd)
 
-    val sch = Schedule.make(tasks, deps)
+    val sch = Schedule.make(tasks.toSet, deps)
     implicit val iSched = new MatchingSchedule(sch)
 
     // Here's our intended schedule:
@@ -275,11 +275,11 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val t3 = new Task('t3, "t3", 4, Some("C"))
     val tEnd = Task('end)
 
-    val deps = List(
+    val deps = Set(
       tStart -> t1, tStart -> t2, tStart -> t3,
       t1 -> tEnd, t2 -> tEnd, t3 -> tEnd)
 
-    val tasks = List(tStart, t1, t2, t3, tEnd)
+    val tasks = Set(tStart, t1, t2, t3, tEnd)
 
     val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
@@ -306,8 +306,8 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val t2 = new Task('t2, "t2", 4, Some("B"))
     val t3 = new Task('t3, "t3", 1.5, Some("C"))
 
-    val deps = Nil
-    val tasks = List(t1, t2, t3)
+    val deps = Set[(Task, Task)]()
+    val tasks = Set(t1, t2, t3)
     val sch = Schedule.make(tasks, deps)
     
     sch.end(t1) should equal (sch.end(t2))
@@ -319,8 +319,8 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val t2 = new Task('t2, "t2", 4, Some("Alice"))
     val t3 = new Task('t3, "t3", 1.5, Some("Alice"))
 
-    val deps = Nil
-    val tasks = List(t1, t2, t3)
+    val deps = Set[(Task, Task)]()
+    val tasks = Set(t1, t2, t3)
     val sch = Schedule.make(tasks, deps)
     
     val earliest = sch.earliestStart(tasks)
@@ -347,11 +347,11 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val t3 = new Task('t3, "t3", 2, Some("C"))
     val tEnd = Task('end)
 
-    val deps = List(
+    val deps = Set(
       tStart -> t1, t1 -> t2, t2 -> tEnd,
       tStart -> t3, t3 -> tEnd)
 
-    val tasks = List(tStart, t1, t2, t3, tEnd)
+    val tasks = Set(tStart, t1, t2, t3, tEnd)
 
     val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)
@@ -376,7 +376,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     val c4 = new Task('c4, "c4", 2.5, Some("C"))
     val tEnd = Task('end)
 
-    val deps = List(
+    val deps = Set(
       tStart -> a1, tStart -> a2, tStart -> a3,
       tStart -> c1, tStart -> c2,
       a1 -> b1, a2 -> b1, a3 -> b1,
@@ -385,7 +385,7 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
       c3 -> c4,
       b2 -> tEnd, c4 -> tEnd)
 
-    val tasks = List(tStart, a1, a2, a3, b1, b2, c1, c2, c3, c4, tEnd)
+    val tasks = Set(tStart, a1, a2, a3, b1, b2, c1, c2, c3, c4, tEnd)
 
     val sch = Schedule.make(tasks, deps)
     implicit val iSched = new MatchingSchedule(sch)

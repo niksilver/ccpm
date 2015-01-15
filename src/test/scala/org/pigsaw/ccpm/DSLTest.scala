@@ -174,7 +174,7 @@ class DSLTest extends FlatSpec with Matchers {
       declare resource "Alice"
       declare resource "Bob"
     }
-    p.resources.length should equal(2)
+    p.resources.size should equal(2)
     p.resources should contain("Alice")
     p.resources should contain("Bob")
   }

@@ -13,11 +13,11 @@ class ScriptedPlan extends PlanVerbs with Plan {
   /**
    * Resources in the plan, in the order in which they were declared
    */
-  override lazy val resources: Seq[String] = scala.collection.immutable.List(pc.resources: _*)
+  override lazy val resources: Set[String] = scala.collection.immutable.Set(pc.resources: _*)
 
   /**
    * A list of task pairs `t0 -> t1` where `t0` has to finish
    * before `t1` can start.
    */
-  lazy val dependencies: Seq[(Task, Task)] = scala.collection.immutable.List(pc.dependencies: _*)
+  lazy val dependencies: Set[(Task, Task)] = scala.collection.immutable.Set(pc.dependencies: _*)
 }

@@ -89,7 +89,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * or (if there are no tasks scheduled) it will get
    * the `defaultStart` time.
    */
-  def schedule(t: Task): Schedule = scheduleBefore(t, Nil)
+  def schedule(t: Task): Schedule = scheduleBefore(t, Set())
 
   /**
    * Schedule a test before any given others (specified by `laters`),
@@ -100,7 +100,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * If `laters` is empty and there are no tasks scheduled already then
    * this first task will get the `defaultStart` time.
    */
-  def scheduleBefore(t: Task, laters: Seq[Task]): Schedule = {
+  def scheduleBefore(t: Task, laters: Set[Task]): Schedule = {
     if (laters.isEmpty && starts.isEmpty) {
       new Schedule(starts + (t -> defaultStart))
     } else if (laters.isEmpty && starts.nonEmpty) {
@@ -117,7 +117,7 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
   /**
    * Schedule some tasks respecting resource conflicts and dependencies.
    */
-  def schedule(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
+  def schedule(ts: Set[Task], deps: Set[(Task, Task)]): Schedule = {
     // First schedule the end tasks, then follow on from there
     val g = new Graph(deps)
     val ends = if (g.ends.nonEmpty) g.ends else ts
@@ -128,15 +128,15 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
 
   // Schedule tasks to be at the end of the plan
   @tailrec
-  private def scheduleEnds(ends: Seq[Task]): Schedule =
-    ends match {
-      case Nil => this
-      case t :: Nil => schedule(t)
-      case t :: tOthers => schedule(t).scheduleEnds(tOthers)
+  private def scheduleEnds(ends: Set[Task]): Schedule =
+    ends.size match {
+      case 0 => this
+      case 1 => schedule(ends.head)
+      case _ => { val (t, tOthers) = ends.splitAt(1); schedule(t.head).scheduleEnds(tOthers) }
     }
 
   @tailrec
-  private def scheduleFollowOns(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule = {
+  private def scheduleFollowOns(ts: Set[Task], deps: Set[(Task, Task)]): Schedule = {
     // Of all the earlier/later dependencies
     // (a) pick out all those where the later part has been scheduled but
     //     the earlier part hasn't. (Dangling pairs)
@@ -252,6 +252,6 @@ object Schedule {
   /**
    * Make a new schedule with the given tasks and dependencies.
    */
-  def make(ts: Seq[Task], deps: Seq[(Task, Task)]): Schedule =
+  def make(ts: Set[Task], deps: Set[(Task, Task)]): Schedule =
     (new Schedule()).schedule(ts, deps)
 }

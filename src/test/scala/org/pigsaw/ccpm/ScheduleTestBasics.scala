@@ -218,7 +218,7 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
   "adjustStart" should "adjust start times to given base" in {
     val t1 = Task('t1, "My first", 2.5, Some("Alice"))
     val t2 = Task('t2, "My second", 2, Some("Alice"))
-    val sch1 = Schedule.make(List(t1, t2), Nil)
+    val sch1 = Schedule.make(Set(t1, t2), Set())
     val schAdjusted = sch1.adjustStart(0)
 
     val tasks = List(t1, t2)

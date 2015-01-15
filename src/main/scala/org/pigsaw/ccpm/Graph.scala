@@ -5,18 +5,18 @@ import scala.annotation.tailrec
 /**
  * An acyclic graph.
  */
-class Graph[T](g: Seq[(T, T)]) {
+class Graph[T](g: Set[(T, T)]) {
 
   /**
    * Get all each target node available from a given node
    */
-  def targets(node: T): Seq[T] = g filter { _._1 == node } map { _._2 }
+  def targets(node: T): Set[T] = g filter { _._1 == node } map { _._2 }
 
   /**
    * Does the graph have a given edge?
    */
-  def hasEdge(e: Tuple2[T,T]): Boolean = { g contains e }
-  
+  def hasEdge(e: Tuple2[T, T]): Boolean = { g contains e }
+
   /**
    * Given an acyclic graph `g`, does it remain acyclic
    * if we add the specified `edge`?
@@ -48,17 +48,17 @@ class Graph[T](g: Seq[(T, T)]) {
   /**
    * Return the nodes which are at the end of a path.
    */
-  def ends: Seq[T] = {
+  def ends: Set[T] = {
     val froms = g map { _._1 }
-    val tos = (g map { _._2 }).distinct
+    val tos = (g map { _._2 })
     tos diff froms
   }
 
   /**
    * Return the nodes which are at the start of a path.
    */
-  def starts: Seq[T] = {
-    val froms = (g map { _._1 }).distinct
+  def starts: Set[T] = {
+    val froms = (g map { _._1 })
     val tos = g map { _._2 }
     froms diff tos
   }
@@ -66,21 +66,23 @@ class Graph[T](g: Seq[(T, T)]) {
   /**
    * Get all the paths through this acyclic graph.
    */
-  def paths: Seq[Seq[T]] = pathsFrom(starts)
+  def paths: Set[Seq[T]] = pathsFrom(starts)
 
-  // Get all the paths from (and including) the given node.
-  private def pathsFrom(source: Seq[T]): Seq[Seq[T]] = {
+  // Get all the paths from (and including) the given nodes.
+  private def pathsFrom(source: Set[T]): Set[Seq[T]] = {
     for {
       next <- source
       path <- pathsAfter(next)
     } yield (next +: path)
   }
 
-  // Get all the paths after (and therefore excluding) the given node.
-  private def pathsAfter(source: T): Seq[Seq[T]] =
-    targets(source) match {
-      case Nil => Seq(Nil)
-      case targs => pathsFrom(targs)
+  // Get all the paths after (and therefore excluding) the given nodes.
+  private def pathsAfter(source: T): Set[Seq[T]] = {
+    val targs = targets(source)
+    if (targs.isEmpty) {
+      Set(Nil)
+    } else {
+      pathsFrom(targs)
     }
-
+  }
 }
