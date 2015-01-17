@@ -6,10 +6,10 @@ import scala.collection.TraversableLike
 /**
  * Start times for tasks
  */
-class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
+class Schedule(protected[ccpm] val starts: Map[Task, Double] = Nil.toMap) {
 
   import Schedule._
-
+  
   /**
    * The tasks in the schedule.
    */
@@ -19,11 +19,6 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * The tasks in the schedule.
    */
   lazy val taskSet: Set[Task] = starts.keySet
-  
-  /**
-   * The buffers in this schedule
-   */
-  lazy val buffers: Set[Task] = Set(Task('dummy))
 
   /**
    * Is this task scheduled?

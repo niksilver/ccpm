@@ -29,7 +29,32 @@ case class Task(id: Symbol, description: String, duration: Double, resource: Opt
   override def toString() = id.toString
 }
 
-object Task {
+class AutoIding(val idPrefix: String) {
+
+  /**
+   * Is a given symbol of the format for an auto id?
+   * True when it's of the format `t` followed by one or more digits.
+   */
+  def isAutoId(id: Symbol): Boolean = {
+    val name = id.name
+    name.startsWith(idPrefix) &&
+      name.length > idPrefix.length &&
+      (name.drop(idPrefix.length) forall { _.isDigit })
+  }
+
+  /**
+   * Given a list of ids, generate the next appropriate one.
+   */
+  def nextId(ids: Iterable[Symbol]): Symbol = {
+    val autoIds = ids filter { id => Task.isAutoId(id) }
+    val idNums = autoIds map { _.name.drop(idPrefix.length).toInt }
+    val maxNum = idNums.fold(-1)(Math.max)
+    Symbol("t" + (maxNum + 1))
+  }
+
+}
+
+object Task extends AutoIding("t") {
 
   val DefaultId = 't0
   val DefaultDescription = "Anonymous task"
@@ -55,27 +80,6 @@ object Task {
    * A `Task` with just the `id` and `duration` set by the user.
    */
   def apply(id: Symbol, duration: Double) = new Task(id, DefaultDescription, duration, None)
-
-  /**
-   * Is a given symbol of the format for an auto id?
-   * True when it's of the format `t` followed by one or more digits.
-   */
-  def isAutoId(id: Symbol): Boolean = {
-    val name = id.name
-    name(0) == 't' &&
-      name.length >= 2 &&
-      (name.drop(1) forall { _.isDigit })
-  }
-
-  /**
-   * Given a list of ids, generate the next appropriate one.
-   */
-  def nextId(ids: Iterable[Symbol]): Symbol = {
-    val autoIds = ids filter { id => Task.isAutoId(id) }
-    val idNums = autoIds map { _.name.drop(1).toInt }
-    val maxNum = idNums.fold(-1)(Math.max)
-    Symbol("t" + (maxNum + 1))
-  }
   
   /**
    * Given some tasks, get one by its id, or throw an
@@ -89,3 +93,7 @@ object Task {
   }
 
 }
+
+case class Buffer(id: Symbol, duration: Double) extends Period
+
+object Buffer extends AutoIding("b")
