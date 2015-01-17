@@ -1,5 +1,10 @@
 package org.pigsaw.ccpm
 
+trait Period {
+  val id: Symbol
+  val duration: Double
+}
+
 /**
  * A task in the project plan. The `duration` is the duration of the
  * task as we will work with it in the plan. So if we're doing CCPM
@@ -7,7 +12,7 @@ package org.pigsaw.ccpm
  * If you want to capture something else, like the 95%-likelihood completion
  * time as well, then you should consider subclassing this.
  */
-case class Task(id: Symbol, description: String, duration: Double, resource: Option[String]) {
+case class Task(id: Symbol, description: String, duration: Double, resource: Option[String]) extends Period {
 
   /**
    * One task is a variation of another if and only if
