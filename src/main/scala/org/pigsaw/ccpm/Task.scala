@@ -6,6 +6,36 @@ trait Period {
 }
 
 /**
+ * The capability to work out ids automatically. 
+ */
+class AutoIding(private val prefix: String) {
+
+  private val length = prefix.length
+  
+  /**
+   * Is a given symbol of the format for an auto id?
+   * True when it's of the format `t` followed by one or more digits.
+   */
+  def isAutoId(id: Symbol): Boolean = {
+    val name = id.name
+    name.startsWith(prefix) &&
+      name.length > length &&
+      (name.drop(length) forall { _.isDigit })
+  }
+
+  /**
+   * Given a list of ids, generate the next appropriate one.
+   */
+  def nextId(ids: Iterable[Symbol]): Symbol = {
+    val autoIds = ids filter { id => isAutoId(id) }
+    val idNums = autoIds map { _.name.drop(length).toInt }
+    val maxNum = idNums.fold(-1)(Math.max)
+    Symbol(prefix + (maxNum + 1))
+  }
+
+}
+
+/**
  * A task in the project plan. The `duration` is the duration of the
  * task as we will work with it in the plan. So if we're doing CCPM
  * then the duration should be set as the 50%-likelihood completion time.
@@ -27,31 +57,6 @@ case class Task(id: Symbol, description: String, duration: Double, resource: Opt
   def sameResource(t2: Task): Boolean = { resource.nonEmpty && resource == t2.resource }
 
   override def toString() = id.toString
-}
-
-class AutoIding(val idPrefix: String) {
-
-  /**
-   * Is a given symbol of the format for an auto id?
-   * True when it's of the format `t` followed by one or more digits.
-   */
-  def isAutoId(id: Symbol): Boolean = {
-    val name = id.name
-    name.startsWith(idPrefix) &&
-      name.length > idPrefix.length &&
-      (name.drop(idPrefix.length) forall { _.isDigit })
-  }
-
-  /**
-   * Given a list of ids, generate the next appropriate one.
-   */
-  def nextId(ids: Iterable[Symbol]): Symbol = {
-    val autoIds = ids filter { id => Task.isAutoId(id) }
-    val idNums = autoIds map { _.name.drop(idPrefix.length).toInt }
-    val maxNum = idNums.fold(-1)(Math.max)
-    Symbol("t" + (maxNum + 1))
-  }
-
 }
 
 object Task extends AutoIding("t") {
