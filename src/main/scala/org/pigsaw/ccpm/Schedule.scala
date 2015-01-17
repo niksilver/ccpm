@@ -69,19 +69,19 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
     val otherGuesses = tasks map { start(_) - t.duration } filter { _ < firstGuess }
     val allGuesses = List(firstGuess) ++ otherGuesses
     val goodGuesses = allGuesses filter { !resourceConflicts(t, _) }
-    val bestGuess = goodGuesses reduce { Math.max(_, _) }
+    val bestGuess = goodGuesses.max
     bestGuess
   }
 
   /**
    * Get the earliest start time of all the given tasks.
    */
-  def earliestStart(ts: Iterable[Task]): Double = ts map { start(_) } reduce { Math.min(_, _) }
+  def earliestStart(ts: Iterable[Task]): Double = (ts map start).min
 
   /**
    * Get the latest end time of all the given tasks.
    */
-  def latestEnd(ts: Iterable[Task]): Double = ts map { end(_) } reduce { Math.max(_, _) }
+  def latestEnd(ts: Iterable[Task]): Double = (ts map end).max
 
   /**
    * Schedule a task as late as possible avoiding resource conflicts.

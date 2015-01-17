@@ -52,7 +52,7 @@ trait Plan {
     } else if (tasks.size == 1) {
       Seq(tasks.head)
     } else {
-      val longest = chains map { Chain(_) } reduce { _ max _ }
+      val longest = chains maxBy { Chain(_).length }
       longest.toSeq
     }
   }
