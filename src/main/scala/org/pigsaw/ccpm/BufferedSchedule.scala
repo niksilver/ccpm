@@ -14,7 +14,7 @@ object BufferedSchedule {
     val taskIds = tasks map { _.id }
     val ids = if (tasks.isEmpty) Set() else Set(Buffer.nextId(taskIds))
     val buffers = ids map { Buffer(_, 0)}
-    new BufferedSchedule(sch.starts, buffers.toSet)
+    new BufferedSchedule(sch.starts, buffers)
   }
   
 }
