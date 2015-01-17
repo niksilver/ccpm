@@ -12,15 +12,18 @@ class AutoIding(private val prefix: String) {
 
   private val length = prefix.length
   
+  private def split(name: String): (String, String) = name.splitAt(length)
+  private def splitName(id: Symbol): (String, String) = split(id.name)
+
   /**
    * Is a given symbol of the format for an auto id?
    * True when it's of the format `t` followed by one or more digits.
    */
   def isAutoId(id: Symbol): Boolean = {
-    val name = id.name
-    name.startsWith(prefix) &&
-      name.length > length &&
-      (name.drop(length) forall { _.isDigit })
+    val (half1, half2) = splitName(id)
+    half1 == prefix &&
+      half2.length >= 1 &&
+      (half2 forall { _.isDigit })
   }
 
   /**
@@ -28,7 +31,7 @@ class AutoIding(private val prefix: String) {
    */
   def nextId(ids: Iterable[Symbol]): Symbol = {
     val autoIds = ids filter { id => isAutoId(id) }
-    val idNums = autoIds map { _.name.drop(length).toInt }
+    val idNums = autoIds map { splitName(_)._2.toInt }
     val maxNum = idNums.fold(-1)(Math.max)
     Symbol(prefix + (maxNum + 1))
   }
