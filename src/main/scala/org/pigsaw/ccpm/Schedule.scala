@@ -19,6 +19,11 @@ class Schedule(private val starts: Map[Task, Double] = Nil.toMap) {
    * The tasks in the schedule.
    */
   lazy val taskSet: Set[Task] = starts.keySet
+  
+  /**
+   * The buffers in this schedule
+   */
+  lazy val buffers: Set[Task] = Set(Task('dummy))
 
   /**
    * Is this task scheduled?

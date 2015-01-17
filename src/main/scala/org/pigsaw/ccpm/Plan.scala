@@ -32,6 +32,11 @@ trait Plan {
   lazy val schedule: Schedule = Schedule.make(tasks.toSet, dependencies)
 
   /**
+   * A schedule for this plan, with buffers for critical chain planning.
+   */
+  lazy val bufferedSchedule: Schedule = schedule
+  
+  /**
    * Get all possible chains for this plan. This includes non-critical chains.
    */
   lazy val chains: Set[Seq[Task]] = {
