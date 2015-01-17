@@ -41,7 +41,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers with ScheduleMatchers {
     ids.size should equal (3)
   }
   
-  it should "add buffers even if tasks have buffer-like ids" in {
+  it should "add buffers with unique ids even if tasks have buffer-like ids" in {
     val b0 = Task('b0, "Task one", 3, Some("Alice"))
     val b1 = Task('b1, "Task two", 3, Some("Bob"))
     val p = new Plan {
