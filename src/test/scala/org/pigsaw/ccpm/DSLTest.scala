@@ -9,15 +9,14 @@ class DSLTest extends FlatSpec with Matchers {
     val p = new ScriptedPlan {
       add task 't100 as "My task"
     }
-    p.tasks.length should equal(1)
-    (p.tasks)(0) should equal(Task('t100, "My task"))
+    (p.tasks) should equal (Set(Task('t100, "My task")))
   }
 
   it should "give a task with just an id the default description" in {
     val p = new ScriptedPlan {
       add task 't22
     }
-    (p.tasks)(0) should equal(Task('t22, Task.DefaultDescription))
+    (p.tasks) should equal (Set(Task('t22, Task.DefaultDescription)))
   }
 
   it should "reject a second task with the same id for tasks without descriptions" in {
@@ -46,13 +45,13 @@ class DSLTest extends FlatSpec with Matchers {
       add task 't3 as "Task four"
       add task "Task five"
     }
-    val tasks = p.tasks
-    tasks.length should equal(5)
-    tasks(0).id should equal('t0)
-    tasks(1).id should equal('t13)
-    tasks(2).id should equal('t14)
-    tasks(3).id should equal('t3)
-    tasks(4).id should equal('t15)
+    val taskSeq = p.tasks.toSeq
+    taskSeq.length should equal(5)
+    taskSeq(0).id should equal('t0)
+    taskSeq(1).id should equal('t13)
+    taskSeq(2).id should equal('t14)
+    taskSeq(3).id should equal('t3)
+    taskSeq(4).id should equal('t15)
   }
 
   "The DSL for dependencies" should "allow task dependencies to be expressed by ids" in {

@@ -2,6 +2,7 @@ package org.pigsaw.ccpm
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
+import org.scalatest.Ignore
 
 class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
 
@@ -10,7 +11,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val t2 = Task('t2, "Task two", 1, Some("Bob"))
     val t3 = Task('t3, "Task three", 1, Some("Carol"))
     val p = new Plan {
-      val tasks = Seq(t1, t2, t3)
+      val tasks = Set(t1, t2, t3)
       val dependencies = Set((t1 -> t2), (t2 -> t3))
     }
     p.resources should contain theSameElementsAs Seq("Alice", "Bob", "Carol")
@@ -21,7 +22,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val t2 = Task('t2, "Task two", 1, Some("Alice"))
     val t3 = Task('t3, "Task three", 1, Some("Carol"))
     val p = new Plan {
-      val tasks = Seq(t1, t2, t3)
+      val tasks = Set(t1, t2, t3)
       val dependencies = Set((t1 -> t2), (t2 -> t3))
     }
     p.resources should contain theSameElementsAs Seq("Alice", "Carol")
@@ -31,7 +32,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val t1 = Task('t1, "Task one", 5, Some("Alice"))
     val t2 = Task('t2, "Task two", 3, Some("Bob"))
     val p = new Plan {
-      val tasks = Seq(t1, t2)
+      val tasks = Set(t1, t2)
       val dependencies = Set((t1 -> t2))
     }
     val sch = p.schedule
@@ -47,7 +48,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val d1 = Task('d1, 1)
     val d2 = Task('d2, 1)
     val p = new Plan {
-      val tasks = Seq(a1, a2, b, c, d1, d2)
+      val tasks = Set(a1, a2, b, c, d1, d2)
       val dependencies = Set(
         (a1 -> b), (a2 -> b),
         (b -> c),
@@ -75,7 +76,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     //   [t2 Alice]+----------+[t3 Alice]    or              \[t2 Alice]+[t3 Alice]
 
     val p = new Plan {
-      val tasks = Seq(t1, t2, t3)
+      val tasks = Set(t1, t2, t3)
       val dependencies = Set((t1 -> t3), (t2 -> t3))
     }
     val chains = p.chains
@@ -102,7 +103,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     //   [t2 Alice]+----------+[tEnd]    or              \[t2 Alice]+[tEnd]
 
     val p = new Plan {
-      val tasks = Seq(t1, t2, tEnd)
+      val tasks = Set(t1, t2, tEnd)
       val dependencies = Set((t1 -> tEnd), (t2 -> tEnd))
     }
     val chains = p.chains
@@ -130,7 +131,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     //   [t2 Alice]+---[t3 Bob]+[t4 Alice]
 
     val p = new Plan {
-      val tasks = Seq(t1, t2, t3, t4)
+      val tasks = Set(t1, t2, t3, t4)
       val dependencies = Set((t1 -> t4), (t2 -> t3), (t3 -> t4))
     }
     val chains = p.chains
@@ -155,7 +156,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     //   [t2 Alice]-[t3     Bob]+[t4 Alice]
 
     val p = new Plan {
-      val tasks = Seq(t1, t2, t3, t4)
+      val tasks = Set(t1, t2, t3, t4)
       val dependencies = Set((t1 -> t4), (t2 -> t3), (t3 -> t4))
     }
     val chains = p.chains
@@ -178,7 +179,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     //               [t5  Alice]/
 
     val p = new Plan {
-      val tasks = Seq(t1, t2, t3, t4, t5)
+      val tasks = Set(t1, t2, t3, t4, t5)
       val dependencies = Set((t1 -> t3), (t2 -> t3), (t3 -> t4), (t5 -> t4))
     }
 
@@ -194,7 +195,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
   it should "work if there's only one task" in {
     val t0 = Task('t0, "The only one", 3, None)
     val p = new Plan {
-      val tasks = Seq(t0)
+      val tasks = Set(t0)
       val dependencies = Set[(Task, Task)]()
     }
 
@@ -212,7 +213,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val t2 = Task('t2, "Task two", 6, Some("Bob"))
     val t3 = Task('t3, "Task three", 7, Some("Carol"))
     val p = new Plan {
-      val tasks = Seq(t1, t2, t3)
+      val tasks = Set(t1, t2, t3)
       val dependencies = Set((t1 -> t3), (t2 -> t3))
     }
 
@@ -232,7 +233,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val b2 = Task('b2, 5)
     val b3 = Task('b3, 5)
     val p = new Plan {
-      val tasks = Seq(a1, a2, b1, b2, b3)
+      val tasks = Set(a1, a2, b1, b2, b3)
       val dependencies = Set(
         (a1 -> a2), (a2 -> b3),
         (b1 -> b2), (b2 -> b3))
@@ -250,7 +251,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
     val (c1, c2) = (Task('c1, 3), Task('c2, 3))
     val p = new Plan {
-      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val tasks = Set(a1, a2, b1, b2, b3, c1, c2)
       val dependencies = Set(
         (a1 -> a2), (a2 -> b3),
         (b1 -> b2), (b2 -> b3),
@@ -273,7 +274,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val (b1, b2, b3, b4) = (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5))
     val (c1, c2) = (Task('c1, 4), Task('c2, 4))
     val p = new Plan {
-      val tasks = Seq(a1, a2, b1, b2, b3, b4, c1, c2)
+      val tasks = Set(a1, a2, b1, b2, b3, b4, c1, c2)
       val dependencies = Set(
         (b1 -> a1), (a1 -> a2), (a2 -> b4),
         (b1 -> b2), (b2 -> b3), (b3 -> b4),
@@ -298,7 +299,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
       (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5), Task('b5, 5))
     val (c1, c2) = (Task('c1, 2), Task('c2, 2))
     val p = new Plan {
-      val tasks = Seq(a1, a2, b1, b2, b3, b4, b5, c1, c2)
+      val tasks = Set(a1, a2, b1, b2, b3, b4, b5, c1, c2)
       val dependencies = Set(
         (b1 -> a1), (a1 -> a2), (a2 -> b3),
         (b1 -> b2), (b2 -> b3), (b3 -> b4), (b4 -> b5),
@@ -319,7 +320,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
     val (c1, c2) = (Task('c1, 3), Task('c2, 3))
     val p = new Plan {
-      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val tasks = Set(a1, a2, b1, b2, b3, c1, c2)
       val dependencies = Set(
         (a1 -> a2),
         (b1 -> b2), (b2 -> b3),
@@ -340,7 +341,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
     val (c1, c2) = (Task('c1, 3), Task('c2, 3))
     val p = new Plan {
-      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val tasks = Set(a1, a2, b1, b2, b3, c1, c2)
       val dependencies = Set(
         (b1-> a1), (a1 -> a2),
         (b1 -> b2), (b2 -> b3),
@@ -361,7 +362,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val (b1, b2, b3) = (Task('b1, 5), Task('b2, 5), Task('b3, 5))
     val (c1, c2) = (Task('c1, 3), Task('c2, 3))
     val p = new Plan {
-      val tasks = Seq(a1, a2, b1, b2, b3, c1, c2)
+      val tasks = Set(a1, a2, b1, b2, b3, c1, c2)
       val dependencies = Set(
         (a1 -> a2), (a2 -> b3),
         (b1 -> b2), (b2 -> b3),
@@ -383,7 +384,7 @@ class PlanTest extends FlatSpec with Matchers with ScheduleMatchers {
     val (i2, i3) = (Task('i2, 2), Task('i3, 2))
     val (b1, b2, b3, b4) = (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5))
     val p = new Plan {
-      val tasks = Seq(a1, a2, i2, i3, b1, b2, b3)
+      val tasks = Set(a1, a2, i2, i3, b1, b2, b3)
       val dependencies = Set(
         (b1 -> a1), (a1 -> a2), (a2 -> a3), (a3 -> a4), (a4 -> b4),
         (a1 -> i2), (i2 -> i3), (i3 -> a4),

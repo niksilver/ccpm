@@ -8,7 +8,7 @@ trait Plan {
   /**
    * Tasks in the plan
    */
-  val tasks: Seq[Task]
+  val tasks: Set[Task]
 
   /**
    * Retrieve a task by its id.
@@ -47,8 +47,10 @@ trait Plan {
    * Get the longest chain.
    */
   lazy val criticalChain: Seq[Task] = {
-    if (tasks.length <= 1) {
-      tasks
+    if (tasks.size == 0) {
+      Seq()
+    } else if (tasks.size == 1) {
+      Seq(tasks.head)
     } else {
       val longest = chains map { Chain(_) } reduce { _ max _ }
       longest.toSeq
@@ -111,6 +113,6 @@ trait Plan {
  * A `Plan` with no tasks and no dependencies.
  */
 object EmptyPlan extends Plan {
-  val tasks = Nil
+  val tasks = Set[Task]()
   val dependencies = Set[(Task, Task)]()
 }

@@ -20,8 +20,7 @@ class ScriptedPlanTest extends FlatSpec with Matchers {
       add task "My task"
     }
     println("Starting assertions")
-    (p1.tasks)(0) should equal(Task("My task"))
-    p1.tasks.length should equal(1)
+    p1.tasks should equal (Set(Task("My task")))
   }
 
   it should "be able to return the list of tasks specified (2 - to avoid faking)" in {
@@ -29,9 +28,29 @@ class ScriptedPlanTest extends FlatSpec with Matchers {
       add task "My task 1"
       add task "My task 2"
     }
-    (p2.tasks)(0).description should equal("My task 1")
-    (p2.tasks)(1).description should equal("My task 2")
-    p2.tasks.length should equal(2)
+    val taskSeq = p2.tasks.toSeq
+    (taskSeq)(0).description should equal("My task 1")
+    (taskSeq)(1).description should equal("My task 2")
+    taskSeq.length should equal (2)
+  }
+
+  it should "return the tasks in order" in {
+    val p2 = new ScriptedPlan {
+      add task "My task 0"
+      add task "My task 1"
+      add task "My task 2"
+      add task "My task 3"
+      add task "My task 4"
+      add task "My task 5"
+    }
+    val taskSeq = p2.tasks.toSeq
+    (taskSeq)(0).description should equal("My task 0")
+    (taskSeq)(1).description should equal("My task 1")
+    (taskSeq)(2).description should equal("My task 2")
+    (taskSeq)(3).description should equal("My task 3")
+    (taskSeq)(4).description should equal("My task 4")
+    (taskSeq)(5).description should equal("My task 5")
+    taskSeq.length should equal (6)
   }
 
 }

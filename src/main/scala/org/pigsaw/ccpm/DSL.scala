@@ -1,15 +1,14 @@
 package org.pigsaw.ccpm
 
-import scala.collection.mutable.ListBuffer
-import scala.collection.mutable.MutableList
+import scala.collection.mutable.LinkedHashSet
 
 /**
  * Mutable data for a plan.
  */
 class PlanContext {
-  val tasks = ListBuffer[Task]()
-  val resources = MutableList[String]()
-  val dependencies = MutableList[(Task, Task)]()
+  val tasks = LinkedHashSet[Task]()
+  val resources = LinkedHashSet[String]()
+  val dependencies = LinkedHashSet[(Task, Task)]()
 
   def task(id: Symbol) = Task.task(tasks, id)
 }

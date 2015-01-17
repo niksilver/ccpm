@@ -65,7 +65,7 @@ object Task {
   /**
    * Given a list of ids, generate the next appropriate one.
    */
-  def nextId(ids: Seq[Symbol]): Symbol = {
+  def nextId(ids: Iterable[Symbol]): Symbol = {
     val autoIds = ids filter { id => Task.isAutoId(id) }
     val idNums = autoIds map { _.name.drop(1).toInt }
     val maxNum = idNums.fold(-1)(Math.max)
@@ -76,7 +76,7 @@ object Task {
    * Given some tasks, get one by its id, or throw an
    * `UnknownTaskException`.
    */
-  def task(ts: Seq[Task], id: Symbol): Task = {
+  def task(ts: scala.collection.Set[Task], id: Symbol): Task = {
     (ts find { _.id == id}) match {
       case Some(t) => t
       case None => throw new UnknownTaskException("No such task with id " + id)
