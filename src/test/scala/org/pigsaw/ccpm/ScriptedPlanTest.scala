@@ -14,12 +14,29 @@ class ScriptedPlanTest extends FlatSpec with Matchers {
       Task("My task 1")
     }
   }
+  
+  it should "reject a duplicate Task" in {
+    a [DuplicateTaskException] should be thrownBy {
+      new ScriptedPlan {
+        add task 't0 as "Some task"
+        add task 't0 as "Some task"
+      }
+    }
+  }
+  
+  it should "reject a Task with a duplicate ID" in {
+    a [DuplicateTaskException] should be thrownBy {
+      new ScriptedPlan {
+        add task 't0 as "Some task"
+        add task 't0 as "Some supposedly-different task"
+      }
+    }
+  }
 
   "tasks" should "be able to return the list of tasks specified (1)" in {
     val p1 = new ScriptedPlan {
       add task "My task"
     }
-    println("Starting assertions")
     p1.tasks should equal (Set(Task("My task")))
   }
 
