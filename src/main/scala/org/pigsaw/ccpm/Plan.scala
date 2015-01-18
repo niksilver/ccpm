@@ -114,12 +114,20 @@ trait Plan {
   }
   
   /**
-   * Does the given path feed into the critical path?
+   * Give the task that follows on from this path and which
+   * is on the critical chain
    */
-  def feedsIntoCriticalChain(path: Seq[Task]): Boolean = {
+  def feedOnCriticalChain(path: Seq[Task]): Option[Task] = {
     val g = new Graph(dependencies)
     val nextTasks = g.targets(path.last)
-    (nextTasks exists { criticalChain contains _})
+    nextTasks find { criticalChain contains _}
+  }
+  
+  /**
+   * Get all the paths which feed directly into the critical chain.
+   */
+  def feederPaths: Set[Seq[Task]] = {
+    nonCriticalPaths filter { feedOnCriticalChain(_).nonEmpty }
   }
 }
 

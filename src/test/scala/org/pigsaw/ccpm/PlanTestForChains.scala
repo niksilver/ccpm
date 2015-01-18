@@ -361,7 +361,7 @@ class PlanTestForChains extends FlatSpec with Matchers with ScheduleMatchers {
         (contain theSameElementsAs Set(Seq(a1, i2, i3, a4), Seq(a2, a3))))
   }
   
-  "feedsIntoCriticalChain" should "be true for a path which feeds into critical chain" in {
+  "feedOnCriticalChain" should "give task on critical chain, if path feeds into critical chain" in {
 
     //       /----[a1]+[a2]-[a3]-[a4]\
     //       |        \[i2]-[i3]/    |
@@ -381,11 +381,11 @@ class PlanTestForChains extends FlatSpec with Matchers with ScheduleMatchers {
     
     // The longer path feeds into the critical chain
     
-    p.feedsIntoCriticalChain(Seq(a1, a2, a3, a4)) should equal (true)
-    p.feedsIntoCriticalChain(Seq(a1, i2, i3, a4)) should equal (true)    
+    p.feedOnCriticalChain(Seq(a1, a2, a3, a4)) should equal (Some(b4))
+    p.feedOnCriticalChain(Seq(a1, i2, i3, a4)) should equal (Some(b4))    
   }
   
-  it should "be false for a path which does not feed into critical chain" in {
+  it should "be empty for a path which does not feed into critical chain" in {
 
     //       /----[h1]+[h2]-[h3]-[h4]\
     //       |        \[i2]-[i3]/    |
@@ -405,8 +405,60 @@ class PlanTestForChains extends FlatSpec with Matchers with ScheduleMatchers {
     
     // The longer path feeds into the critical chain
     
-    p.feedsIntoCriticalChain(Seq(h2, h3)) should equal (false)
-    p.feedsIntoCriticalChain(Seq(i2, i3)) should equal (false)    
+    p.feedOnCriticalChain(Seq(h2, h3)) should equal (None)
+    p.feedOnCriticalChain(Seq(i2, i3)) should equal (None)    
+  }
+  
+  "feederPaths" should "be empty for an empty plan" in {
+    val p = EmptyPlan
+    p.feederPaths should be (Set())
+  }
+  
+  it should "give the non-critical paths if they all feed into the critical chain" in {
+
+    //       /----[a1]-[a2]\
+    // [b1  ]+[b2  ]+[b3  ]+[b4  ]
+    //       \----[c1]-[c2]/
+    //
+    // Critical chain is b1, b2, b3, b4
+
+    val (a1, a2) = (Task('a1, 3), Task('a2, 3))
+    val (b1, b2, b3, b4) = (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5))
+    val (c1, c2) = (Task('c1, 4), Task('c2, 4))
+    val p = new Plan {
+      val tasks = Set(a1, a2, b1, b2, b3, b4, c1, c2)
+      val dependencies = Set(
+        (b1 -> a1), (a1 -> a2), (a2 -> b4),
+        (b1 -> b2), (b2 -> b3), (b3 -> b4),
+        (b1 -> c1), (c1 -> c2), (c2 -> b4))
+    }
+    p.feederPaths should contain theSameElementsAs Set(
+      Seq(a1, a2),
+      Seq(c1, c2))
   }
 
+  it should "return exactly those paths that feed into the CC, and no others" in {
+    
+    //       /----[a1]+[a2]-[a3]-[a4]\
+    //       |        \[i2]-[i3]/    |
+	//       |                       |
+    // [b1  ]+[b2       ]+[b3       ]+[b4   ]
+    
+    val (a1, a2, a3, a4) = (Task('a1, 2), Task('a2, 2), Task('a3, 2), Task('a4, 2))
+    val (i2, i3) = (Task('i2, 2), Task('i3, 2))
+    val (b1, b2, b3, b4) = (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5))
+    val p = new Plan {
+      val tasks = Set(a1, a2, i2, i3, b1, b2, b3)
+      val dependencies = Set(
+        (b1 -> a1), (a1 -> a2), (a2 -> a3), (a3 -> a4), (a4 -> b4),
+        (a1 -> i2), (i2 -> i3), (i3 -> a4),
+        (b1 -> b2), (b2 -> b3), (b3 -> b4))
+    }
+    
+    // The longer path feeds into the critical chain
+    
+    p.feederPaths should (
+        equal (Set(Seq(a1, a2, a3, a4))) or
+        equal (Set(Seq(a1, i2, i3, a4))))
+  }
 }
