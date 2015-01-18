@@ -124,6 +124,11 @@ trait Plan {
   def feederPaths: Set[Seq[Task]] = {
     nonCriticalPaths filter { feedOnCriticalChain(_).nonEmpty }
   }
+  
+  /**
+   * Get the completion buffer (aka project buffer).
+   */
+  lazy val completionBuffer: Buffer = Buffer.make('b0, criticalChain)
 }
 
 /**

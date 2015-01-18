@@ -56,4 +56,12 @@ class BufferTest extends FlatSpec with Matchers {
     val b = Buffer.make('b0, Seq(t0, t1, t9), 100)
     b.predecessor should equal (t9)
   }
+
+  "make(id, path)" should "set the duration to half the path, with no maximum" in {
+    val t0 = Task('t0, 30)
+    val t1 = Task('t1, 40)
+    val t2 = Task('t2, 50)
+    val b = Buffer.make('b0, Seq(t0, t1, t2))
+    b.duration should equal ((30+40+50)/2)
+  }
 }
