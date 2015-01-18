@@ -58,8 +58,6 @@ case class Task(id: Symbol, description: String, duration: Double, resource: Opt
    * and they are they are equal.
    */
   def sameResource(t2: Task): Boolean = { resource.nonEmpty && resource == t2.resource }
-
-  override def toString() = id.toString
 }
 
 object Task extends AutoIding("t") {
@@ -102,7 +100,7 @@ object Task extends AutoIding("t") {
 
 }
 
-case class Buffer(id: Symbol, duration: Double) extends Period
+case class Buffer(id: Symbol, duration: Double, predecessor: Task) extends Period
 
 object Buffer extends AutoIding("b") {
   /**
@@ -113,6 +111,6 @@ object Buffer extends AutoIding("b") {
    */
   def make(id: Symbol, path: Seq[Task], max: Double): Buffer = {
     val duration = Chain(path).length
-    Buffer(id, Math.min(duration, max))
+    Buffer(id, Math.min(duration, max), path.last)
   }
 }
