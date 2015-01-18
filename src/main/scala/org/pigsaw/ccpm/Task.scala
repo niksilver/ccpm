@@ -100,17 +100,22 @@ object Task extends AutoIding("t") {
 
 }
 
+/**
+ * A buffer in a critical chain plan.
+ * Could be a completion buffer (aka project buffer) or a feeder buffer.
+ */
 case class Buffer(id: Symbol, duration: Double, predecessor: Task) extends Period
 
 object Buffer extends AutoIding("b") {
   /**
-   * Make a buffer of the appropriate duration.
+   * Make a buffer of the appropriate duration, which will be
+   * half the length of the given path.
    * @param id      The id of the buffer
    * @param path    The path that the buffer is to follow on from
    * @param max     The maximum duration of the buffer
    */
   def make(id: Symbol, path: Seq[Task], max: Double): Buffer = {
-    val duration = Chain(path).length
+    val duration = Chain(path).length / 2
     Buffer(id, Math.min(duration, max), path.last)
   }
 }
