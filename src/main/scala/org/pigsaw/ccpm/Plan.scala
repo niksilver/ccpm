@@ -128,7 +128,10 @@ trait Plan {
   /**
    * Get the completion buffer (aka project buffer).
    */
-  lazy val completionBuffer: Buffer = Buffer.make('b0, criticalChain)
+  lazy val completionBuffer: Buffer = {
+    val id = Buffer.nextId(tasks map { _.id })
+    Buffer.make(id, criticalChain)
+  }
 }
 
 /**

@@ -46,4 +46,22 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val cb = p.completionBuffer
     cb.duration should equal ((9+8+7)/2)
   }
+
+  it should "give buffer with a unique id" in {
+    val t1 = Task('t1)
+
+    val plan1 = new Plan {
+      val tasks = Set(t1)
+      val dependencies = Set[(Task, Task)]()
+    }
+    val usualBufferId = plan1.completionBuffer.id
+    
+    val t2 = Task(usualBufferId)
+    val plan2 = new Plan {
+      val tasks = Set(t2)
+      val dependencies = Set[(Task, Task)]()
+    }
+    
+    plan2.completionBuffer.id should not equal (usualBufferId)
+  }
 }
