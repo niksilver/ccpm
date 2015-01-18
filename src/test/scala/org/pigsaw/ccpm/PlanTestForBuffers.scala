@@ -5,7 +5,7 @@ import org.scalatest.Matchers
 
 class PlanTestForBuffers extends FlatSpec with Matchers {
 
-  "completionBuffer" should "give buffer of appropriate duration (1)" in {
+  "completionBuffer" should "give a buffer of appropriate duration (1)" in {
     val t1 = Task('t1, "Task one", 5, Some("Alice"))
     val t2 = Task('t2, "Task two", 4, Some("Alice"))
     val t3 = Task('t3, "Task three", 3, Some("Alice"))
@@ -26,7 +26,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     cb.duration should equal ((5+4+3)/2)
   }
 
-  it should "give buffer of appropriate duration (2 - to avoid faking)" in {
+  it should "give a buffer of appropriate duration (2 - to avoid faking)" in {
     val t1 = Task('t1, "Task one", 9, Some("Alice"))
     val t2 = Task('t2, "Task two", 8, Some("Alice"))
     val t3 = Task('t3, "Task three", 7, Some("Alice"))
@@ -47,7 +47,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     cb.duration should equal ((9+8+7)/2)
   }
 
-  it should "give buffer with a unique id" in {
+  it should "give a buffer with a unique id" in {
     val t1 = Task('t1)
 
     val plan1 = new Plan {
@@ -63,5 +63,57 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     }
     
     plan2.completionBuffer.id should not equal (usualBufferId)
+  }
+
+  it should "give a buffer with the correct duration (1)" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    val cb = p.completionBuffer
+    cb.duration should equal ((5+3)/2)
+  }
+
+  it should "give a buffer with the correct duration (2 - to avoid faking)" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 7)
+    val t3 = Task('t3, 11)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    val cb = p.completionBuffer
+    cb.duration should equal ((7+11)/2)
+  }
+
+  it should "give a buffer with the correct predecessor (1)" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    val cb = p.completionBuffer
+    cb.predecessor should equal (t3)
+  }
+
+  it should "give a buffer with the correct predecessor (2 - to avoid faking)" in {
+    val t11 = Task('t11, 3)
+    val t12 = Task('t12, 7)
+    val t13 = Task('t13, 9)
+
+    val p = new Plan {
+      val tasks = Set(t11, t12, t13)
+      val dependencies = Set(t11 -> t13, t12 -> t13)
+    }
+    val cb = p.completionBuffer
+    cb.predecessor should equal (t13)
   }
 }
