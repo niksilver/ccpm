@@ -112,6 +112,15 @@ trait Plan {
       slicePath(next, newAcc, slice ++: excluded)
     }
   }
+  
+  /**
+   * Does the given path feed into the critical path?
+   */
+  def feedsIntoCriticalChain(path: Seq[Task]): Boolean = {
+    val g = new Graph(dependencies)
+    val nextTasks = g.targets(path.last)
+    (nextTasks exists { criticalChain contains _})
+  }
 }
 
 /**

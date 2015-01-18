@@ -360,5 +360,53 @@ class PlanTestForChains extends FlatSpec with Matchers with ScheduleMatchers {
         (contain theSameElementsAs Set(Seq(a1, a2, a3, a4), Seq(i2, i3))) or
         (contain theSameElementsAs Set(Seq(a1, i2, i3, a4), Seq(a2, a3))))
   }
+  
+  "feedsIntoCriticalChain" should "be true for a path which feeds into critical chain" in {
+
+    //       /----[a1]+[a2]-[a3]-[a4]\
+    //       |        \[i2]-[i3]/    |
+	//       |                       |
+    // [b1  ]+[b2       ]+[b3       ]+[b4   ]
+    
+    val (a1, a2, a3, a4) = (Task('a1, 2), Task('a2, 2), Task('a3, 2), Task('a4, 2))
+    val (i2, i3) = (Task('i2, 2), Task('i3, 2))
+    val (b1, b2, b3, b4) = (Task('b1, 5), Task('b2, 5), Task('b3, 5), Task('b4, 5))
+    val p = new Plan {
+      val tasks = Set(a1, a2, i2, i3, b1, b2, b3)
+      val dependencies = Set(
+        (b1 -> a1), (a1 -> a2), (a2 -> a3), (a3 -> a4), (a4 -> b4),
+        (a1 -> i2), (i2 -> i3), (i3 -> a4),
+        (b1 -> b2), (b2 -> b3), (b3 -> b4))
+    }
+    
+    // The longer path feeds into the critical chain
+    
+    p.feedsIntoCriticalChain(Seq(a1, a2, a3, a4)) should equal (true)
+    p.feedsIntoCriticalChain(Seq(a1, i2, i3, a4)) should equal (true)    
+  }
+  
+  it should "be false for a path which does not feed into critical chain" in {
+
+    //       /----[h1]+[h2]-[h3]-[h4]\
+    //       |        \[i2]-[i3]/    |
+	//       |                       |
+    // [j1  ]+[j2       ]+[j3       ]+[j4   ]
+    
+    val (h1, h2, h3, h4) = (Task('h1, 2), Task('h2, 2), Task('h3, 2), Task('h4, 2))
+    val (i2, i3) = (Task('i2, 2), Task('i3, 2))
+    val (j1, j2, j3, j4) = (Task('j1, 5), Task('j2, 5), Task('j3, 5), Task('j4, 5))
+    val p = new Plan {
+      val tasks = Set(h1, h2, i2, i3, j1, j2, j3)
+      val dependencies = Set(
+        (j1 -> h1), (h1 -> h2), (h2 -> h3), (h3 -> h4), (h4 -> j4),
+        (h1 -> i2), (i2 -> i3), (i3 -> h4),
+        (j1 -> j2), (j2 -> j3), (j3 -> j4))
+    }
+    
+    // The longer path feeds into the critical chain
+    
+    p.feedsIntoCriticalChain(Seq(h2, h3)) should equal (false)
+    p.feedsIntoCriticalChain(Seq(i2, i3)) should equal (false)    
+  }
 
 }
