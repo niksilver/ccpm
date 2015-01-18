@@ -104,4 +104,15 @@ object Task extends AutoIding("t") {
 
 case class Buffer(id: Symbol, duration: Double) extends Period
 
-object Buffer extends AutoIding("b")
+object Buffer extends AutoIding("b") {
+  /**
+   * Make a buffer of the appropriate duration.
+   * @param id      The id of the buffer
+   * @param path    The path that the buffer is to follow on from
+   * @param max     The maximum duration of the buffer
+   */
+  def make(id: Symbol, path: Seq[Task], max: Double): Buffer = {
+    val duration = Chain(path).length
+    Buffer('bid, duration)
+  }
+}
