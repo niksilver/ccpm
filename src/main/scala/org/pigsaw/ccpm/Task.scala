@@ -113,6 +113,6 @@ object Buffer extends AutoIding("b") {
    */
   def make(id: Symbol, path: Seq[Task], max: Double): Buffer = {
     val duration = Chain(path).length
-    Buffer('bid, Math.min(duration, max))
+    Buffer(id, Math.min(duration, max))
   }
 }
