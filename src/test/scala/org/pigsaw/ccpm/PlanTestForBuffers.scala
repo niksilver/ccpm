@@ -116,4 +116,19 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val cb = p.completionBuffer
     cb.predecessor should equal (t13)
   }
+  
+  "bufferedSchedule" should "include buffer at the end of the last task" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    
+    val cb = p.completionBuffer
+    val bs = p.bufferedSchedule
+    bs.start(cb) should equal (bs.end(t3))
+  }
 }

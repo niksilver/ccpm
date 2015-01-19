@@ -132,6 +132,15 @@ trait Plan {
     val id = Buffer.nextId(tasks map { _.id })
     Buffer.make(id, criticalChain)
   }
+  
+  /**
+   * Get a schedule for this plan, including buffers.
+   */
+  lazy val bufferedSchedule: Schedule = {
+    val lastTask = criticalChain.last
+    val lastTaskEnd = schedule.end(lastTask)
+    schedule + (completionBuffer, lastTaskEnd)
+  }
 }
 
 /**

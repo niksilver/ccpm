@@ -6,37 +6,40 @@ import scala.collection.TraversableLike
 /**
  * Start times for tasks
  */
-class Schedule(protected[ccpm] val starts: Map[Task, Double] = Nil.toMap) {
+class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
 
   import Schedule._
   
   /**
    * The tasks in the schedule.
    */
-  lazy val tasks: Iterable[Task] = starts.keys
+  lazy val tasks: Iterable[Task] = starts.keys collect { case t: Task => t }
 
   /**
    * The tasks in the schedule.
    */
-  lazy val taskSet: Set[Task] = starts.keySet
+  lazy val taskSet: Set[Task] = starts.keySet collect { case t: Task => t }
 
+  // All the starts of just the tasks
+  private lazy val taskStarts = starts collect { case (t: Task, s: Double) => (t, s) }
+  
   /**
-   * Is this task scheduled?
+   * Is this period scheduled?
    */
   def isScheduled(t: Task): Boolean = { taskSet contains t }
 
   /**
-   * Add a task and its start time to the schedule, and
+   * Add a task or buffer and its start time to the schedule, and
    * return the new schedule.
    */
-  def +(t: Task, when: Double): Schedule = new Schedule(starts + (t -> when))
+  def +(p: Period, when: Double): Schedule = new Schedule(starts + (p -> when))
 
   /**
-   * Get the start time of a given task.
+   * Get the start time of a given period.
    */
-  def start(t: Task): Double = starts.get(t) match {
+  def start(p: Period): Double = starts.get(p) match {
     case Some(start) => start
-    case None => throw new UnknownTaskException(t.toString)
+    case None => throw new UnknownTaskException(p.toString)
   }
 
   /**
@@ -220,8 +223,8 @@ class Schedule(protected[ccpm] val starts: Map[Task, Double] = Nil.toMap) {
   //
   private def adjacentTasks(cond: (Task,Task) => Boolean): Seq[Tuple2[Task, Task]] = {
     for {
-      (task1, start1) <- starts.toSeq
-      (task2, start2) <- (starts filter { td => cond(task1, td._1) })
+      (task1, start1) <- taskStarts.toSeq
+      (task2, start2) <- (taskStarts filter { td => cond(task1, td._1) })
       if task1.duration != 0 && task2.duration != 0 && end(task1) == start2
     } yield (task1, task2)
   }
