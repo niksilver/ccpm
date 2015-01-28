@@ -141,6 +141,12 @@ trait Plan {
     val lastTaskEnd = schedule.end(lastTask)
     schedule + (completionBuffer, lastTaskEnd)
   }
+  
+  /**
+   * Move a task back a maximum number of units.
+   */
+  def moveBack(t: Task, max: Double): Schedule =
+    schedule changing (t, schedule.start(t) - max)
 }
 
 /**

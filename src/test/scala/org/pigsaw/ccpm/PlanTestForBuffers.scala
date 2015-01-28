@@ -105,4 +105,22 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val bs = p.bufferedSchedule
     bs.start(cb) should equal (bs.end(t3))
   }
+  
+  "moveBack" should "be able to move back a simple task in a simple schedule" in {
+    val t1 = Task('t1, 5)
+    val t2 = Task('t2, 10)
+    val t3 = Task('t3, 0)
+    
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    
+    val t1End = p.schedule.end(t1)
+    t1End should equal (p.schedule.start(t3))
+    
+    val sch2 = p.moveBack(t1, 2.5)
+    val t1EndRevised = sch2.end(t1)
+    t1EndRevised should equal (p.schedule.start(t3) - 2.5)
+  }
 }

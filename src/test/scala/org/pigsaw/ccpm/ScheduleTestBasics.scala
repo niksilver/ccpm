@@ -6,7 +6,7 @@ import org.scalatest.matchers.Matcher
 import org.scalatest.matchers.MatchResult
 
 class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
-  
+
   "Schedule.add" should "allow the addition of a new task and its start time (1)" in {
     val t = new Task('t0, "My task", 5, Some("Alice"))
     val sch = new Schedule()
@@ -26,6 +26,28 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
     val sch = new Schedule()
     val sch2 = sch + (t, 1.5)
     sch2.start(t) should equal (1.5)
+  }
+
+  "changing" should "allow a task's start to be changed" in {
+    val t0 = new Task('t0, "My task", 2, Some("Alice"))
+    val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
+    val sch1 = new Schedule(Map(t0 -> 5, t1 -> 6))
+
+    sch1.start(t0) should equal (5)
+
+    val sch2 = sch1.changing(t0, 99)
+    sch2.start(t0) should equal (99)
+  }
+
+  it should "throw an exception if the task to change is not in the schedule" in {
+    val t0 = new Task('t0, "My task", 2, Some("Alice"))
+    val t1 = new Task('t1, "Task one", 3, Some("Bob"))
+    val t2 = new Task('t2, "Task two", 7, Some("Bob"))
+    val sch = new Schedule(Map(t0 -> 5, t1 -> 6))
+
+    an [UnknownTaskException] should be thrownBy {
+      sch.changing(t2, 99)
+    }
   }
 
   "Schedule.start" should "get the start times of several added tasks" in {
@@ -214,7 +236,7 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
       (t2, 10) // Runs 10 - 12.5
     sch.latestStart(t1, 13) should equal (7.5)
   }
-  
+
   "adjustStart" should "adjust start times to given base" in {
     val t1 = Task('t1, "My first", 2.5, Some("Alice"))
     val t2 = Task('t2, "My second", 2, Some("Alice"))
@@ -225,26 +247,26 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
     schAdjusted.earliestStart(tasks) should equal (0)
     schAdjusted.latestEnd(tasks) should equal (4.5)
   }
-  
+
   "adjacentTasks" should "be empty if no tasks scheduled" in {
     val sch = new Schedule()
     sch.adjacentTasks should be (Nil)
   }
-  
+
   it should "be empty if no tasks are adjacent" in {
     val t1 = Task('t1, "My first", 2.5, Some("Alice"))
     val t2 = Task('t2, "My second", 2, Some("Alice"))
     val sch = new Schedule() + (t1, 0) + (t2, 20)
     sch.adjacentTasks should be (Nil)
   }
-  
+
   it should "show one adjacent pair if there are two tasks and they're adjacent" in {
     val t1 = Task('t1, "My first", 2.5, Some("Alice"))
     val t2 = Task('t2, "My second", 2, Some("Alice"))
     val sch = new Schedule() + (t1, 0) + (t2, 2.5)
     sch.adjacentTasks should be (Seq((t1, t2)))
   }
-  
+
   it should "ignore zero-length tasks" in {
     val t1 = Task('t1, "My first", 2.5, None)
     val t2 = Task('t2, "Milestone", 0, None)
@@ -252,13 +274,13 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
     val sch = new Schedule() + (t1, 0) + (t2, 2.5) + (t3, 2.5)
     sch.adjacentTasks should be (Seq((t1, t3)))
   }
-  
+
   it should "not say that a zero-length task is adjacent to itself" in {
     val t1 = Task('t1, "My first", 0, None)
     val sch = new Schedule() + (t1, 0)
     sch.adjacentTasks should be (Nil)
   }
-  
+
   it should "return multiple pairs when appropriate" in {
     val t1 = Task('t1, "My first", 2.5, None)
     val t2 = Task('t2, "My end", 1, None)
@@ -268,21 +290,21 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
     sch.adjacentTasks should contain ((t3, t2))
     sch.adjacentTasks.length should equal (2)
   }
-  
+
   "resourceAdjacentTasks" should "ignore adjacent tasks with different resources" in {
     val t1 = Task('t1, "My first", 2.5, Some("Alice"))
     val t2 = Task('t2, "My second", 2, Some("Bob"))
     val sch = new Schedule() + (t1, 0) + (t2, 2.5)
     sch.resourceAdjacentTasks should be (Nil)
   }
-  
+
   it should "return adjacent tasks with same resources" in {
     val t1 = Task('t1, "My first", 2.5, Some("Alice"))
     val t2 = Task('t2, "My second", 2, Some("Alice"))
     val sch = new Schedule() + (t1, 0) + (t2, 2.5)
     sch.resourceAdjacentTasks should be (Seq((t1, t2)))
   }
-  
+
   it should "return adjacent tasks with same resources even if not all adjacent tasks have same resources" in {
     val t1 = Task('t1, "My first", 2.5, None)
     val t2 = Task('t2, "My end", 1, Some("Bob"))

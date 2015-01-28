@@ -35,6 +35,17 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
   def +(p: Period, when: Double): Schedule = new Schedule(starts + (p -> when))
 
   /**
+   * Return a new schedule which is the same as this, but with a given
+   * task's start being changed.
+   */
+  def changing(p: Period, d: Double) =
+    if (starts isDefinedAt p) {
+      new Schedule(starts - p + (p -> d))
+    } else {
+      throw new UnknownTaskException(s"Could not change task $p because it does not exist in the schedule")
+    }
+  
+  /**
    * Get the start time of a given period.
    */
   def start(p: Period): Double = starts.get(p) match {
