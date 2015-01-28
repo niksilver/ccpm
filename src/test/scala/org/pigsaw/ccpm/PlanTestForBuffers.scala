@@ -65,32 +65,6 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     plan2.completionBuffer.id should not equal (usualBufferId)
   }
 
-  it should "give a buffer with the correct duration (1)" in {
-    val t1 = Task('t1, 1)
-    val t2 = Task('t2, 5)
-    val t3 = Task('t3, 3)
-
-    val p = new Plan {
-      val tasks = Set(t1, t2, t3)
-      val dependencies = Set(t1 -> t3, t2 -> t3)
-    }
-    val cb = p.completionBuffer
-    cb.duration should equal ((5+3)/2)
-  }
-
-  it should "give a buffer with the correct duration (2 - to avoid faking)" in {
-    val t1 = Task('t1, 1)
-    val t2 = Task('t2, 7)
-    val t3 = Task('t3, 11)
-
-    val p = new Plan {
-      val tasks = Set(t1, t2, t3)
-      val dependencies = Set(t1 -> t3, t2 -> t3)
-    }
-    val cb = p.completionBuffer
-    cb.duration should equal ((7+11)/2)
-  }
-
   it should "give a buffer with the correct predecessor (1)" in {
     val t1 = Task('t1, 1)
     val t2 = Task('t2, 5)
