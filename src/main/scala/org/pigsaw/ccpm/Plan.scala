@@ -30,7 +30,7 @@ trait Plan {
    * A schedule for this plan.
    */
   lazy val schedule: Schedule = Schedule.make(tasks.toSet, dependencies)
-  
+
   /**
    * Get all possible chains for this plan. This includes non-critical chains.
    */
@@ -107,7 +107,7 @@ trait Plan {
       slicePath(next, newAcc, slice ++: excluded)
     }
   }
-  
+
   /**
    * Give the task that follows on from this path and which
    * is on the critical chain
@@ -115,16 +115,16 @@ trait Plan {
   def feedOnCriticalChain(path: Seq[Task]): Option[Task] = {
     val g = new Graph(dependencies)
     val nextTasks = g.targets(path.last)
-    nextTasks find { criticalChain contains _}
+    nextTasks find { criticalChain contains _ }
   }
-  
+
   /**
    * Get all the paths which feed directly into the critical chain.
    */
   def feederPaths: Set[Seq[Task]] = {
     nonCriticalPaths filter { feedOnCriticalChain(_).nonEmpty }
   }
-  
+
   /**
    * Get the completion buffer (aka project buffer).
    */
@@ -132,7 +132,7 @@ trait Plan {
     val id = Buffer.nextId(tasks map { _.id })
     Buffer.make(id, criticalChain)
   }
-  
+
   /**
    * Get a schedule for this plan, including buffers.
    */
@@ -141,16 +141,18 @@ trait Plan {
     val lastTaskEnd = schedule.end(lastTask)
     schedule + (completionBuffer, lastTaskEnd)
   }
-  
+
   /**
    * Move a task back a maximum number of units.
    */
   def moveBack(t: Task, max: Double): Schedule = {
     val predecessors = dependencies filter { _._2 == t } map { _._1 }
-    val pred = predecessors.headOption
-    val delta = pred match {
-      case None => max
-      case Some(tPred) => Math.min(max, schedule.start(t) - schedule.end(tPred))
+    val delta = if (predecessors.isEmpty) {
+      max
+    } else {
+      val tStart = schedule.start(t)
+      val latestEnd = schedule.latestEnd(predecessors)
+      Math.min(max, tStart - latestEnd)
     }
     schedule changing (t, schedule.start(t) - delta)
   }

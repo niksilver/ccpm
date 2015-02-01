@@ -168,4 +168,27 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val t2StartRevised = sch2.start(t2)
     t2StartRevised should equal (t2Start - desiredMove)
   }
+  
+  it should "move the task back to the closest predecessor, if it has has several and all are closer than the max" in {
+    val t1 = Task('t1, 10)
+    val t2 = Task('t2, 10)
+    val t3 = Task('t3, 10)
+    val t4 = Task('t4, 10)
+    val tEnd = Task('tEnd, 10)
+    
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4, tEnd)
+      val dependencies = Set(t1 -> tEnd, t2 -> tEnd, t3 -> tEnd, t4 -> tEnd)
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 1, t3 -> 2, t4 -> 3, tEnd -> 15))
+    }
+
+    // We have ends: t1 -> 10, t2 -> 11, t3 -> 12, t4 -> 13
+    // and tEnd starts at 15.
+    // So the gaps range from 5 down to 2
+    
+    val desiredMove = 6.0
+    val sch2 = p.moveBack(tEnd, desiredMove)
+    val tEndStartRevised = sch2.start(tEnd)
+    tEndStartRevised should equal (sch2.end(t4))
+  }
 }
