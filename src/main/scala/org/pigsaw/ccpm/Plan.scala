@@ -161,15 +161,6 @@ trait Plan {
       case None => tStart
       case Some(s) => s
     }
-//    println(s"""predecessors = $predecessors
-//        |predecessorEnds = $predecessorEnds
-//        |tStart = $tStart
-//        |startLimit = $startLimit
-//        |latestStart = $latestStart
-//        |ends = $ends
-//        |sortedEnds = $sortedEnds
-//        |earliest = $earliest
-//        |bestStart = $bestStart""".stripMargin)
     schedule changing (t, bestStart)
   }
 
