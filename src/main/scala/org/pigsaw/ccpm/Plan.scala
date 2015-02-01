@@ -25,7 +25,7 @@ trait Plan {
    * before `t1` can start.
    */
   val dependencies: Set[(Task, Task)]
-  
+
   /**
    * An acyclic graph of the dependencies
    */
@@ -156,7 +156,13 @@ trait Plan {
       val latestEnd = schedule.latestEnd(predecessors)
       Math.min(max, tStart - latestEnd)
     }
-    schedule changing (t, schedule.start(t) - delta)
+    val revisedStart = schedule.start(t) - delta
+    val sch2 = schedule - t
+    if (sch2.resourceConflicts(t, revisedStart)) {
+      schedule
+    } else {
+      schedule changing (t, revisedStart)
+    }
   }
 }
 

@@ -7,7 +7,7 @@ import org.scalatest.matchers.MatchResult
 
 class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
 
-  "Schedule.add" should "allow the addition of a new task and its start time (1)" in {
+  "The + operator" should "allow the addition of a new task and its start time (1)" in {
     val t = new Task('t0, "My task", 5, Some("Alice"))
     val sch = new Schedule()
     val sch2 = sch + (t, 10)
@@ -26,6 +26,20 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
     val sch = new Schedule()
     val sch2 = sch + (t, 1.5)
     sch2.start(t) should equal (1.5)
+  }
+  
+  "The - operator" should "remove a given task" in {
+    val t0 = new Task('t0, "My task", 2, Some("Alice"))
+    val t1 = new Task('t1, "Task 2", 3, Some("Bob"))
+    val sch1 = new Schedule(Map(t0 -> 5, t1 -> 6))
+    val sch2 = sch1 - t0
+    sch2.tasks should equal (Set(t1))
+  }
+  
+  it should "throw an exception if the task to be removed is not in the schedule" in {
+    an [UnknownPeriodException] should be thrownBy {
+      (new Schedule() - Task('t0) )
+    }
   }
 
   "changing" should "allow a task's start to be changed" in {
