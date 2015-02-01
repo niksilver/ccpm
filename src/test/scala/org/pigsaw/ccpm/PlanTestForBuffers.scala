@@ -107,7 +107,6 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
   }
   
   "moveBack" should "be able to move back a simple task in a simple schedule" in {
-    println("----- In moveBack test 1")
     val t1 = Task('t1, 5)
     val t2 = Task('t2, 10)
     val t3 = Task('t3, 0)
