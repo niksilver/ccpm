@@ -25,6 +25,11 @@ trait Plan {
    * before `t1` can start.
    */
   val dependencies: Set[(Task, Task)]
+  
+  /**
+   * An acyclic graph of the dependencies
+   */
+  lazy val graph = new Graph(dependencies)
 
   /**
    * A schedule for this plan.
@@ -35,9 +40,8 @@ trait Plan {
    * Get all possible chains for this plan. This includes non-critical chains.
    */
   lazy val chains: Set[Seq[Task]] = {
-    val g = new Graph(dependencies)
     val resPairs = schedule.resourceAdjacentTasks
-    val newResPairs = resPairs filterNot { pair => g.hasEdge(pair) }
+    val newResPairs = resPairs filterNot { pair => graph.hasEdge(pair) }
     val chainedDependencies = dependencies ++ newResPairs
     val chainedGraph = new Graph(chainedDependencies)
     chainedGraph.paths
@@ -66,8 +70,7 @@ trait Plan {
    * the tasks in the plan, with no repeats.
    */
   def nonCriticalPaths: Set[Seq[Task]] = {
-    val paths = (new Graph(dependencies)).paths
-    buildSlices(paths, Set(), criticalChain.toSet)
+    buildSlices(graph.paths, Set(), criticalChain.toSet)
   }
 
   /**
@@ -113,8 +116,7 @@ trait Plan {
    * is on the critical chain
    */
   def feedOnCriticalChain(path: Seq[Task]): Option[Task] = {
-    val g = new Graph(dependencies)
-    val nextTasks = g.targets(path.last)
+    val nextTasks = graph.targets(path.last)
     nextTasks find { criticalChain contains _ }
   }
 
@@ -146,7 +148,7 @@ trait Plan {
    * Move a task back a maximum number of units.
    */
   def moveBack(t: Task, max: Double): Schedule = {
-    val predecessors = dependencies filter { _._2 == t } map { _._1 }
+    val predecessors = graph.predecessors(t)
     val delta = if (predecessors.isEmpty) {
       max
     } else {

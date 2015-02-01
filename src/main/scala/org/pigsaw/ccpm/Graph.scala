@@ -11,6 +11,12 @@ class Graph[T](g: Set[(T, T)]) {
    * Get all each target node available from a given node
    */
   def targets(node: T): Set[T] = g filter { _._1 == node } map { _._2 }
+  
+  /**
+   * Get the predecessors of a given node: i.e. the nodes with an edge
+   * that go into the given one.
+   */
+  def predecessors(node: T): Set[T] = g filter { _._2 == node } map { _._1 }
 
   /**
    * Does the graph have a given edge?

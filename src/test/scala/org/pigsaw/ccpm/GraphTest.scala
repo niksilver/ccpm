@@ -5,6 +5,26 @@ import org.scalatest.Matchers
 
 class GraphTest extends FlatSpec with Matchers {
   
+  "predecessors" should "be singleton for end in a one-edge graph" in {
+    val g = new Graph(Set('a -> 'b))
+    g.predecessors('b) should equal (Set('a))
+  }
+  
+  it should "be empty for the start in a one-edge graph" in {
+    val g = new Graph(Set('a -> 'b))
+    g.predecessors('a) should be (Set())
+  }
+  
+  it should "be give multiple nodes if appropriate" in {
+    val g = new Graph(Set('a -> 'z, 'b -> 'z))
+    g.predecessors('z) should be (Set('a, 'b))
+  }
+  
+  it should "be empty if the given node is not in the graph" in {
+    val g = new Graph(Set('a -> 'b))
+    g.predecessors('z) should be (Set())
+  }
+  
   "remainsAcyclic" should "be true for an empty graph and ordinary edge" in {
     val g: Graph[Symbol] = new Graph(Set())
     val edge = ('a -> 'b)
