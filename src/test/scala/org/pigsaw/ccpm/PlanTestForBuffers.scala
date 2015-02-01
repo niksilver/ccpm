@@ -107,9 +107,14 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
   }
   
   "moveBack" should "be able to move back a simple task in a simple schedule" in {
+    println("----- In moveBack test 1")
     val t1 = Task('t1, 5)
     val t2 = Task('t2, 10)
     val t3 = Task('t3, 0)
+    
+    // Schedule is:
+    //       [t1  ]\
+    //  [t2       ]+[t3]
     
     val p = new Plan {
       val tasks = Set(t1, t2, t3)
@@ -256,6 +261,30 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     }
     
     val sch2 = p.moveBack(t1, 3)
+    sch2.start(t1) should be (10)
+  }
+  
+  it should "move a task back as far as it can if there's a resource conflict for the first part of the gap behind it" in {
+    val t1 = Task('t1, "Task one", 10, Some("Alice"))
+    val t2 = Task('t2, "Task two", 10, Some("Alice"))
+    val t3 = Task('t3, "Task three", 20, Some("Bob"))
+    val tEnd = Task('tEnd, 0)
+    
+    // Schedule is this, with times:
+    //
+    //            1       2        3
+    // 0          0       0        0
+    //
+    //                    [t1 Alice]\
+    // [t2 Alice]-[t3 Bob          ]+[tEnd]
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, tEnd)
+      val dependencies = Set(t1 -> tEnd, t2 -> t3, t3 -> tEnd)
+      override lazy val schedule = new Schedule(Map(t1 -> 20, t2 -> 0, t3 -> 10, tEnd -> 30))
+    }
+    
+    val sch2 = p.moveBack(t1, 13)
     sch2.start(t1) should be (10)
   }
 }

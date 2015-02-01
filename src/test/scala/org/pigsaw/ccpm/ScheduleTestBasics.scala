@@ -214,6 +214,44 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
 
     sch.resourceConflicts(t01, 21) should be (false)
   }
+  
+  "endsBetween" should "return empty set if no periods scheduled" in {
+    val sch = new Schedule()
+    sch.endsBetween(0, 100) should be (Set())
+  }
+  
+  it should "return a singleton if we have one period scheduled between the given bounds" in {
+    val t1 = Task('t1, 1)
+    val sch = new Schedule(Map(t1 -> 30))
+    sch.endsBetween(0, 100) should equal (Set(31))
+  }
+  
+  it should "return those periods between the bounds even when other exist outside them" in {
+    val t1 = Task('t1, 0.5)
+    val t2 = Task('t2, 0.5)
+    val t3 = Task('t3, 0.5)
+    val t4 = Task('t4, 0.5)
+    val sch = new Schedule(Map(t1 -> 1, t2 -> 2, t3 -> 3, t4 -> 4))
+    sch.endsBetween(1.6, 3.6) should equal (Set(2.5, 3.5))
+  }
+  
+  it should "include periods that are exactly on the lower bound" in {
+    val t1 = Task('t1, 0.5)
+    val t2 = Task('t2, 0.5)
+    val t3 = Task('t3, 0.5)
+    val t4 = Task('t4, 0.5)
+    val sch = new Schedule(Map(t1 -> 1, t2 -> 2, t3 -> 3, t4 -> 4))
+    sch.endsBetween(2.5, 3.6) should equal (Set(2.5, 3.5))
+  }
+  
+  it should "include periods that are exactly on the upper bound" in {
+    val t1 = Task('t1, 0.5)
+    val t2 = Task('t2, 0.5)
+    val t3 = Task('t3, 0.5)
+    val t4 = Task('t4, 0.5)
+    val sch = new Schedule(Map(t1 -> 1, t2 -> 2, t3 -> 3, t4 -> 4))
+    sch.endsBetween(1.6, 3.5) should equal (Set(2.5, 3.5))
+  }
 
   "Schedule.latestStart" should "work if no tasks scheduled (1)" in {
     val sch = new Schedule()

@@ -82,11 +82,19 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
     }
     tasks filter { t.sameResource(_) } exists { conflictsWith(_) }
   }
+  
+  /**
+   * Get the end times of all tasks between the given lower and upper bound inclusive.
+   */
+  def endsBetween(lower: Double, upper: Double): Set[Double] = {
+    val allEnds = starts map { case (p, s) => s + p.duration }
+    (allEnds filter { s => lower <= s && s <= upper }).toSet
+  }
 
   /**
    * Return the latest possible start for a task which will have no
    * resource conflicts with currently-scheduled tasks, and which
-   * does not allow the task to run later that `tLatest`.
+   * does not allow the task to run later that `latest`.
    */
   def latestStart(t: Task, latest: Double): Double = {
     val firstGuess = latest - t.duration

@@ -149,21 +149,30 @@ trait Plan {
    */
   def moveBack(t: Task, max: Double): Schedule = {
     val predecessors = graph.predecessors(t)
-    val delta = if (predecessors.isEmpty) {
-      max
-    } else {
-      val tStart = schedule.start(t)
-      val latestEnd = schedule.latestEnd(predecessors)
-      Math.min(max, tStart - latestEnd)
-    }
-    val revisedStart = schedule.start(t) - delta
+    val predecessorEnds = predecessors map { schedule.end(_) }
+    val tStart = schedule.start(t)
+    val startLimit = tStart - max
+    val latestStart = (predecessorEnds + startLimit).max
+    val ends = schedule.endsBetween(latestStart, tStart)
+    val sortedEnds = (ends + latestStart).toSeq.sorted
     val sch2 = schedule - t
-    if (sch2.resourceConflicts(t, revisedStart)) {
-      schedule
-    } else {
-      schedule changing (t, revisedStart)
+    val earliest = sortedEnds find { e => !sch2.resourceConflicts(t, e) }
+    val bestStart = earliest match {
+      case None => tStart
+      case Some(s) => s
     }
+//    println(s"""predecessors = $predecessors
+//        |predecessorEnds = $predecessorEnds
+//        |tStart = $tStart
+//        |startLimit = $startLimit
+//        |latestStart = $latestStart
+//        |ends = $ends
+//        |sortedEnds = $sortedEnds
+//        |earliest = $earliest
+//        |bestStart = $bestStart""".stripMargin)
+    schedule changing (t, bestStart)
   }
+
 }
 
 /**
