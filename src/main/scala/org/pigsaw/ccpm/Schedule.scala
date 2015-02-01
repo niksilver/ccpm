@@ -40,7 +40,7 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
    */
   def changing(p: Period, d: Double) =
     if (starts isDefinedAt p) {
-      new Schedule(starts - p + (p -> d))
+      new Schedule(starts + (p -> d))
     } else {
       throw new UnknownTaskException(s"Could not change task $p because it does not exist in the schedule")
     }
