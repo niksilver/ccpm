@@ -8,9 +8,9 @@ import scala.annotation.tailrec
 class Graph[T](g: Set[(T, T)]) {
 
   /**
-   * Get all each target node available from a given node
+   * Get all successor nodes available from a given node
    */
-  def targets(node: T): Set[T] = g filter { _._1 == node } map { _._2 }
+  def successors(node: T): Set[T] = g filter { _._1 == node } map { _._2 }
   
   /**
    * Get the predecessors of a given node: i.e. the nodes with an edge
@@ -43,7 +43,7 @@ class Graph[T](g: Set[(T, T)]) {
     val begin = to
 
     def canReachEnd(start: T): Boolean = {
-      val nexts = targets(start)
+      val nexts = successors(start)
       nexts.contains(end) || (nexts exists { canReachEnd(_) })
     }
 
@@ -84,11 +84,11 @@ class Graph[T](g: Set[(T, T)]) {
 
   // Get all the paths after (and therefore excluding) the given nodes.
   private def pathsAfter(source: T): Set[Seq[T]] = {
-    val targs = targets(source)
-    if (targs.isEmpty) {
+    val succs = successors(source)
+    if (succs.isEmpty) {
       Set(Nil)
     } else {
-      pathsFrom(targs)
+      pathsFrom(succs)
     }
   }
 }

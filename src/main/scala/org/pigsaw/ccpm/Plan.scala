@@ -116,7 +116,7 @@ trait Plan {
    * is on the critical chain
    */
   def feedOnCriticalChain(path: Seq[Task]): Option[Task] = {
-    val nextTasks = graph.targets(path.last)
+    val nextTasks = graph.successors(path.last)
     nextTasks find { criticalChain contains _ }
   }
 
