@@ -123,4 +123,49 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val t1EndRevised = sch2.end(t1)
     t1EndRevised should equal (p.schedule.start(t3) - 2.5)
   }
+  
+  it should "move the task back as far as its predecessor (where it has just one close by)" in {
+    val t1 = Task('t1, 5)
+    val t2 = Task('t2, 10)
+    val t3 = Task('t3, 0)
+    
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t2, t2 -> t3)
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 6.5, t3 -> 16.5))
+    }
+    
+    // Let's check we've set this up right, and
+    // confirm there really is a gap of 1.5 between t1 and t2
+    val t1End = p.schedule.end(t1)
+    val t2Start = p.schedule.start(t2)
+    (t2Start - t1End) should equal (1.5)
+    
+    val sch2 = p.moveBack(t2, 4)
+    val t2StartRevised = sch2.start(t2)
+    t2StartRevised should equal (t1End)
+  }
+  
+  it should "move the task back to the max if there's just one predecessor far back" in {
+    val t1 = Task('t1, 5)
+    val t2 = Task('t2, 10)
+    val t3 = Task('t3, 0)
+    
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t2, t2 -> t3)
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 20, t3 -> 30))
+    }
+    
+    // Let's check we've set this up right, and
+    // confirm there really is a gap of more than 4 between t1 and t2
+    val desiredMove = 4.0
+    val t1End = p.schedule.end(t1)
+    val t2Start = p.schedule.start(t2)
+    (t2Start - t1End) should be > (desiredMove)
+    
+    val sch2 = p.moveBack(t2, desiredMove)
+    val t2StartRevised = sch2.start(t2)
+    t2StartRevised should equal (t2Start - desiredMove)
+  }
 }

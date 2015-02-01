@@ -145,8 +145,15 @@ trait Plan {
   /**
    * Move a task back a maximum number of units.
    */
-  def moveBack(t: Task, max: Double): Schedule =
-    schedule changing (t, schedule.start(t) - max)
+  def moveBack(t: Task, max: Double): Schedule = {
+    val predecessors = dependencies filter { _._2 == t } map { _._1 }
+    val pred = predecessors.headOption
+    val delta = pred match {
+      case None => max
+      case Some(tPred) => Math.min(max, schedule.start(t) - schedule.end(tPred))
+    }
+    schedule changing (t, schedule.start(t) - delta)
+  }
 }
 
 /**
