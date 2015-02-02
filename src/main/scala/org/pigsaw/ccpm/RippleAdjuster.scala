@@ -17,3 +17,9 @@ abstract class RippleAdjuster[M](state: String) {
   def attempt(move: M): String
   def solve(move: M) = attempt(move)
 }
+
+/** Result of an attempted move.
+ */
+sealed class Result
+case class Success(res: String) extends Result
+case class Impossible(res: String) extends Result
