@@ -14,7 +14,7 @@ abstract class RippleAdjuster[M](state: String) {
   /**
    * Attempt a move on the state
    */
-  def attempt(move: M): String
+  def attempt(move: M): Result
   def solve(move: M) = attempt(move)
 }
 

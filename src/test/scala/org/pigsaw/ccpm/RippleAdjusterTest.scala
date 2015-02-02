@@ -21,12 +21,13 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
    * A `RippleAdjuster` describing the linear shunt problem.
    */
   class LinShRippleAdjuster(board: String) extends RippleAdjuster[LinShMove](board) {
-    def attempt(m: LinShMove): String = {
+    def attempt(m: LinShMove): Result = {
       val letter = board(m.index)
       if (m.index + m.steps < board.length) {
-        board.updated(m.index, ".").updated(m.index + m.steps, letter).mkString
+        val res = board.updated(m.index, ".").updated(m.index + m.steps, letter)
+        Success(res.mkString)
       } else {
-        board
+        Impossible(board)
       }
     }
   }
@@ -34,30 +35,30 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   "solve" should "solve a simple one-step problem (1)" in {
     val ra = new LinShRippleAdjuster("x.")
     val move = LinShMove(0, 1)
-    ra.solve(move) should equal (".x")
+    ra.solve(move) should equal (Success(".x"))
   }
 
   it should "solve a simple one-step problem (2 - to avoid faking)" in {
     val ra = new LinShRippleAdjuster("x..")
     val move = LinShMove(0, 1)
-    ra.solve(move) should equal (".x.")
+    ra.solve(move) should equal (Success(".x."))
   }
 
   it should "solve a simple one-step problem with a different letter" in {
     val ra = new LinShRippleAdjuster("y..")
     val move = LinShMove(0, 1)
-    ra.solve(move) should equal (".y.")
+    ra.solve(move) should equal (Success(".y."))
   }
 
   it should "solve a simple one-step problem with a different kind of move" in {
     val ra = new LinShRippleAdjuster("x...")
     val move = LinShMove(0, 2)
-    ra.solve(move) should equal ("..x.")
+    ra.solve(move) should equal (Success("..x."))
   }
 
   it should "recognise when the move is impossible" in {
     val ra = new LinShRippleAdjuster("...x")
     val move = LinShMove(3, 1)
-    ra.solve(move) should equal ("...x")
+    ra.solve(move) should equal (Impossible("...x"))
   }
 }
