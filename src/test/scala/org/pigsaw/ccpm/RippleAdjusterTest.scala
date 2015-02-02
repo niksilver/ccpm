@@ -23,11 +23,15 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   class LinShRippleAdjuster(board: String) extends RippleAdjuster[LinShMove](board) {
     def attempt(m: LinShMove): Result = {
       val letter = board(m.index)
-      if (m.index + m.steps < board.length) {
+      val scope = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
+      if (m.steps <= scope) {
         val res = board.updated(m.index, ".").updated(m.index + m.steps, letter)
         Success(res.mkString)
-      } else {
+      } else if (scope == 0) {
         Impossible(board)
+      } else {
+        val res = board.updated(m.index, ".").updated(m.index + scope, letter)
+        Partial(res.mkString)
       }
     }
   }
@@ -60,5 +64,11 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     val ra = new LinShRippleAdjuster("...x")
     val move = LinShMove(3, 1)
     ra.solve(move) should equal (Impossible("...x"))
+  }
+  
+  it should "return a partial success if necessary" in {
+    val ra = new LinShRippleAdjuster("..a.")
+    val move = LinShMove(2, 2)
+    ra.solve(move) should equal (Partial("...a"))
   }
 }

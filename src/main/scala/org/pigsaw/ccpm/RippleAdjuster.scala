@@ -22,4 +22,5 @@ abstract class RippleAdjuster[M](state: String) {
  */
 sealed class Result
 case class Success(res: String) extends Result
+case class Partial(res: String) extends Result
 case class Impossible(res: String) extends Result
