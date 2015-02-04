@@ -20,15 +20,17 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   /**
    * A `RippleAdjuster` describing the linear shunt problem.
    */
-  class LinShRippleAdjuster(board: String) extends RippleAdjuster[LinShMove](board) {
-    def attempt(m: LinShMove): Result = {
+  class LinShRippleAdjuster extends RippleAdjuster[LinShMove] {
+    def attempt(board: String, m: LinShMove) = {
       val letter = board(m.index)
       val scope = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
       if (m.steps <= scope) {
         val res = board.updated(m.index, ".").updated(m.index + m.steps, letter)
         Success(res.mkString)
+      } else if (m.index == board.length - 1) {
+        Impossible
       } else if (scope == 0) {
-        Impossible(board)
+        Prerequisite(LinShMove(m.index+1, m.steps))
       } else {
         val res = board.updated(m.index, ".").updated(m.index + scope, letter)
         Partial(res.mkString)
@@ -37,38 +39,56 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   }
 
   "solve" should "solve a simple one-step problem (1)" in {
-    val ra = new LinShRippleAdjuster("x.")
+    val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 1)
-    ra.solve(move) should equal (Success(".x"))
+    ra.solve("x.", move) should equal (Success(".x"))
   }
 
   it should "solve a simple one-step problem (2 - to avoid faking)" in {
-    val ra = new LinShRippleAdjuster("x..")
+    val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 1)
-    ra.solve(move) should equal (Success(".x."))
+    ra.solve("x..", move) should equal (Success(".x."))
   }
 
   it should "solve a simple one-step problem with a different letter" in {
-    val ra = new LinShRippleAdjuster("y..")
+    val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 1)
-    ra.solve(move) should equal (Success(".y."))
+    ra.solve("y..", move) should equal (Success(".y."))
   }
 
   it should "solve a simple one-step problem with a different kind of move" in {
-    val ra = new LinShRippleAdjuster("x...")
+    val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 2)
-    ra.solve(move) should equal (Success("..x."))
+    ra.solve("x...", move) should equal (Success("..x."))
   }
 
   it should "recognise when the move is impossible" in {
-    val ra = new LinShRippleAdjuster("...x")
+    val ra = new LinShRippleAdjuster
     val move = LinShMove(3, 1)
-    ra.solve(move) should equal (Impossible("...x"))
+    ra.solve("...x", move) should equal (Impossible)
   }
   
   it should "return a partial success if necessary" in {
-    val ra = new LinShRippleAdjuster("..a.")
+    val ra = new LinShRippleAdjuster
     val move = LinShMove(2, 2)
-    ra.solve(move) should equal (Partial("...a"))
+    ra.solve("..a.", move) should equal (Partial("...a"))
+  }
+  
+  "attempt" should "return a prerequisite if necessary (1)" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(1, 1)
+    ra.attempt(".ab.", move) should equal (Prerequisite(LinShMove(2, 1)))
+  }
+  
+  it should "return a prerequisite if necessary (2 - to avoid faking)" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(2, 1)
+    ra.attempt("..ab..", move) should equal (Prerequisite(LinShMove(3, 1)))
+  }
+  
+  it should "return a prerequisite if necessary (3 - to avoid faking again)" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(2, 2)
+    ra.attempt("..ab..", move) should equal (Prerequisite(LinShMove(3, 2)))
   }
 }

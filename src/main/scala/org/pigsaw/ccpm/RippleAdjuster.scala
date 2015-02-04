@@ -9,18 +9,27 @@ package org.pigsaw.ccpm
  * 
  * @type M  The move made on each state
  */
-abstract class RippleAdjuster[M](state: String) {
+abstract class RippleAdjuster[M] {
   
   /**
    * Attempt a move on the state
    */
-  def attempt(move: M): Result
-  def solve(move: M) = attempt(move)
+  def attempt(state: String, move: M): Result[M]
+  def solve(state: String, move: M) = attempt(state, move)
 }
 
 /** Result of an attempted move.
  */
-sealed class Result
+sealed class Result[+M]
+
+/** The result of a wholly successful move. */
 case class Success(res: String) extends Result
+
+/** The result of a partially successful move. */
 case class Partial(res: String) extends Result
-case class Impossible(res: String) extends Result
+
+/** A prerequisite for a (perhaps partially) successful move. */
+case class Prerequisite[M](move: M) extends Result[M]
+
+/** The result of an attempted move is impossible. */
+object Impossible extends Result
