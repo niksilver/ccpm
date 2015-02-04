@@ -74,6 +74,12 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     ra.solve("..a.", move) should equal (Partial("...a"))
   }
   
+  it should "ripple prerequisites once" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(2, 2)
+    ra.solve("..ab..", move) should equal (Success("....ab"))
+  }
+  
   "attempt" should "return a prerequisite if necessary (1)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 1)
