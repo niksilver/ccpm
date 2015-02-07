@@ -12,13 +12,16 @@ package org.pigsaw.ccpm
 abstract class RippleAdjuster[S,M] {
 
   /**
-   * Attempt a move on the state. It should return one of three things:
-   * `Completed(s2)` if the move can be made (as best as possible) resulting in the new state;
+   * Attempt a move on the state. It should return one of two things:
+   * `Completed(s2)` if the move can be made (as best as possible) resulting in the a state `s2`;
    * `Prerequisite(m2)` if another move `m2` is required before we can make the desired `move` as best as possible;
-   * `Impossible` if we cannot even potentially make this move.
    */
   def attempt(state: S, move: M): Result[S,M]
   
+  /**
+   * From the given `state` make a `move` as best as possible and
+   * return the resulting state.
+   */
   def make(state: S, move: M): S
   
   /**
@@ -31,7 +34,6 @@ abstract class RippleAdjuster[S,M] {
     moves match {
     case Nil => Completed(state)
     case m :: rest => attempt(state, m) match {
-      case Impossible => makeMoves(state, rest)
       case Completed(s2) => makeMoves(s2, rest)
       case Prerequisite(m2) => solve0(state, m2 :: m :: rest)
     }
@@ -54,6 +56,3 @@ case class Completed[+S,+M](result: S) extends Result[S,M]
 
 /** A prerequisite for a move. */
 case class Prerequisite[+S,+M](move: M) extends Result[S,M]
-
-/** The result of an attempted move is impossible. */
-object Impossible extends Result

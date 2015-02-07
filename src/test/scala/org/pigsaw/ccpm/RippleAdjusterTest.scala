@@ -23,7 +23,6 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   class LinShRippleAdjuster extends RippleAdjuster[String,LinShMove] {
     def attempt(board: String, m: LinShMove) = {
       val maxIndex = board.size - 1
-      val letter = board(m.index)
       val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
       val availableIndex = m.index + availableSteps
       if (m.steps <= availableSteps) {
