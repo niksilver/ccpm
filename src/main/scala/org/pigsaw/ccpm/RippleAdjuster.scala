@@ -28,20 +28,20 @@ abstract class RippleAdjuster[S,M] {
    * Make the desired `move` from the given `state`, ensuring any
    * necessary prerequisites moves are made to achieve this. 
    */
-  def solve(state: S, move: M): Result[S,M] = solve0(state, List(move))
+  def solve(state: S, move: M): S = solve0(state, List(move))
   
-  private def solve0(state: S, moves: List[M]): Result[S,M] =
+  private def solve0(state: S, moves: List[M]): S =
     moves match {
-    case Nil => Completed(state)
+    case Nil => state
     case m :: rest => attempt(state, m) match {
       case Completed(s2) => makeMoves(s2, rest)
       case Prerequisite(m2) => solve0(state, m2 :: m :: rest)
     }
   }
   
-  private def makeMoves(state: S, moves: List[M]): Completed[S,M] =
+  private def makeMoves(state: S, moves: List[M]): S =
     moves match {
-    case Nil => Completed(state)
+    case Nil => state
     case m :: rest => makeMoves(make(state, m), rest)
   }
 }
