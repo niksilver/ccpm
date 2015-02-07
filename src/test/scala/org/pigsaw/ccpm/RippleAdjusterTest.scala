@@ -22,21 +22,23 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
    */
   class LinShRippleAdjuster extends RippleAdjuster[LinShMove] {
     def attempt(board: String, m: LinShMove) = {
+      val maxIndex = board.size - 1
       val letter = board(m.index)
       val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
-      if (m.index == board.length - 1) {
+      val availableIndex = m.index + availableSteps
+      if (m.index == maxIndex) {
         Impossible
       } else if (m.steps <= availableSteps) {
         val result = board.updated(m.index, ".").updated(m.index + m.steps, letter)
         Completed(result.mkString)
-      } else if (m.index + availableSteps == board.size - 1) {
-        val result = board.updated(m.index, ".").updated(m.index + availableSteps, letter)
+      } else if (availableIndex == maxIndex) {
+        val result = board.updated(m.index, ".").updated(availableIndex, letter)
         Completed(result.mkString)
       } else {
         // 0 < availableSteps < m.steps
-        val prereqLetter = m.index+availableSteps+1
-        val prereqSteps = Math.min(board.size - prereqLetter -1, m.steps - availableSteps)
-        Prerequisite(LinShMove(prereqLetter, prereqSteps))
+        val prereqLetterIdx = availableIndex + 1
+        val prereqSteps = Math.min(maxIndex - prereqLetterIdx, m.steps - availableSteps)
+        Prerequisite(LinShMove(prereqLetterIdx, prereqSteps))
       }
     }
   }
@@ -84,7 +86,6 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   }
   
   it should "ripple prerequisites many times" in {
-    println("-------------- many times")
     val ra = new LinShRippleAdjuster
     val move = LinShMove(2, 2)
     ra.solve("..abc.d..", move) should equal (Completed("....abcd."))

@@ -18,12 +18,12 @@ abstract class RippleAdjuster[M] {
   def solve(state: String, move: M): Result[M] = solve0(state, List(move))
   
   private def solve0(state: String, moves: List[M]): Result[M] =
-    { println(s"1: solve0($state, $moves)"); moves } match {
-    case Nil => { println(s"2: Completed($state)"); Completed(state) }
-    case m :: rest => { println(s"3: attempting $state, $m"); attempt(state, m) } match {
-      case Impossible => { println("4: Impossible"); Impossible }
-      case Completed(s2) => { println(s"5: solve0($s2, $rest)"); solve0(s2, rest) }
-      case Prerequisite(m2) => { println(s"6: solve0($state, ${m2::m::rest})"); solve0(state, m2 :: m :: rest) }
+    moves match {
+    case Nil => Completed(state)
+    case m :: rest => attempt(state, m) match {
+      case Impossible => Impossible
+      case Completed(s2) => solve0(s2, rest)
+      case Prerequisite(m2) => solve0(state, m2 :: m :: rest)
     }
   }
 }
