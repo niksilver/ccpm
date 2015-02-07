@@ -33,9 +33,9 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
         Prerequisite(LinShMove(m.index+1, m.steps))
       } else {
         // 0 < availableSteps < m.steps
-        Prerequisite(LinShMove(m.index+availableSteps+1, m.steps - availableSteps))
-        //val result = board.updated(m.index, ".").updated(m.index + availableSteps, letter)
-        //Completed(result.mkString)
+        val prereqLetter = m.index+availableSteps+1
+        val prereqSteps = Math.min(board.size - prereqLetter -1, m.steps - availableSteps)
+        Prerequisite(LinShMove(prereqLetter, prereqSteps))
       }
     }
   }
@@ -110,6 +110,12 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   it should "require later pieces move forward if current piece can only make it part-way" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 2)
+    ra.attempt(".a.b.", move) should equal (Prerequisite(LinShMove(3, 1)))
+  }
+  
+  it should "allow the last piece to move only part-way if necessary" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(1, 3)
     ra.attempt(".a.b.", move) should equal (Prerequisite(LinShMove(3, 1)))
   }
 }
