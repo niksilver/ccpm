@@ -24,13 +24,14 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     def attempt(board: String, m: LinShMove) = {
       val letter = board(m.index)
       val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
-      if (m.steps <= availableSteps) {
+      if (m.index == board.length - 1) {
+        Impossible
+      } else if (m.steps <= availableSteps) {
         val result = board.updated(m.index, ".").updated(m.index + m.steps, letter)
         Completed(result.mkString)
-      } else if (m.index == board.length - 1) {
-        Impossible
-      //} else if (availableSteps == 0) {
-      //  Prerequisite(LinShMove(m.index+1, m.steps))
+      } else if (m.index + availableSteps == board.size - 1) {
+        val result = board.updated(m.index, ".").updated(m.index + availableSteps, letter)
+        Completed(result.mkString)
       } else {
         // 0 < availableSteps < m.steps
         val prereqLetter = m.index+availableSteps+1
@@ -117,5 +118,11 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 3)
     ra.attempt(".a.b.", move) should equal (Prerequisite(LinShMove(3, 1)))
+  }
+  
+  it should "not require a letter to exist beyond the end of the board" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(1, 3)
+    ra.attempt(".a.", move) should equal (Completed("..a"))
   }
 }
