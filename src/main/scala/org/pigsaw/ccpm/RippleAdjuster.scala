@@ -15,15 +15,15 @@ abstract class RippleAdjuster[M] {
    * Attempt a move on the state
    */
   def attempt(state: String, move: M): Result[M]
-  def solve(state: String, move: M): Result[M] = attempt(state, move) match {
-    case Impossible => Impossible
-    case Success(state2) => Success(state2)
-    case Partial(state2) => Partial(state2)
-    case Prerequisite(m2) => attempt(state, m2) match {
-      case Impossible => ???
-      case Success(state3) => attempt(state3, move)
-      case Partial(state3) => ???
-      case Prerequisite(m3) => ???
+  def solve(state: String, move: M): Result[M] = solve0(state, List(move))
+  
+  private def solve0(state: String, moves: List[M]): Result[M] =
+    moves match {
+    case Nil => Completed(state)
+    case m :: rest => attempt(state, m) match {
+      case Impossible => Impossible
+      case Completed(s2) => solve0(s2, rest)
+      case Prerequisite(m2) => solve0(state, m2 :: m :: rest)
     }
   }
 }
@@ -33,13 +33,10 @@ abstract class RippleAdjuster[M] {
  */
 sealed abstract class Result[+M]
 
-/** The result of a wholly successful move. */
-case class Success(res: String) extends Result
+/** The result of a completed move. */
+case class Completed(res: String) extends Result
 
-/** The result of a partially successful move. */
-case class Partial(res: String) extends Result
-
-/** A prerequisite for a (perhaps partially) successful move. */
+/** A prerequisite for a move. */
 case class Prerequisite[M](move: M) extends Result[M]
 
 /** The result of an attempted move is impossible. */

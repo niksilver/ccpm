@@ -26,14 +26,14 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
       val scope = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
       if (m.steps <= scope) {
         val res = board.updated(m.index, ".").updated(m.index + m.steps, letter)
-        Success(res.mkString)
+        Completed(res.mkString)
       } else if (m.index == board.length - 1) {
         Impossible
       } else if (scope == 0) {
         Prerequisite(LinShMove(m.index+1, m.steps))
       } else {
         val res = board.updated(m.index, ".").updated(m.index + scope, letter)
-        Partial(res.mkString)
+        Completed(res.mkString)
       }
     }
   }
@@ -41,25 +41,25 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   "solve" should "solve a simple one-step problem (1)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 1)
-    ra.solve("x.", move) should equal (Success(".x"))
+    ra.solve("x.", move) should equal (Completed(".x"))
   }
 
   it should "solve a simple one-step problem (2 - to avoid faking)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 1)
-    ra.solve("x..", move) should equal (Success(".x."))
+    ra.solve("x..", move) should equal (Completed(".x."))
   }
 
   it should "solve a simple one-step problem with a different letter" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 1)
-    ra.solve("y..", move) should equal (Success(".y."))
+    ra.solve("y..", move) should equal (Completed(".y."))
   }
 
   it should "solve a simple one-step problem with a different kind of move" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(0, 2)
-    ra.solve("x...", move) should equal (Success("..x."))
+    ra.solve("x...", move) should equal (Completed("..x."))
   }
 
   it should "recognise when the move is impossible" in {
@@ -68,19 +68,19 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     ra.solve("...x", move) should equal (Impossible)
   }
   
-  it should "return a partial success if necessary" in {
-    val ra = new LinShRippleAdjuster
-    val move = LinShMove(2, 2)
-    ra.solve("..a.", move) should equal (Partial("...a"))
-  }
-  
   it should "ripple prerequisites once" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(2, 2)
-    ra.solve("..ab..", move) should equal (Success("....ab"))
+    ra.solve("..ab..", move) should equal (Completed("....ab"))
   }
   
-  "attempt" should "return a prerequisite if necessary (1)" in {
+  it should "ripple prerequisites twice" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(2, 1)
+    ra.solve("..abc.", move) should equal (Completed("...abc"))
+  }
+  
+  "LinShRippleAdjuster.attempt" should "return a prerequisite if necessary (1)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 1)
     ra.attempt(".ab.", move) should equal (Prerequisite(LinShMove(2, 1)))
