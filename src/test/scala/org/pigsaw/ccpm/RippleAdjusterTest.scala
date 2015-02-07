@@ -23,17 +23,19 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   class LinShRippleAdjuster extends RippleAdjuster[LinShMove] {
     def attempt(board: String, m: LinShMove) = {
       val letter = board(m.index)
-      val scope = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
-      if (m.steps <= scope) {
-        val res = board.updated(m.index, ".").updated(m.index + m.steps, letter)
-        Completed(res.mkString)
+      val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
+      if (m.steps <= availableSteps) {
+        val result = board.updated(m.index, ".").updated(m.index + m.steps, letter)
+        Completed(result.mkString)
       } else if (m.index == board.length - 1) {
         Impossible
-      } else if (scope == 0) {
+      } else if (availableSteps == 0) {
         Prerequisite(LinShMove(m.index+1, m.steps))
       } else {
-        val res = board.updated(m.index, ".").updated(m.index + scope, letter)
-        Completed(res.mkString)
+        // 0 < availableSteps < m.steps
+        Prerequisite(LinShMove(m.index+availableSteps+1, m.steps - availableSteps))
+        //val result = board.updated(m.index, ".").updated(m.index + availableSteps, letter)
+        //Completed(result.mkString)
       }
     }
   }
@@ -80,6 +82,13 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     ra.solve("..abc.", move) should equal (Completed("...abc"))
   }
   
+  it should "ripple prerequisites many times" in {
+    println("-------------- many times")
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(2, 2)
+    ra.solve("..abc.d..", move) should equal (Completed("....abcd."))
+  }
+  
   "LinShRippleAdjuster.attempt" should "return a prerequisite if necessary (1)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 1)
@@ -96,5 +105,11 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(2, 2)
     ra.attempt("..ab..", move) should equal (Prerequisite(LinShMove(3, 2)))
+  }
+  
+  it should "require later pieces move forward if current piece can only make it part-way" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(1, 2)
+    ra.attempt(".a.b.", move) should equal (Prerequisite(LinShMove(3, 1)))
   }
 }
