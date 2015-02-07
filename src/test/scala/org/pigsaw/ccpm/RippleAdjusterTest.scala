@@ -101,7 +101,7 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   
   it should "solve with a partial solution, with rippling, if necessary" in {
     val ra = new LinShRippleAdjuster
-    val move = LinShMove(2, 3)
+    val move = LinShMove(2, 4)
     ra.solve("..abc.d..", move) should equal (".....abcd")
   }
   
