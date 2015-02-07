@@ -12,9 +12,17 @@ package org.pigsaw.ccpm
 abstract class RippleAdjuster[M] {
 
   /**
-   * Attempt a move on the state
+   * Attempt a move on the state. It should return one of three things:
+   * `Completed(s2)` if the move can be made (as best as possible) resulting in the new state;
+   * `Prerequisite(m2)` if another move `m2` is required before we can make the desired `move` as best as possible;
+   * `Impossible` if we cannot even potentially make this move.
    */
   def attempt(state: String, move: M): Result[M]
+  
+  /**
+   * Make the desired `move` from the given `state`, ensuring any
+   * necessary prerequisites moves are made to achieve this. 
+   */
   def solve(state: String, move: M): Result[M] = solve0(state, List(move))
   
   private def solve0(state: String, moves: List[M]): Result[M] =
