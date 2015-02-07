@@ -20,7 +20,7 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   /**
    * A `RippleAdjuster` describing the linear shunt problem.
    */
-  class LinShRippleAdjuster extends RippleAdjuster[LinShMove] {
+  class LinShRippleAdjuster extends RippleAdjuster[String,LinShMove] {
     def attempt(board: String, m: LinShMove) = {
       val maxIndex = board.size - 1
       val letter = board(m.index)
