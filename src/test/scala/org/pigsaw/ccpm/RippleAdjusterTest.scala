@@ -29,8 +29,8 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
         Completed(result.mkString)
       } else if (m.index == board.length - 1) {
         Impossible
-      } else if (availableSteps == 0) {
-        Prerequisite(LinShMove(m.index+1, m.steps))
+      //} else if (availableSteps == 0) {
+      //  Prerequisite(LinShMove(m.index+1, m.steps))
       } else {
         // 0 < availableSteps < m.steps
         val prereqLetter = m.index+availableSteps+1
