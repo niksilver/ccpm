@@ -26,14 +26,12 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
       val letter = board(m.index)
       val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
       val availableIndex = m.index + availableSteps
-      if (m.index == maxIndex) {
-        Impossible
-      } else if (m.steps <= availableSteps) {
-        val result = board.updated(m.index, ".").updated(m.index + m.steps, letter)
-        Completed(result.mkString)
+      if (m.steps <= availableSteps) {
+        val board2 = update(board, m.index, m.steps)
+        Completed(board2)
       } else if (availableIndex == maxIndex) {
-        val result = board.updated(m.index, ".").updated(availableIndex, letter)
-        Completed(result.mkString)
+        val board2 = update(board, m.index, availableSteps)
+        Completed(board2)
       } else {
         // 0 < availableSteps < m.steps
         val prereqLetterIdx = availableIndex + 1
@@ -50,11 +48,11 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
       result.mkString
     }
     
-//    def update(board: String, index: Int, steps: Int): String = {
-//      val letter = board(index)
-//      val result = board.updated(index, ".").updated(index + steps, letter)
-//      result.mkString
-//    }
+    def update(board: String, index: Int, steps: Int): String = {
+      val letter = board(index)
+      val result = board.updated(index, ".").updated(index + steps, letter)
+      result.mkString
+    }
   }
 
   "solve" should "solve a simple one-step problem (1)" in {
@@ -81,10 +79,10 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     ra.solve("x...", move) should equal (Completed("..x."))
   }
 
-  ignore should "recognise when the move is impossible" in {
+  it should "complete even if move is impossible" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(3, 1)
-    ra.solve("...x", move) should equal (Impossible)
+    ra.solve("...x", move) should equal (Completed("...x"))
   }
   
   it should "ripple prerequisites once" in {
