@@ -9,50 +9,52 @@ package org.pigsaw.ccpm
  *
  * @type M  The move made on each state
  */
-abstract class RippleAdjuster[S,M] {
+abstract class RippleAdjuster[S, M] {
 
   /**
    * Attempt a move on the state. It should return one of two things:
-   * `Completed(s2)` if the move can be made (as best as possible) resulting in the a state `s2`;
+   * `Actual(m)` an actual move `m` that should be made;
    * `Prerequisite(m2)` if another move `m2` is required before we can make the desired `move` as best as possible;
    */
-  def attempt(state: S, move: M): Result[S,M]
-  
+  def attempt(state: S, move: M): Attempt[M]
+
   /**
    * From the given `state` make a `move` as best as possible and
-   * return the resulting state.
+   * return the resulting state. Note the we may not be able
+   * to make the `move` to its full extent, but we will do
+   * as much as we can (if anything).
    */
   def make(state: S, move: M): S
-  
+
   /**
    * Make the desired `move` from the given `state`, ensuring any
-   * necessary prerequisites moves are made to achieve this. 
+   * necessary prerequisites moves are made to achieve this.
    */
   def solve(state: S, move: M): S = solve0(state, List(move))
-  
+
   private def solve0(state: S, moves: List[M]): S =
     moves match {
-    case Nil => state
-    case m :: rest => attempt(state, m) match {
-      case Completed(s2) => makeMoves(s2, rest)
-      case Prerequisite(m2) => solve0(state, m2 :: m :: rest)
+      case Nil => state
+      case m :: rest => attempt(state, m) match {
+        case Actual(m2) => makeMoves(state, m2 :: rest)
+        case Prerequisite(m2) => solve0(state, m2 :: m :: rest)
+      }
     }
-  }
-  
+
   private def makeMoves(state: S, moves: List[M]): S =
     moves match {
-    case Nil => state
-    case m :: rest => makeMoves(make(state, m), rest)
-  }
+      case Nil => state
+      case m :: rest => makeMoves(make(state, m), rest)
+    }
 }
 
 /**
- * Result of an attempted move.
+ * Result of an attempt to make a move.
  */
-sealed abstract class Result[+S,+M]
+sealed abstract class Attempt[+M]
 
-/** The result of a completed move. */
-case class Completed[+S,+M](result: S) extends Result[S,M]
+/** An actual move to be made. */
+case class Actual[+M](move: M) extends Attempt[M]
 
-/** A prerequisite for a move. */
-case class Prerequisite[+S,+M](move: M) extends Result[S,M]
+/** A prerequisite for another move. */
+case class Prerequisite[+M](move: M) extends Attempt[M]

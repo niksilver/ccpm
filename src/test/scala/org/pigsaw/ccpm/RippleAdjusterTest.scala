@@ -21,20 +21,20 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
    * A `RippleAdjuster` describing the linear shunt problem.
    */
   class LinShRippleAdjuster extends RippleAdjuster[String,LinShMove] {
-    def attempt(board: String, m: LinShMove) = {
+    
+    def attempt(board: String, m: LinShMove): Attempt[LinShMove] = {
       val maxIndex = board.size - 1
       val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
       val availableIndex = m.index + availableSteps
       if (m.steps <= availableSteps) {
         // We can comfortably make the move
-        val board2 = update(board, m.index, m.steps)
-        Completed(board2)
+        Actual(LinShMove(m.index, m.steps))
       } else if (availableIndex == maxIndex) {
         // We can move, but only to the end of the board
-        val board2 = update(board, m.index, availableSteps)
-        Completed(board2)
+        Actual(LinShMove(m.index, availableSteps))
       } else {
         // We're stopped from moving all the way by another piece
+        // so we have a prerequisite of moving that the remaining number of steps
         val prereqLetterIdx = availableIndex + 1
         val prereqSteps = Math.min(maxIndex - prereqLetterIdx, m.steps - availableSteps)
         Prerequisite(LinShMove(prereqLetterIdx, prereqSteps))
@@ -49,11 +49,6 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
       result.mkString
     }
     
-    def update(board: String, index: Int, steps: Int): String = {
-      val letter = board(index)
-      val result = board.updated(index, ".").updated(index + steps, letter)
-      result.mkString
-    }
   }
 
   "solve" should "solve a simple one-step problem (1)" in {
@@ -149,6 +144,6 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   it should "not require a letter to exist beyond the end of the board" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 3)
-    ra.attempt(".a.", move) should equal (Completed("..a"))
+    ra.attempt(".a.", move) should equal (Actual(LinShMove(1,1)))
   }
 }
