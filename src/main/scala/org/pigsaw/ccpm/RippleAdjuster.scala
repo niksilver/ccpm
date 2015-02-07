@@ -9,7 +9,7 @@ package org.pigsaw.ccpm
  *
  * @type M  The move made on each state
  */
-abstract class RippleAdjuster[S, M] {
+trait RippleAdjuster[S, M] {
 
   /**
    * Attempt a move on the state. It should return one of two things:
@@ -51,7 +51,7 @@ abstract class RippleAdjuster[S, M] {
 /**
  * Result of an attempt to make a move.
  */
-sealed abstract class Attempt[+M]
+sealed trait Attempt[+M]
 
 /** An actual move to be made. */
 case class Actual[+M](move: M) extends Attempt[M]
