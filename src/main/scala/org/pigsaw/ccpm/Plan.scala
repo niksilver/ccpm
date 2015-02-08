@@ -164,24 +164,13 @@ trait Plan {
     tStart - bestStart
   }
 
-    /**
+  /**
    * Move a task back a maximum number of units.
    */
   def moveBack(t: Task, max: Double): Schedule = {
-    val predecessors = graph.predecessors(t)
-    val predecessorEnds = predecessors map { schedule.end(_) }
     val tStart = schedule.start(t)
-    val startLimit = tStart - max
-    val latestStart = (predecessorEnds + startLimit).max
-    val ends = schedule.endsBetween(latestStart, tStart)
-    val sortedEnds = (ends + latestStart).toSeq.sorted
-    val sch2 = schedule - t
-    val earliest = sortedEnds find { e => !sch2.resourceConflicts(t, e) }
-    val bestStart = earliest match {
-      case None => tStart
-      case Some(s) => s
-    }
-    schedule changing (t, bestStart)
+    val actualMove = measureMoveBack(t, max)
+    schedule changing (t, tStart - actualMove)
   }
 
 }
