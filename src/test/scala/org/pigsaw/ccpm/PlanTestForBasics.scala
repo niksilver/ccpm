@@ -69,5 +69,40 @@ class PlanTestForBasics extends FlatSpec with Matchers with ScheduleMatchers {
     }
     p.backingTasks(t2) should equal (Set())
   }
+  
+  it should "give all predecessors that abutt the given one" in {
+    val t1 = Task('t1, 1.0)
+    val t2 = Task('t2, 1.0)
+    val t3 = Task('t3, 1.0)
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set((t1 -> t3), (t2 -> t3))
+    }
+    p.backingTasks(t3) should equal (Set(t1, t2))
+  }
+  
+  it should "include a non-dependent task which abutts and uses the same resource" in {
+    val t1 = Task('t1, "Task one", 1.0, Some("Alice"))
+    val t2 = Task('t2, "Task two", 1.0, Some("Alice"))
+    val t3 = Task('t3, "End task", 1.0, Some("Bob"))
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set((t1 -> t3), (t2 -> t3))
+      override lazy val schedule = new Schedule(Map((t1 -> 1.0), (t2 -> 0.0), (t3 -> 2.0)))
+    }
+    p.backingTasks(t1) should equal (Set(t2))
+  }
+  
+  it should "exclude same-resource tasks which don't abutt" in {
+    val t1 = Task('t1, "Task one", 1.0, Some("Alice"))
+    val t2 = Task('t2, "Task two", 1.0, Some("Alice"))
+    val t3 = Task('t3, "End task", 1.0, Some("Bob"))
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set((t1 -> t3), (t2 -> t3))
+      override lazy val schedule = new Schedule(Map((t1 -> 2.0), (t2 -> 0.0), (t3 -> 3.0)))
+    }
+    p.backingTasks(t1) should equal (Set())
+  }
 
 }

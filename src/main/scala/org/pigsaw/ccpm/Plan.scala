@@ -42,8 +42,13 @@ trait Plan {
    * and which either use the same resource(s) or which are a
    * dependency of `t`.
    */
-  def backingTasks(t: Task): Set[Task] =
-    graph.predecessors(t) filter { schedule.end(_) == schedule.start(t) }
+  def backingTasks(t: Task): Set[Task] = {
+    def backsOntoT(t2: Task): Boolean = { schedule.end(t2) == schedule.start(t) }
+    val immediatePreds = graph.predecessors(t) filter { backsOntoT(_) }
+    val immediateResourceMatches =
+      tasks filter { backsOntoT(_) } filter { _ != t } filter { _.sameResource(t) }
+    immediatePreds ++ immediateResourceMatches
+  }
 
   /**
    * Get all possible chains for this plan. This includes non-critical chains.
