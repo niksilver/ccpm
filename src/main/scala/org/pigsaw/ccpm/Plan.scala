@@ -35,6 +35,15 @@ trait Plan {
    * A schedule for this plan.
    */
   lazy val schedule: Schedule = Schedule.make(tasks.toSet, dependencies)
+  
+  /**
+   * Get all the tasks which prevent the given task `t` moving back
+   * any further. So these are the tasks which end where `t` starts,
+   * and which either use the same resource(s) or which are a
+   * dependency of `t`.
+   */
+  def backingTasks(t: Task): Set[Task] =
+    graph.predecessors(t) filter { schedule.end(_) == schedule.start(t) }
 
   /**
    * Get all possible chains for this plan. This includes non-critical chains.
