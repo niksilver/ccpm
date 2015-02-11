@@ -15,7 +15,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
   // Also, it is forbidden to increase the score of a node which has
   // no successors.
 
-  class Network(edges: Set[(Symbol, Symbol)], val scores: Map[Symbol, Int])
+  class Network(val edges: Set[(Symbol, Symbol)], val scores: Map[Symbol, Int])
     extends Graph[Symbol](edges) {
     
     def withInc(id: Symbol, inc: Int) = {
@@ -41,7 +41,21 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
         Prerequisite(Move(nextId, nextInc))
       }
     }
-    def make(net: Network, move: Move) = net
+    def make(net: Network, move: Move): Network = {
+      val thisTargetScore = net.scores(move.id) + move.inc
+      val succs = net.successors(move.id)
+      if (succs.isEmpty) {
+        net
+      } else {
+        val nextId = succs.head
+        val nextScore = net.scores(nextId)
+        if (thisTargetScore < nextScore) {
+          new Network(net.edges, net.scores + (move.id -> thisTargetScore))
+        } else {
+          new Network(net.edges, net.scores + (move.id -> (nextScore - 1)))
+        }
+      }
+    }
   }
 
   "Network.withInc" should "increment a given node" in {
@@ -53,7 +67,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     n2.scores('a) should equal (1+7)
   }
   
-  "NetworkAdjust.attempt" should "return an actual non-move if node has no successors (1)" in {
+  "NetworkAdjuster.attempt" should "return an actual non-move if node has no successors (1)" in {
     val graph = Set('a -> 'b)
     val scores = Map('a -> 1, 'b -> 3)
     val n = new Network(graph, scores)
@@ -93,5 +107,55 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     // If we want to increment a by 3 to 4, then that's fine
     adjuster.attempt(n, Move('a, 3)) should equal (Actual(Move('a, 3)))
+  }
+  
+  "NetworkAdjuster.make" should "keep the score the same if it has no predecessors" in {
+    val graph = Set('a -> 'b)
+    val scores = Map('a -> 1, 'b -> 6)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    val n2 = adjuster.make(n, Move('b, 1))
+    n2.scores('a) should equal (1)
+    n2.scores('b) should equal (6)
+  }
+  
+  it should "increase to the max if the next (and only) node is high enough" in {
+    val graph = Set('a -> 'b)
+    val scores = Map('a -> 1, 'b -> 4)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    val n2 = adjuster.make(n, Move('a, 2))
+    n2.scores('a) should equal (3)
+    n2.scores('b) should equal (4)
+  }
+  
+  it should "increase partially if the next (and only) node is too low" in {
+    val graph = Set('a -> 'b)
+    val scores = Map('a -> 1, 'b -> 4)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    val n2 = adjuster.make(n, Move('a, 5))
+    n2.scores('a) should equal (3)
+    n2.scores('b) should equal (4)
+  }
+  
+  "NetworkAdjuster.solve" should "work for a simple linear graph" in {
+    val graph = Set('a -> 'b, 'b -> 'c, 'c -> 'd, 'd -> 'e)
+    val scores = Map ('a -> 1, 'b -> 4, 'c -> 6, 'd -> 7, 'e -> 9)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    val n2 = adjuster.solve(n, Move('a, 5))
+    n2.scores('a) should equal (5)
+    n2.scores('b) should equal (6)
+    n2.scores('c) should equal (7)
+    n2.scores('d) should equal (8)
+    n2.scores('e) should equal (9)
   }
 }
