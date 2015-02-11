@@ -44,11 +44,11 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
         net
       } else {
         val nextId = succs.head
-        val nextScore = net.scores(nextId)
-        if (move.newScore < nextScore) {
+        val nextLimit = (succs map { net.scores(_) }).min
+        if (move.newScore < nextLimit) {
           net.withScore(move.id, move.newScore)
         } else {
-          net.withScore(move.id, nextScore - 1)
+          net.withScore(move.id, nextLimit - 1)
         }
       }
     }
@@ -139,6 +139,20 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     val n2 = adjuster.make(n, Move('a, 6))
     n2.scores('a) should equal (3)
     n2.scores('b) should equal (4)
+  }
+  
+  it should "increase partially if one of several next nodes is too low" in {
+    val graph = Set('a -> 'b1, 'a -> 'b2, 'a -> 'b3)
+    val scores = Map('a -> 1, 'b1 -> 8, 'b2 -> 6, 'b3 -> 4)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    val n2 = adjuster.make(n, Move('a, 6))
+    n2.scores('a) should equal (3)
+    n2.scores('b1) should equal (8)
+    n2.scores('b2) should equal (6)
+    n2.scores('b3) should equal (4)
   }
   
   "NetworkAdjuster.solve" should "work for a simple linear graph" in {
