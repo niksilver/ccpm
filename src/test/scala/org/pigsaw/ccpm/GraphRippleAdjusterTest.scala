@@ -22,6 +22,10 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
       val newScore = scores(id) + inc
       new Network(edges, scores + (id -> newScore))
     }
+    
+    def withScore(id: Symbol, score: Int) = {
+      new Network(edges, scores + (id -> score))
+    }
   }
   
   case class Move(id: Symbol, inc: Int)
@@ -50,9 +54,9 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
         val nextId = succs.head
         val nextScore = net.scores(nextId)
         if (thisTargetScore < nextScore) {
-          new Network(net.edges, net.scores + (move.id -> thisTargetScore))
+          net.withScore(move.id, thisTargetScore)
         } else {
-          new Network(net.edges, net.scores + (move.id -> (nextScore - 1)))
+          net.withScore(move.id, nextScore - 1)
         }
       }
     }
@@ -65,6 +69,15 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val n2 = n.withInc('a, 7)
     n2.scores('a) should equal (1+7)
+  }
+
+  "Network.withScore" should "set the value of a node" in {
+    val graph = Set('a -> 'b)
+    val scores = Map('a -> 1, 'b -> 8)
+    val n = new Network(graph, scores)
+    
+    val n2 = n.withScore('a, 4)
+    n2.scores('a) should equal (4)
   }
   
   "NetworkAdjuster.attempt" should "return an actual non-move if node has no successors (1)" in {
