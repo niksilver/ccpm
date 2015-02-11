@@ -17,58 +17,41 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
 
   class Network(val edges: Set[(Symbol, Symbol)], val scores: Map[Symbol, Int])
     extends Graph[Symbol](edges) {
-    
-    def withInc(id: Symbol, inc: Int) = {
-      val newScore = scores(id) + inc
-      new Network(edges, scores + (id -> newScore))
-    }
-    
+      
     def withScore(id: Symbol, score: Int) = {
       new Network(edges, scores + (id -> score))
     }
   }
   
-  case class Move(id: Symbol, inc: Int)
+  case class Move(id: Symbol, newScore: Int)
   
   class NetworkAdjuster extends RippleAdjuster[Network, Move] {
     def attempt(net: Network, move: Move) = {
-      val targetScore = net.scores(move.id) + move.inc
       val succs = net.successors(move.id)
       if (succs.isEmpty) {
-        Actual(Move(move.id, 0))
-      } else if (net.scores(succs.head) > targetScore) {
+        val thisScore = net.scores(move.id)
+        Actual(Move(move.id, thisScore))
+      } else if (net.scores(succs.head) > move.newScore) {
     	Actual(move)
       } else {
         val nextId = succs.head
-        val nextScore = net.scores(nextId)
-        val nextInc = (targetScore + 1) - nextScore
-        Prerequisite(Move(nextId, nextInc))
+        Prerequisite(Move(nextId, move.newScore + 1))
       }
     }
     def make(net: Network, move: Move): Network = {
-      val targetScore = net.scores(move.id) + move.inc
       val succs = net.successors(move.id)
       if (succs.isEmpty) {
         net
       } else {
         val nextId = succs.head
         val nextScore = net.scores(nextId)
-        if (targetScore < nextScore) {
-          net.withScore(move.id, targetScore)
+        if (move.newScore < nextScore) {
+          net.withScore(move.id, move.newScore)
         } else {
           net.withScore(move.id, nextScore - 1)
         }
       }
     }
-  }
-
-  "Network.withInc" should "increment a given node" in {
-    val graph = Set('a -> 'b)
-    val scores = Map('a -> 1, 'b -> 3)
-    val n = new Network(graph, scores)
-    
-    val n2 = n.withInc('a, 7)
-    n2.scores('a) should equal (1+7)
   }
 
   "Network.withScore" should "set the value of a node" in {
@@ -87,7 +70,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    adjuster.attempt(n, Move('b, 1)) should equal (Actual(Move('b, 0)))
+    adjuster.attempt(n, Move('b, 4)) should equal (Actual(Move('b, 3)))
   }
   
   it should "return an actual non-move if node has no successors (2 - to avoid faking)" in {
@@ -97,7 +80,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    adjuster.attempt(n, Move('y, 1)) should equal (Actual(Move('y, 0)))
+    adjuster.attempt(n, Move('y, 4)) should equal (Actual(Move('y, 3)))
   }
   
   it should "return a prerequisite if its single successor has to increment" in {
@@ -107,8 +90,8 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    // If we want to increment x by 5 to 6, then y has to inc by 4
-    adjuster.attempt(n, Move('x, 5)) should equal (Prerequisite(Move('y, 4)))
+    // If we want to increment x to 6, then y has to go to 7
+    adjuster.attempt(n, Move('x, 6)) should equal (Prerequisite(Move('y, 7)))
   }
   
   it should "return an actual move if its single successor is sufficiently high" in {
@@ -118,8 +101,8 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    // If we want to increment a by 3 to 4, then that's fine
-    adjuster.attempt(n, Move('a, 3)) should equal (Actual(Move('a, 3)))
+    // If we want to increment a to 4, then that's fine
+    adjuster.attempt(n, Move('a, 4)) should equal (Actual(Move('a, 4)))
   }
   
   "NetworkAdjuster.make" should "keep the score the same if it has no predecessors" in {
@@ -129,7 +112,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val n2 = adjuster.make(n, Move('b, 1))
+    val n2 = adjuster.make(n, Move('b, 7))
     n2.scores('a) should equal (1)
     n2.scores('b) should equal (6)
   }
@@ -141,7 +124,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val n2 = adjuster.make(n, Move('a, 2))
+    val n2 = adjuster.make(n, Move('a, 3))
     n2.scores('a) should equal (3)
     n2.scores('b) should equal (4)
   }
@@ -153,7 +136,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val n2 = adjuster.make(n, Move('a, 5))
+    val n2 = adjuster.make(n, Move('a, 6))
     n2.scores('a) should equal (3)
     n2.scores('b) should equal (4)
   }
@@ -164,7 +147,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     val n = new Network(graph, scores)
     
     val adjuster = new NetworkAdjuster
-    val n2 = adjuster.solve(n, Move('a, 5))
+    val n2 = adjuster.solve(n, Move('a, 6))
     n2.scores('a) should equal (5)
     n2.scores('b) should equal (6)
     n2.scores('c) should equal (7)
