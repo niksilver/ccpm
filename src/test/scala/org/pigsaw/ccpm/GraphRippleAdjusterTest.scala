@@ -43,7 +43,6 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
       if (succs.isEmpty) {
         net
       } else {
-        val nextId = succs.head
         val nextLimit = (succs map { net.scores(_) }).min
         if (move.newScore < nextLimit) {
           net.withScore(move.id, move.newScore)
