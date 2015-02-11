@@ -32,29 +32,29 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
   
   class NetworkAdjuster extends RippleAdjuster[Network, Move] {
     def attempt(net: Network, move: Move) = {
+      val targetScore = net.scores(move.id) + move.inc
       val succs = net.successors(move.id)
       if (succs.isEmpty) {
         Actual(Move(move.id, 0))
-      } else if (net.scores(succs.head) > net.scores(move.id) + move.inc) {
+      } else if (net.scores(succs.head) > targetScore) {
     	Actual(move)
       } else {
         val nextId = succs.head
         val nextScore = net.scores(nextId)
-        val thisScore = net.scores(move.id)
-        val nextInc = (thisScore + move.inc + 1) - nextScore
+        val nextInc = (targetScore + 1) - nextScore
         Prerequisite(Move(nextId, nextInc))
       }
     }
     def make(net: Network, move: Move): Network = {
-      val thisTargetScore = net.scores(move.id) + move.inc
+      val targetScore = net.scores(move.id) + move.inc
       val succs = net.successors(move.id)
       if (succs.isEmpty) {
         net
       } else {
         val nextId = succs.head
         val nextScore = net.scores(nextId)
-        if (thisTargetScore < nextScore) {
-          net.withScore(move.id, thisTargetScore)
+        if (targetScore < nextScore) {
+          net.withScore(move.id, targetScore)
         } else {
           net.withScore(move.id, nextScore - 1)
         }
