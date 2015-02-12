@@ -12,11 +12,12 @@ package org.pigsaw.ccpm
 trait RippleAdjuster[S, M] {
 
   /**
-   * Attempt a move on the state. It should return one of two things:
+   * Attempt a move on the state. It should return sequence of things
+   * to achieve this. Each item in the sequence is one of two things
    * `Actual(m)` an actual move `m` that should be made;
    * `Prerequisite(m2)` if another move `m2` is required before we can make the desired `move` as best as possible;
    */
-  def attempt(state: S, move: M): Attempt[M]
+  def attempt(state: S, move: M): Seq[Attempt[M]]
 
   /**
    * From the given `state` make a `move` as best as possible and
@@ -36,8 +37,8 @@ trait RippleAdjuster[S, M] {
     moves match {
       case Nil => state
       case m :: rest => attempt(state, m) match {
-        case Actual(m2) => makeMoves(state, m2 :: rest)
-        case Prerequisite(m2) => solve0(state, m2 :: m :: rest)
+        case Seq(Actual(m2)) => makeMoves(state, m2 :: rest)
+        case Seq(Prerequisite(m2)) => solve0(state, m2 :: m :: rest)
       }
     }
 

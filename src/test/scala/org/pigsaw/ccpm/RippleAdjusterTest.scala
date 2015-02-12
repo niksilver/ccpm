@@ -22,22 +22,22 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
    */
   class LinShRippleAdjuster extends RippleAdjuster[String,LinShMove] {
     
-    def attempt(board: String, m: LinShMove): Attempt[LinShMove] = {
+    def attempt(board: String, m: LinShMove): Seq[Attempt[LinShMove]] = {
       val maxIndex = board.size - 1
       val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
       val availableIndex = m.index + availableSteps
       if (m.steps <= availableSteps) {
         // We can comfortably make the move
-        Actual(LinShMove(m.index, m.steps))
+        Seq(Actual(LinShMove(m.index, m.steps)))
       } else if (availableIndex == maxIndex) {
         // We can move, but only to the end of the board
-        Actual(LinShMove(m.index, availableSteps))
+        Seq(Actual(LinShMove(m.index, availableSteps)))
       } else {
         // We're stopped from moving all the way by another piece
         // so we have a prerequisite of moving that the remaining number of steps
         val prereqLetterIdx = availableIndex + 1
         val prereqSteps = Math.min(maxIndex - prereqLetterIdx, m.steps - availableSteps)
-        Prerequisite(LinShMove(prereqLetterIdx, prereqSteps))
+        Seq(Prerequisite(LinShMove(prereqLetterIdx, prereqSteps)))
       }
     }
     
@@ -120,36 +120,36 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
   "LinShRippleAdjuster.attempt" should "return a prerequisite if necessary (1)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 1)
-    ra.attempt(".ab.", move) should equal (Prerequisite(LinShMove(2, 1)))
+    ra.attempt(".ab.", move) should equal (Seq(Prerequisite(LinShMove(2, 1))))
   }
   
   it should "return a prerequisite if necessary (2 - to avoid faking)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(2, 1)
-    ra.attempt("..ab..", move) should equal (Prerequisite(LinShMove(3, 1)))
+    ra.attempt("..ab..", move) should equal (Seq(Prerequisite(LinShMove(3, 1))))
   }
   
   it should "return a prerequisite if necessary (3 - to avoid faking again)" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(2, 2)
-    ra.attempt("..ab..", move) should equal (Prerequisite(LinShMove(3, 2)))
+    ra.attempt("..ab..", move) should equal (Seq(Prerequisite(LinShMove(3, 2))))
   }
   
   it should "require later pieces move forward if current piece can only make it part-way" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 2)
-    ra.attempt(".a.b.", move) should equal (Prerequisite(LinShMove(3, 1)))
+    ra.attempt(".a.b.", move) should equal (Seq(Prerequisite(LinShMove(3, 1))))
   }
   
   it should "allow the last piece to move only part-way if necessary" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 3)
-    ra.attempt(".a.b.", move) should equal (Prerequisite(LinShMove(3, 1)))
+    ra.attempt(".a.b.", move) should equal (Seq(Prerequisite(LinShMove(3, 1))))
   }
   
   it should "not require a letter to exist beyond the end of the board" in {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 3)
-    ra.attempt(".a.", move) should equal (Actual(LinShMove(1,1)))
+    ra.attempt(".a.", move) should equal (Seq(Actual(LinShMove(1,1))))
   }
 }
