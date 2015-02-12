@@ -29,6 +29,9 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
       if (m.steps <= availableSteps) {
         // We can comfortably make the move
         Seq(Actual(LinShMove(m.index, m.steps)))
+      } else if (m.index == maxIndex) {
+        // We cannot move
+        Seq()
       } else if (availableIndex == maxIndex) {
         // We can move, but only to the end of the board
         Seq(Actual(LinShMove(m.index, availableSteps)))
@@ -151,5 +154,11 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
     val ra = new LinShRippleAdjuster
     val move = LinShMove(1, 3)
     ra.attempt(".a.", move) should equal (Seq(Actual(LinShMove(1,1))))
+  }
+  
+  it should "return an empty sequence if no move is possible" in {
+    val ra = new LinShRippleAdjuster
+    val move = LinShMove(2, 1)
+    ra.attempt("..a", move) should equal (Seq())
   }
 }
