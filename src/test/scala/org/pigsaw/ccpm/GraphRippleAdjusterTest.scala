@@ -33,8 +33,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
       } else if (net.scores(succs.head) > move.newScore) {
     	Seq(Actual(move))
       } else {
-        val nextId = succs.head
-        Seq(Prerequisite(Move(nextId, move.newScore + 1)))
+        succs.toSeq filter { id => net.scores(id) <= move.newScore } map { id => Prerequisite(Move(id, move.newScore+1)) }
       }
     }
     def make(net: Network, move: Move): Network = {
@@ -80,6 +79,33 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     // If we want to increment x to 6, then y has to go to 7
     adjuster.attempt(n, Move('x, 6)) should equal (Seq(Prerequisite(Move('y, 7))))
+  }
+  
+  it should "return prerequisites for all successors if they are all too low" in {
+    val graph = Set('a -> 'b1, 'a -> 'b2, 'a -> 'b3)
+    val scores = Map('a -> 1, 'b1 -> 3, 'b2 -> 4, 'b3 -> 5)
+    val n = new Network(graph, scores)
+
+    val adjuster = new NetworkAdjuster
+    
+    val att = adjuster.attempt(n, Move('a, 5))
+    att should contain theSameElementsAs (Seq(
+        Prerequisite(Move('b1, 6)),
+        Prerequisite(Move('b2, 6)),
+        Prerequisite(Move('b3, 6))))
+  }
+  
+  it should "return prerequisites for some successors only some are too low" in {
+    val graph = Set('a -> 'b1, 'a -> 'b2, 'a -> 'b3)
+    val scores = Map('a -> 1, 'b1 -> 3, 'b2 -> 4, 'b3 -> 5)
+    val n = new Network(graph, scores)
+
+    val adjuster = new NetworkAdjuster
+    
+    val att = adjuster.attempt(n, Move('a, 4))
+    att should contain theSameElementsAs (Seq(
+        Prerequisite(Move('b1, 5)),
+        Prerequisite(Move('b2, 5))))
   }
   
   it should "return an actual move if its single successor is sufficiently high" in {
