@@ -182,4 +182,22 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     n2.scores('d) should equal (8)
     n2.scores('e) should equal (9)
   }
+  
+  it should "handle simple branching prerequisites" in {
+    //      /-[b1 4]-[c1 10]
+    // [a 2]
+    //      \-[b2 6]-[c2 1]
+    
+    val graph = Set('a -> 'b1, 'b1 -> 'c1, 'a -> 'b2, 'b2 -> 'c2)
+    val scores = Map ('a -> 2, 'b1 -> 4, 'b2 -> 6, 'c1 -> 10, 'c2 -> 12)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    val n2 = adjuster.solve(n, Move('a, 6))
+    n2.scores('a) should equal (6)
+    n2.scores('b1) should equal (7)
+    n2.scores('b2) should equal (7)
+    n2.scores('c1) should equal (10)
+    n2.scores('c2) should equal (12)
+  }
 }

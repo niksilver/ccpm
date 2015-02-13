@@ -37,10 +37,14 @@ trait RippleAdjuster[S, M] {
   private def solve0(state: S, moves: List[M]): S =
     moves match {
       case Nil => state
-      case m :: rest => attempt(state, m) match {
-        case Seq() => makeMoves(state, rest)
-        case Seq(Actual(m2)) => makeMoves(state, m2 :: rest)
-        case Seq(Prerequisite(m2)) => solve0(state, m2 :: m :: rest)
+      case m :: rest => {
+        val atts = attempt(state, m)
+        val moves = atts map { _.get }
+        if (atts exists { _.isPrerequisite }) {
+          solve0(state, moves ++: m +: rest)
+        } else {
+          makeMoves(state, moves ++: rest)
+        }
       }
     }
 
@@ -54,10 +58,22 @@ trait RippleAdjuster[S, M] {
 /**
  * Result of an attempt to make a move.
  */
-sealed trait Attempt[+M]
+sealed trait Attempt[+M] {
+  def get: M
+  def isActual: Boolean
+  def isPrerequisite: Boolean
+}
 
 /** An actual move to be made. */
-case class Actual[+M](move: M) extends Attempt[M]
+case class Actual[+M](move: M) extends Attempt[M] {
+  def get: M = move
+  def isActual: Boolean = true
+  def isPrerequisite: Boolean = false
+}
 
 /** A prerequisite for another move. */
-case class Prerequisite[+M](move: M) extends Attempt[M]
+case class Prerequisite[+M](move: M) extends Attempt[M] {
+  def get: M = move
+  def isActual: Boolean = false
+  def isPrerequisite: Boolean = true
+}
