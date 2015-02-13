@@ -39,11 +39,11 @@ trait RippleAdjuster[S, M] {
       case Nil => state
       case m :: rest => {
         val atts = attempt(state, m)
-        val moves = atts map { _.get }
+        val attmoves = atts map { _.get }
         if (atts exists { _.isPrerequisite }) {
-          solve0(state, moves ++: m +: rest)
+          solve0(state, attmoves ++: m +: rest)
         } else {
-          makeMoves(state, moves ++: rest)
+          makeMoves(state, attmoves ++: rest)
         }
       }
     }
