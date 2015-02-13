@@ -32,21 +32,36 @@ trait RippleAdjuster[S, M] {
    * Make the desired `move` from the given `state`, ensuring any
    * necessary prerequisites moves are made to achieve this.
    */
-  def solve(state: S, move: M): S = solve0(state, List(move))
+  def solve(state: S, move: M): S =  {
+    val moves = solve0(state, List(move), List(move))
+    makeMoves(state, moves)
+  }
 
-  private def solve0(state: S, moves: List[M]): S =
-    moves match {
-      case Nil => state
-      case m :: rest => {
-        val atts = attempt(state, m)
-        val attmoves = atts map { _.get }
-        if (atts exists { _.isPrerequisite }) {
-          solve0(state, attmoves ++: m +: rest)
-        } else {
-          makeMoves(state, attmoves ++: rest)
-        }
+//  private def solve0(state: S, moves: List[M]): S =
+//    moves match {
+//      case Nil => state
+//      case m :: rest => {
+//        val atts = attempt(state, m)
+//        val attmoves = atts map { _.get }
+//        if (atts exists { _.isPrerequisite }) {
+//          solve0(state, attmoves ++: m +: rest)
+//        } else {
+//          makeMoves(state, attmoves ++: rest)
+//        }
+//      }
+//    }
+
+  private def solve0(state: S, movesToAttempt: List[M], acc: List[M]): List[M] = {
+    movesToAttempt match {
+      case Nil => acc
+      case _ => {
+        val atts = movesToAttempt flatMap { attempt(state, _) }
+        val newMoves = atts map { _.get }
+        val prereqMoves = atts filter { _.isPrerequisite } map { _.get }
+        solve0(state, prereqMoves, newMoves ++: acc)
       }
     }
+  }
 
   private def makeMoves(state: S, moves: List[M]): S =
     moves match {
