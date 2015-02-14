@@ -8,12 +8,16 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
   // We have a directed acyclic graph, where the direction
   // flows left to right. Each node has an ID and an integer score.
   // There is a constraint:
-  // The score must be less than the score in any successor node.
+  // The score must be less than the score in any successor node
   // We wish to increase (raise) the score of one of the nodes. But to
   // do this without violating the constraint we may have to first
   // raise the score in one or more successor nodes.
   // Also, it is forbidden to increase the score of a node which has
   // no successors.
+  // As a special scenario, we can insist the different between one
+  // node's score and its successor is more than one. That's the
+  // case when the earlier node's ID is of the form 'x_N where N is a digit
+  // and the minimum difference.
 
   class Network(val edges: Set[(Symbol, Symbol)], val scores: Map[Symbol, Int])
     extends Graph[Symbol](edges) {
@@ -23,7 +27,20 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     }
   }
 
-  case class Move(id: Symbol, newScore: Int)
+  import org.pigsaw.ccpm.{Move => RAMove}
+  
+  case class Move(id: Symbol, newScore: Int) extends RAMove[Move]{
+    def samePiece(m2: Move): Boolean = (this.id == m2.id)
+    def max(m2: Move): Move = Seq(this, m2).maxBy(_.newScore)
+    def size = {
+      val idLen = id.name.length
+      if (idLen >= 2 && id.name(idLen-2) == '_') {
+        id.name(idLen-1).toString.toInt
+      } else {
+        1
+      }
+    }
+  }
 
   class NetworkAdjuster extends RippleAdjuster[Network, Move] {
     def attempt(net: Network, move: Move): Seq[Attempt[Move]] = {
@@ -31,11 +48,13 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
       if (succs.isEmpty) {
         Seq()
       } else {
+        val extent = move.newScore + move.size
         val nextLimit = (succs map { net.scores(_) }).min
-        if (nextLimit > move.newScore) {
+        if (nextLimit >= extent) {
           Seq(Actual(move))
         } else {
-          succs.toSeq filter { id => net.scores(id) <= move.newScore } map { id => Prerequisite(Move(id, move.newScore + 1)) }
+          val prereqNodes = succs.toSeq filter { id => net.scores(id) < extent }
+          prereqNodes map { id => Prerequisite(Move(id, extent)) }
         }
       }
     }
@@ -46,17 +65,25 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
         (net, move)
       } else {
         val nextLimit = (succs map { net.scores(_) }).min
-        if (move.newScore < nextLimit) {
+        if (move.newScore + move.size <= nextLimit) {
           val actualMove = Move(move.id, move.newScore)
           val net2 = net.withScore(move.id, move.newScore)
           (net2, actualMove)
         } else {
-          val actualMove = Move(move.id, nextLimit - 1)
-          val net2 = net.withScore(move.id, nextLimit - 1)
+          val actualMove = Move(move.id, nextLimit - move.size)
+          val net2 = net.withScore(move.id, nextLimit - move.size)
           (net2, actualMove)
         }
       }
     }
+  }
+  
+  "Move.size" should "have default value 1" in {
+    Move('a, 3).size should equal (1)
+  }
+  
+  it should "give another int when its name is _N" in {
+    Move('a_4, 3).size should equal (4)
   }
 
   "Network.withScore" should "set the value of a node" in {
@@ -127,6 +154,26 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     adjuster.attempt(n, Move('a, 4)) should equal (Seq(Actual(Move('a, 4))))
   }
   
+  it should "return an actual move if a long node has a single successor which is sufficiently high" in {
+    val graph = Set('a_4 -> 'b)
+    val scores = Map('a_4 -> 1, 'b -> 6)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    adjuster.attempt(n, Move('a_4, 2)) should equal (Seq(Actual(Move('a_4, 2))))
+  }
+  
+  it should "return a prerequisite if a long node has a single successor which is not high enough" in {
+    val graph = Set('a_4 -> 'b)
+    val scores = Map('a_4 -> 1, 'b -> 5)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    adjuster.attempt(n, Move('a_4, 2)) should equal (Seq(Prerequisite(Move('b, 6))))
+  }
+  
   "NetworkAdjuster.make" should "keep the score the same if it has no predecessors" in {
     val graph = Set('a -> 'b)
     val scores = Map('a -> 1, 'b -> 6)
@@ -177,7 +224,33 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     n2.scores('b3) should equal (4)
   }
   
-  "NetworkAdjuster.desiredMoves" should "return different moves for a simple linear graph with a high end node" in {
+  it should "make a full move for a long node if its successor is sufficiently high" in {
+    val graph = Set('a_4 -> 'b)
+    val scores = Map('a_4 -> 1, 'b -> 6)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    val (n2, m) = adjuster.make(n, Move('a_4, 2))
+    m should equal (Move('a_4, 2))
+    n2.scores('a_4) should equal (2)
+    n2.scores('b) should equal (6)
+  }
+  
+  it should "make a partial move for a long node if its successor is not sufficiently high" in {
+    val graph = Set('a_4 -> 'b)
+    val scores = Map('a_4 -> 1, 'b -> 6)
+    val n = new Network(graph, scores)
+    
+    val adjuster = new NetworkAdjuster
+    
+    val (n2, m) = adjuster.make(n, Move('a_4, 3))
+    m should equal (Move('a_4, 2))
+    n2.scores('a_4) should equal (2)
+    n2.scores('b) should equal (6)
+  }
+  
+  "RippleAdjuster.desiredMoves" should "return different moves for a simple linear graph with a high end node" in {
     val graph = Set('a -> 'b, 'b -> 'c)
     val scores = Map ('a -> 1, 'b -> 2, 'c -> 6)
     val n = new Network(graph, scores)
@@ -221,7 +294,32 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     ))
   }
   
-  "NetworkAdjuster.solve" should "work for a simple linear graph" in {
+  it should "handle merging branches which different demands on the merged branch" in {
+    //      /-[b11 4]-[b12 7]-\
+    // [a 2]                   [c 7]-[d 10]
+    //      \-[b2 6]----------/
+
+    val graph = Set('a -> 'b11, 'b11 -> 'b12, 'b12 -> 'c, 'c -> 'd,
+      'a -> 'b2, 'b2 -> 'c)
+    val scores = Map ('a -> 2,
+      'b11 -> 4, 'b12 -> 7,
+      'b2 -> 6,
+      'c -> 7, 'd -> 10)
+    val n = new Network(graph, scores)
+
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.desiredMoves(n, Move('a, 6))
+    
+    moves should contain theSameElementsAs (List(
+        Move('c, 9),
+        Move('b12, 8),
+        Move('b11, 7),
+        Move('b2, 7),
+        Move('a, 6)
+    ))
+  }
+  
+  "RippleAdjuster.solve" should "work for a simple linear graph" in {
     val graph = Set('a -> 'b, 'b -> 'c, 'c -> 'd, 'd -> 'e)
     val scores = Map ('a -> 1, 'b -> 4, 'c -> 6, 'd -> 7, 'e -> 9)
     val n = new Network(graph, scores)
@@ -334,4 +432,78 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     n2.scores('c) should equal (8)
     n2.scores('d) should equal (9)
   }
+  
+  it should "work when merging branches make different demands on the merged branch (longer branch pushes more)" in {
+    println("\n\n------------------ (1)")
+    //      /-[b11 4]-[b12 7]-\
+    // [a 2]                   [c 7]-[d 10]
+    //      \-[b2 6]----------/
+
+    val graph = Set('a -> 'b11, 'b11 -> 'b12, 'b12 -> 'c, 'c -> 'd,
+      'a -> 'b2, 'b2 -> 'c)
+    val scores = Map ('a -> 2,
+      'b11 -> 4, 'b12 -> 7,
+      'b2 -> 6,
+      'c -> 7, 'd -> 10)
+    val n = new Network(graph, scores)
+
+    val adjuster = new NetworkAdjuster
+    val n2 = adjuster.solve(n, Move('a, 6))
+    n2.scores('a) should equal (6)
+    n2.scores('b11) should equal (7)
+    n2.scores('b12) should equal (8)
+    n2.scores('b2) should equal (7)
+    n2.scores('c) should equal (9)
+    n2.scores('d) should equal (10)
+  }
+  
+  it should "work when merging branches make different demands on the merged branch (shorter branch pushes more)" in {
+    println("\n\n------------------ (2)")
+    //      /-[b11 4]-[b12 5]-\
+    // [a 2]                   [c 6]-[d 10]
+    //      \-[b2_3 3]--------/                     <-- Note b2_3 is of size 2
+
+    val graph = Set('a -> 'b11, 'b11 -> 'b12, 'b12 -> 'c, 'c -> 'd,
+      'a -> 'b2_3, 'b2_3 -> 'c)
+    val scores = Map ('a -> 2,
+      'b11 -> 4, 'b12 -> 5,
+      'b2_3 -> 3,
+      'c -> 6, 'd -> 10)
+    val n = new Network(graph, scores)
+
+    val adjuster = new NetworkAdjuster
+    val n2 = adjuster.solve(n, Move('a, 4))
+    n2.scores('a) should equal (4)
+    n2.scores('b11) should equal (5)
+    n2.scores('b12) should equal (6)
+    n2.scores('b2_3) should equal (5)
+    n2.scores('c) should equal (8)
+    n2.scores('d) should equal (10)
+  }
+  
+    
+  "RippleAdjuster.resolve" should "simply add two lists moves on different pieces" in {
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.combine(List(Move('a, 1), Move('b, 2)), List(Move('c, 3), Move('d, 4)))
+    moves should equal (List(Move('a, 1), Move('b, 2), Move('c, 3), Move('d, 4)))
+  }
+  
+  it should "drop a move in ms2 if it also appears in ms1" in {
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.combine(List(Move('a, 1), Move('b, 2)), List(Move('a, 1), Move('d, 4)))
+    moves should equal (List(Move('a, 1), Move('b, 2), Move('d, 4)))
+  }
+  
+  it should "drop a move in ms2 if the piece is moved in ms1" in {
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.combine(List(Move('a, 10), Move('b, 2)), List(Move('a, 1), Move('d, 4)))
+    moves should equal (List(Move('a, 10), Move('b, 2), Move('d, 4)))
+  }
+  
+  it should "replace a move in ms1 if the piece is moved further in ms2" in {
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.combine(List(Move('a, 1), Move('b, 2)), List(Move('a, 10), Move('d, 4)))
+    moves should equal (List(Move('a, 10), Move('b, 2), Move('d, 4)))
+  }
+
 }

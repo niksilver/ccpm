@@ -9,7 +9,7 @@ package org.pigsaw.ccpm
  *
  * @type M  The move made on each state
  */
-trait RippleAdjuster[S, M] {
+trait RippleAdjuster[S, M <: Move[M]] {
 
   /**
    * Attempt a move on the state. It should return sequence of zero or
@@ -37,12 +37,15 @@ trait RippleAdjuster[S, M] {
     // Work out our desired moves, and then the actual
     // moves that happen when we really make them
     val moves = desiredMoves(state, move)
+    println(s"(1) moves = $moves")
     val (_, actualMoves) = makeMoves(state, moves, Nil)
+    println(s"(2) actualMoves = $actualMoves")
     // Now we can find what actually happened to our
     // original move. So let's use that to find the
     // minimal sequence of moves to achieve that,
     // and then make those moves.
     val moves2 = desiredMoves(state, actualMoves.head)
+    println(s"(3) moves2 = $moves2")
     val (state2, _) = makeMoves(state, moves2, Nil)
     state2
   }
@@ -78,9 +81,11 @@ trait RippleAdjuster[S, M] {
       case _ => {
         val atts = movesToAttempt flatMap { attempt(state, _) }
         val newMoves = atts map { _.get }
-        val uniqueNewMoves = newMoves filter { !acc.contains(_) }
+        //val uniqueNewMoves = newMoves filter { !acc.contains(_) }
+        val combinedAcc = combine(newMoves, acc)
         val prereqMoves = atts filter { _.isPrerequisite } map { _.get }
-        desiredMoves0(state, prereqMoves, uniqueNewMoves ++: acc)
+        //desiredMoves0(state, prereqMoves, uniqueNewMoves ++: acc)
+        desiredMoves0(state, prereqMoves, combinedAcc)
       }
     }
   }
@@ -93,30 +98,62 @@ trait RippleAdjuster[S, M] {
       case Nil => (state, actualMoves)
       case m :: rest => {
         val (state2, actualMove) = make(state, m)
+        println(s"    make move $m yields actual $actualMove")
         makeMoves(state2, rest, actualMove :: actualMoves)
       }
     }
+  
+  /**
+   * Prepend the moves `ms1` onto the start of `ms2`, but
+   * if there are any pieces moved in `ms2` and `ms1` then
+   * we only include the max of the two moves, and it's
+   * inserted where the later `ms1` move appears.
+   */
+  def combine(ms1: List[M], ms2: List[M]): List[M] = {
+    def getRepeat(m1: M): Option[M] = (ms2 filter { _.samePiece(m1) }).headOption
+    val uniques = ms2 filterNot { m2 => ms1 exists { _.samePiece(m2) }}
+    val ms1Updated = ms1 map { m1 => getRepeat(m1) match {
+      case None => m1
+      case Some(m2) => m1.max(m2)
+    }}
+    println(s"   $ms1 + $ms2 combines to give")
+    println(s"   " + (ms1Updated ++: uniques))
+    ms1Updated ++: uniques
+  }
+}
+
+/**
+ * A move on a piece. `M` is is the type of the extending class.
+ */
+trait Move[M <: Move[M]] {
+  /** Is `m2` a move on the same piece?
+   */
+  def samePiece(m2: M): Boolean
+  
+  /** Return the greater move
+   */
+  def max(m2: M): M
 }
 
 /**
  * Result of an attempt to make a move.
  */
-sealed trait Attempt[+M] {
-  def get: M
+sealed trait Attempt[+Move] {
+  def get: Move
   def isActual: Boolean
   def isPrerequisite: Boolean
 }
 
 /** An actual move to be made. */
-case class Actual[+M](move: M) extends Attempt[M] {
-  def get: M = move
+case class Actual[+Move](move: Move) extends Attempt[Move] {
+  def get: Move = move
   def isActual: Boolean = true
   def isPrerequisite: Boolean = false
 }
 
 /** A prerequisite for another move. */
-case class Prerequisite[+M](move: M) extends Attempt[M] {
-  def get: M = move
+case class Prerequisite[+Move](move: Move) extends Attempt[Move] {
+  def get: Move = move
   def isActual: Boolean = false
   def isPrerequisite: Boolean = true
 }
