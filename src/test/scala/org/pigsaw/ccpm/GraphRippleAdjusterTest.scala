@@ -197,6 +197,30 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     moves should contain theSameElementsAs (List(Move('c, 5), Move('b, 4), Move('a, 3)))
   }
   
+  it should "allow for two branches, one with prerequisites and one allowing full moves" in {
+    //      /-[b1 4]-[c1 5]-[d1 10]
+    // [a 2]
+    //      \-[b2 4]-[c2 10]
+
+    val graph = Set('a -> 'b1, 'b1 -> 'c1, 'c1 -> 'd1,
+      'a -> 'b2, 'b2 -> 'c2)
+    val scores = Map ('a -> 2,
+      'b1 -> 4, 'b2 -> 4,
+      'c1 -> 5, 'c2 -> 10,
+      'd1 -> 10)
+    val n = new Network(graph, scores)
+
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.desiredMoves(n, Move('a, 4))
+    
+    moves should contain theSameElementsAs (List(
+        Move('c1, 6),
+        Move('b2, 5),
+        Move('b1, 5),
+        Move('a, 4)
+    ))
+  }
+  
   "NetworkAdjuster.solve" should "work for a simple linear graph" in {
     val graph = Set('a -> 'b, 'b -> 'c, 'c -> 'd, 'd -> 'e)
     val scores = Map ('a -> 1, 'b -> 4, 'c -> 6, 'd -> 7, 'e -> 9)
@@ -265,7 +289,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     n2.scores('d2) should equal (12)
   }
 
-  it should "not allow a full move if one branch prevents it" in {
+  it should "ensure a partial move if just one branch prevents a full move" in {
     //      /-[b1 4]-[c1 7]-[d1 10]
     // [a 2]
     //      \-[b2 6]-[c2 7]-[d2 8]
