@@ -548,6 +548,18 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.preventsMove(t2, 1.5) should equal (Set())
   }
   
+  it should "include a predecessor even if we're trying to move back before it" in {
+    val t1 = Task('t1, 1.0)
+    val t2 = Task('t2, 2.0)
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set[(Task,Task)](t1 -> t2)
+      override lazy val schedule = new Schedule(Map(t1 -> 5.0, t2 -> 7.0))
+    }
+    
+    p.preventsMove(t2, 0.0) should equal (Set(t1))
+  }
+  
   it should "return both predecessors if they are in parallel and abutt" in {
     val t1a = Task('t1a, 1.0)
     val t1b = Task('t1b, 1.0)

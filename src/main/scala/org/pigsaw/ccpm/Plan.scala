@@ -176,6 +176,13 @@ trait Plan {
       case Some(s) => s
     }
     tStart - bestStart
+//    val newStart = schedule.start(t) - max
+//    val preventers = preventsMove(t, newStart)
+//    if (preventers.isEmpty) {
+//      max
+//    } else {
+//      (preventers map { schedule.start(_) }).max
+//    }
   }
 
   /**
@@ -193,7 +200,7 @@ trait Plan {
    * which are a dependency of `t` and start later than `start`.
    */
   def preventsMove(t: Task, tStart: Double): Set[Task] = {
-    val preventingPreds = graph.predecessors(t) filter { schedule.overlaps(t, tStart, _)}
+    val preventingPreds = graph.predecessors(t) filter { schedule.end(_) > tStart }
     val conflicts = (schedule - t).resourceConflictingTasks(t, tStart)
     preventingPreds union conflicts.toSet
   }
