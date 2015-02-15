@@ -85,6 +85,14 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
   it should "give another int when its name is _N" in {
     Move('a_4, 3).size should equal (4)
   }
+  
+  "Move.max" should "give max if greater piece is first" in {
+    Move('a, 10).max(Move('a, 3)) should equal (Move('a, 10))
+  }
+  
+  it should "give max if greater piece is second" in {
+    Move('a, 3).max(Move('a, 10)) should equal (Move('a, 10))
+  }
 
   "Network.withScore" should "set the value of a node" in {
     val graph = Set('a -> 'b)
@@ -512,10 +520,16 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     moves should equal (List(Move('a, 1), Move('c, 3), Move('d, 4)))
   }
   
-  ignore should "dedupe non-maximal moves from the first list" in {
+  it should "dedupe non-maximal moves from the first list (1)" in {
     val adjuster = new NetworkAdjuster
-    val moves = adjuster.combine(List(Move('a, 1), Move('a, 1)), List(Move('c, 3), Move('d, 4)))
-    moves should equal (List(Move('a, 1), Move('c, 3), Move('d, 4)))
+    val moves = adjuster.combine(List(Move('a, 10), Move('a, 1)), List(Move('c, 3), Move('d, 4)))
+    moves should equal (List(Move('a, 10), Move('c, 3), Move('d, 4)))
+  }
+  
+  it should "dedupe non-maximal moves from the first list (2 - other way round)" in {
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.combine(List(Move('a, 1), Move('a, 10)), List(Move('c, 3), Move('d, 4)))
+    moves should equal (List(Move('a, 10), Move('c, 3), Move('d, 4)))
   }
 
 }

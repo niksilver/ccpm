@@ -125,23 +125,17 @@ trait RippleAdjuster[S, M <: Move[M]] {
   }
 
   private def dedupe(ms: List[M]): List[M] = {
-    dedupe0(ms, Nil)
+    val maxes = ms map { _.maxOfSamePiece(ms) }
+    maxes.distinct
   }
-
-  private def dedupe0(ms: List[M], acc: List[M]): List[M] =
-    ms match {
-      case Nil => acc.reverse
-      case m :: rest => {
-    	val mDeduped = if (acc contains m) Nil else List(m)
-    	dedupe0(rest, mDeduped ++: acc)
-      }
-    }
 }
 
 /**
  * A move on a piece. `M` is is the type of the extending class.
  */
 trait Move[M <: Move[M]] {
+  self: M =>
+    
   /**
    * Is `m2` a move on the same piece?
    */
@@ -151,6 +145,16 @@ trait Move[M <: Move[M]] {
    * Return the greater move
    */
   def max(m2: M): M
+  
+  /**
+   * Get the greatest move of this piece, whether it's this
+   * move or a move of the same piece in the given moves `ms`.
+   * 
+   */
+  def maxOfSamePiece(ms: Seq[M]): M = {
+    val max = (self +: ms) filter (self.samePiece(_)) reduceLeft ( _.max(_) )
+    max
+  }
 }
 
 /**
