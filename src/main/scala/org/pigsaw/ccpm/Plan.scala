@@ -186,6 +186,17 @@ trait Plan {
     val actualMove = measureMoveBack(t, max)
     schedule changing (t, tStart - actualMove)
   }
+  
+  /**
+   * All the tasks that prevent a task `t` moving to a particular `start`.
+   * That is: All resource-conflicting tasks, and all tasks
+   * which are a dependency of `t` and start later than `start`.
+   */
+  def preventsMove(t: Task, tStart: Double): Set[Task] = {
+    val preventingPreds = graph.predecessors(t) filter { schedule.overlaps(t, tStart, _)}
+    val conflicts = (schedule - t).resourceConflictingTasks(t, tStart)
+    preventingPreds union conflicts.toSet
+  }
 
 }
 

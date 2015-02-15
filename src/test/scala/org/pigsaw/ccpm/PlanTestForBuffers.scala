@@ -513,4 +513,70 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val sch2 = p.moveBack(t1, 5)
     sch2.start(t1) should be (2)
   }
+  
+  "preventsMove" should "return empty set if no predecessors or resource conflicts" in {
+    val t1 = Task('t1, 1.0)
+    val p = new Plan {
+      val tasks = Set(t1)
+      val dependencies = Set[(Task,Task)]()
+    }
+    
+    p.preventsMove(t1, 0.0) should equal (Set())
+  }
+  
+  it should "return a singleton if there's just one predecessor which abutts" in {
+    val t1 = Task('t1, 1.0)
+    val t2 = Task('t2, 1.0)
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set[(Task,Task)](t1 -> t2)
+      override lazy val schedule = new Schedule(Map(t1 -> 0.0, t2 -> 1.0))
+    }
+    
+    p.preventsMove(t2, 0.5) should equal (Set(t1))
+  }
+  
+  it should "return an empty set if there's just one predecessor and it's far back" in {
+    val t1 = Task('t1, 1.0)
+    val t2 = Task('t2, 2.0)
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set[(Task,Task)](t1 -> t2)
+      override lazy val schedule = new Schedule(Map(t1 -> 0.0, t2 -> 2.0))
+    }
+    
+    p.preventsMove(t2, 1.5) should equal (Set())
+  }
+  
+  it should "return both predecessors if they are in parallel and abutt" in {
+    val t1a = Task('t1a, 1.0)
+    val t1b = Task('t1b, 1.0)
+    val t2 = Task('t2, 2.0)
+    val p = new Plan {
+      val tasks = Set(t1a, t1b, t2)
+      val dependencies = Set[(Task,Task)](t1a -> t2, t1b -> t2)
+      override lazy val schedule = new Schedule(Map(t1a -> 0.0, t1b -> 0.0, t2 -> 1.0))
+    }
+    
+    p.preventsMove(t2, 0.5) should equal (Set(t1a, t1b))
+  }
+  
+  it should "include resource-conflicting tasks which are not a dependency" in {
+    // [t1 A]-[t2 B]\
+    // [t3 C]-[t4 A]+-[t5 C]
+
+    val t1 = Task('t1, "Task one", 1.0, Some("A"))
+    val t2 = Task('t2, "Task two", 1.0, Some("B"))
+    val t3 = Task('t3, "Task three", 1.0, Some("C"))
+    val t4 = Task('t4, "Task four", 1.0, Some("A"))
+    val t5 = Task('t5, "Task five", 1.0, Some("C"))
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4, t5)
+      val dependencies = Set[(Task,Task)](t1 -> t2, t2 -> t5, t3 -> t4, t4 -> t5)
+      override lazy val schedule = new Schedule(
+          Map(t1 -> 0.0, t2 -> 1.0, t3 -> 0.0, t4 -> 1.0, t5 -> 2.0))
+    }
+    
+    p.preventsMove(t4, 0.5) should equal (Set(t3, t1))
+  }
 }

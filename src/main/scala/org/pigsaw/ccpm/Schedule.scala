@@ -75,6 +75,16 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
   def resourceConflicts(t: Task, tStart: Double): Boolean = {
     tasks filter { t.sameResource(_) } exists { overlaps(t, tStart, _) }
   }
+  
+  /**
+   * Get all tasks that resource-conflict with `t` if it starts
+   * at time `tStart`.
+   * Note that `t` itself may be included in the result if it exists
+   * in this schedule.
+   */
+  def resourceConflictingTasks(t: Task, tStart: Double): Iterable[Task] = {
+    tasks filter { t.sameResource(_) } filter { overlaps(t, tStart, _) }
+  }
 
   /**
    * If task `t` started at `tStart`, does it overlap with `t2`?
