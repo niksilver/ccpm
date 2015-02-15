@@ -160,29 +160,16 @@ trait Plan {
 
   /**
    * See how far we can move back a given task.
+   * Returns the best distance possible we can move.
    */
   def measureMoveBack(t: Task, max: Double): Double = {
-    val predecessors = graph.predecessors(t)
-    val predecessorEnds = predecessors map { schedule.end(_) }
     val tStart = schedule.start(t)
-    val startLimit = tStart - max
-    val latestStart = (predecessorEnds + startLimit).max
-    val ends = schedule.endsBetween(latestStart, tStart)
-    val sortedEnds = (ends + latestStart).toSeq.sorted
-    val sch2 = schedule - t
-    val earliest = sortedEnds find { e => !sch2.resourceConflicts(t, e) }
-    val bestStart = earliest match {
-      case None => tStart
-      case Some(s) => s
+    val preventers = preventsMove(t, tStart - max)
+    if (preventers.isEmpty) {
+      max
+    } else {
+      tStart - (preventers map { schedule.end(_) }).max
     }
-    tStart - bestStart
-//    val newStart = schedule.start(t) - max
-//    val preventers = preventsMove(t, newStart)
-//    if (preventers.isEmpty) {
-//      max
-//    } else {
-//      (preventers map { schedule.start(_) }).max
-//    }
   }
 
   /**
