@@ -35,9 +35,8 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     val p = new Plan {
       val tasks = Set(t1, t2)
       val dependencies = Set((t1 -> t2))
-      override lazy val schedule = new Schedule(Map((t1 -> 0), (t2 -> 10.0)))
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 10.0))
     }
-    val sch = p.schedule
     
     val adjuster = new PlanAdjuster
     val att = adjuster.attempt(p, Move(t2, 7.0))
@@ -50,9 +49,8 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     val p = new Plan {
       val tasks = Set(t1, t2)
       val dependencies = Set((t1 -> t2))
-      override lazy val schedule = new Schedule(Map((t1 -> 0), (t2 -> 6.0)))
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 6.0))
     }
-    val sch = p.schedule
     
     val adjuster = new PlanAdjuster
     val att = adjuster.attempt(p, Move(t2, 4.0))
@@ -65,9 +63,8 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     val p = new Plan {
       val tasks = Set(t1, t2)
       val dependencies = Set((t1 -> t2))
-      override lazy val schedule = new Schedule(Map((t1 -> 3), (t2 -> 10)))
+      override lazy val schedule = new Schedule(Map(t1 -> 3, t2 -> 10))
     }
-    val sch = p.schedule
     
     val adjuster = new PlanAdjuster
     val att = adjuster.attempt(p, Move(t2, 5))
@@ -83,7 +80,6 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
       val dependencies = Set(t1a -> t2, t1b -> t2)
       override lazy val schedule = new Schedule(Map(t1a -> 1, t1b -> 2, t2 -> 6))
     }
-    val sch = p.schedule
     
     val adjuster = new PlanAdjuster
     val att = adjuster.attempt(p, Move(t2, 4))
