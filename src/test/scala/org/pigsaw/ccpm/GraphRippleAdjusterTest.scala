@@ -26,10 +26,8 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
       new Network(edges, scores + (id -> score))
     }
   }
-
-  import org.pigsaw.ccpm.{Move => RAMove}
   
-  case class Move(id: Symbol, newScore: Int) extends RAMove[Move]{
+  case class Move(id: Symbol, newScore: Int) extends RippleMove[Move] {
     def samePiece(m2: Move): Boolean = (this.id == m2.id)
     def max(m2: Move): Move = Seq(this, m2).maxBy(_.newScore)
     def size = {

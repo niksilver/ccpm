@@ -9,7 +9,7 @@ package org.pigsaw.ccpm
  *
  * @type M  The move made on each state
  */
-trait RippleAdjuster[S, M <: Move[M]] {
+trait RippleAdjuster[S, M <: RippleMove[M]] {
 
   /**
    * Attempt a move on the state. It should return sequence of zero or
@@ -46,20 +46,6 @@ trait RippleAdjuster[S, M <: Move[M]] {
     val (state2, _) = makeMoves(state, moves2, Nil)
     state2
   }
-
-  //  private def solve0(state: S, moves: List[M]): S =
-  //    moves match {
-  //      case Nil => state
-  //      case m :: rest => {
-  //        val atts = attempt(state, m)
-  //        val attmoves = atts map { _.get }
-  //        if (atts exists { _.isPrerequisite }) {
-  //          solve0(state, attmoves ++: m +: rest)
-  //        } else {
-  //          makeMoves(state, attmoves ++: rest)
-  //        }
-  //      }
-  //    }
 
   /**
    * Work out what moves we should be making in order to achieve
@@ -122,7 +108,7 @@ trait RippleAdjuster[S, M <: Move[M]] {
 /**
  * A move on a piece. `M` is is the type of the extending class.
  */
-trait Move[M <: Move[M]] {
+trait RippleMove[M <: RippleMove[M]] {
   self: M =>
     
   /**

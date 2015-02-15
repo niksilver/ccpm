@@ -15,7 +15,7 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
    * Description of the desire to move the letter at index `index`
    * a given number of `steps`.
    */
-  case class LinShMove(index: Int, steps: Int) extends Move[LinShMove] {
+  case class LinShMove(index: Int, steps: Int) extends RippleMove[LinShMove] {
     def samePiece(m2: LinShMove): Boolean = (index == m2.index)
     def max(m2: LinShMove): LinShMove = Seq(this, m2).maxBy(_.steps)
   }
