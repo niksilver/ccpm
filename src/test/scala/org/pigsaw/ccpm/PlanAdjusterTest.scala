@@ -40,11 +40,11 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     val sch = p.schedule
     
     val adjuster = new PlanAdjuster
-    val att = adjuster.attempt(p, Move(t2, 2))
-    att should equal (Seq(Actual(Move(t2, 2))))
+    val att = adjuster.attempt(p, Move(t2, 7.0))
+    att should equal (Seq(Actual(Move(t2, 7.0))))
   }
   
-  ignore should "return a prerequisite if the task has one predecessor slightly behind" in {
+  it should "return a prerequisite if the task has one predecessor slightly behind" in {
     val t1 = Task('t1, "Task one", 5, Some("Alice"))
     val t2 = Task('t2, "Task two", 3, Some("Bob"))
     val p = new Plan {

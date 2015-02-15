@@ -16,7 +16,12 @@ class PlanAdjuster extends RippleAdjuster[Plan, Move] {
     if (backers.nonEmpty) {
       ???
     } else {
-      Seq(Actual(m))
+      val preventers = p.preventsMove(task, m.start)
+      if (preventers.isEmpty) {
+        Seq(Actual(m))
+      } else {
+        Seq(Prerequisite(Move(preventers.head, -1.0)))
+      }
     }
   }
 
