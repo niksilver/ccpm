@@ -28,4 +28,34 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     val m2 = Move(Task('t1), 5)
     m1.max(m2) should equal (m2)
   }
+  
+  "PlanAdjuster.attempt" should "return the full move if the task has one predecessor far back" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 3, Some("Bob"))
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set((t1 -> t2))
+      override lazy val schedule = new Schedule(Map((t1 -> 0), (t2 -> 10.0)))
+    }
+    val sch = p.schedule
+    
+    val adjuster = new PlanAdjuster
+    val att = adjuster.attempt(p, Move(t2, 2))
+    att should equal (Seq(Actual(Move(t2, 2))))
+  }
+  
+  ignore should "return a prerequisite if the task has one predecessor slightly behind" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 3, Some("Bob"))
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set((t1 -> t2))
+      override lazy val schedule = new Schedule(Map((t1 -> 0), (t2 -> 6.0)))
+    }
+    val sch = p.schedule
+    
+    val adjuster = new PlanAdjuster
+    val att = adjuster.attempt(p, Move(t2, 4.0))
+    att should equal (Seq(Prerequisite(Move(t1, -1.0))))
+  }
 }

@@ -9,7 +9,7 @@ import scala.collection.TraversableLike
 class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
 
   import Schedule._
-  
+
   /**
    * The tasks in the schedule.
    */
@@ -22,7 +22,7 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
 
   // All the starts of just the tasks
   private lazy val taskStarts = starts collect { case (t: Task, s: Double) => (t, s) }
-  
+
   /**
    * Is this period scheduled?
    */
@@ -43,7 +43,7 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
   } else {
     throw new UnknownPeriodException(s"Period $p not in schedule")
   }
-  
+
   /**
    * Return a new schedule which is the same as this, but with a given
    * task's start being changed.
@@ -54,7 +54,7 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
     } else {
       throw new UnknownTaskException(s"Could not change task $p because it does not exist in the schedule")
     }
-  
+
   /**
    * Get the start time of a given period.
    */
@@ -73,16 +73,20 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
    * resource-conflict with any of the tasks scheduled so far?
    */
   def resourceConflicts(t: Task, tStart: Double): Boolean = {
-    val tEnd = tStart + t.duration
-    def conflictsWith(t2: Task) = {
-      (t.duration > 0 && start(t2) < tEnd && tEnd <= end(t2)) ||
-        (t.duration > 0 && start(t2) <= tStart && tStart < end(t2)) ||
-        (t.duration == 0 && start(t2) < tStart && tStart < end(t2)) ||
-        (t2.duration == 0 && tStart < start(t2) && start(t2) < tEnd)
-    }
-    tasks filter { t.sameResource(_) } exists { conflictsWith(_) }
+    tasks filter { t.sameResource(_) } exists { overlaps(t, tStart, _) }
   }
-  
+
+  /**
+   * If task `t` started at `tStart`, does it overlap with `t2`?
+   */
+  def overlaps(t: Task, tStart: Double, t2: Task): Boolean = {
+    val tEnd = tStart + t.duration
+    (t.duration > 0 && start(t2) < tEnd && tEnd <= end(t2)) ||
+      (t.duration > 0 && start(t2) <= tStart && tStart < end(t2)) ||
+      (t.duration == 0 && start(t2) < tStart && tStart < end(t2)) ||
+      (t2.duration == 0 && tStart < start(t2) && start(t2) < tEnd)
+  }
+
   /**
    * Get the end times of all tasks between the given lower and upper bound inclusive.
    */
@@ -244,20 +248,19 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
    */
   def adjacentTasks: Seq[Tuple2[Task, Task]] = {
     def cond(t1: Task, t2: Task) = true
-    adjacentTasks({ (_, _) => true})
+    adjacentTasks({ (_, _) => true })
   }
-  
+
   // Find adjacent tasks where the tasks also meet
   // a given condition.
   //
-  private def adjacentTasks(cond: (Task,Task) => Boolean): Seq[Tuple2[Task, Task]] = {
+  private def adjacentTasks(cond: (Task, Task) => Boolean): Seq[Tuple2[Task, Task]] = {
     for {
       (task1, start1) <- taskStarts.toSeq
       (task2, start2) <- (taskStarts filter { td => cond(task1, td._1) })
       if task1.duration != 0 && task2.duration != 0 && end(task1) == start2
     } yield (task1, task2)
   }
-
 
   /**
    * Get all pairs of tasks where the half-end time of the first
@@ -267,8 +270,8 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
    * Zero-length tasks are entirely ignored.
    */
   def resourceAdjacentTasks: Seq[Tuple2[Task, Task]] =
-    adjacentTasks( _.sameResource(_))
-    
+    adjacentTasks(_.sameResource(_))
+
 }
 
 /**
