@@ -78,10 +78,8 @@ trait RippleAdjuster[S, M <: Move[M]] {
       case _ => {
         val atts = movesToAttempt flatMap { attempt(state, _) }
         val newMoves = atts map { _.get }
-        //val uniqueNewMoves = newMoves filter { !acc.contains(_) }
         val combinedAcc = combine(newMoves, acc)
         val prereqMoves = atts filter { _.isPrerequisite } map { _.get }
-        //desiredMoves0(state, prereqMoves, uniqueNewMoves ++: acc)
         desiredMoves0(state, prereqMoves, combinedAcc)
       }
     }
@@ -106,18 +104,15 @@ trait RippleAdjuster[S, M <: Move[M]] {
    * inserted where the later `ms1` move appears.
    */
   def combine(ms1: List[M], ms2: List[M]): List[M] = {
-    def getRepeat(m1: M): Option[M] = (ms2 filter { _.samePiece(m1) }).headOption
     val uniques = ms2 filterNot { m2 => ms1 exists { _.samePiece(m2) } }
     val ms1Deduped = dedupe(ms1)
-    val ms1WithMaxMoves = ms1Deduped map { m1 =>
-      getRepeat(m1) match {
-        case None => m1
-        case Some(m2) => m1.max(m2)
-      }
-    }
+    val ms1WithMaxMoves = ms1Deduped map { _.maxOfSamePiece(ms2) }
     ms1WithMaxMoves ++: uniques
   }
 
+  // Shrink the list of moves so that all the pieces are
+  // different, and each move of a piece is the greatest
+  // move given of that piece.
   private def dedupe(ms: List[M]): List[M] = {
     val maxes = ms map { _.maxOfSamePiece(ms) }
     maxes.distinct
@@ -146,8 +141,7 @@ trait Move[M <: Move[M]] {
    * 
    */
   def maxOfSamePiece(ms: Seq[M]): M = {
-    val max = (self +: ms) filter (self.samePiece(_)) reduceLeft ( _.max(_) )
-    max
+    (self +: ms) filter (self.samePiece(_)) reduceLeft ( _.max(_) )
   }
 }
 
