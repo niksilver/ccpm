@@ -485,8 +485,29 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     n2.scores('b2_3) should equal (5)
     n2.scores('c) should equal (8)
     n2.scores('d) should equal (10)
-  }
+  }  
   
+  it should "work when merging branches prevent any full move" in {
+    //      /-[b11 4]-[b12 5]-\
+    // [a 2]                   [c 6]
+    //      \-[b2 5]----------/
+
+    val graph = Set('a -> 'b11, 'b11 -> 'b12, 'b12 -> 'c,
+      'a -> 'b2, 'b2 -> 'c)
+    val scores = Map ('a -> 2,
+      'b11 -> 4, 'b12 -> 5,
+      'b2 -> 5,
+      'c -> 6)
+    val n = new Network(graph, scores)
+
+    val adjuster = new NetworkAdjuster
+    val n2 = adjuster.solve(n, Move('a, 5))
+    n2.scores('a) should equal (3)
+    n2.scores('b11) should equal (4)
+    n2.scores('b12) should equal (5)
+    n2.scores('b2) should equal (5)
+    n2.scores('c) should equal (6)
+  }  
     
   "RippleAdjuster.resolve" should "simply add two lists moves on different pieces" in {
     val adjuster = new NetworkAdjuster
