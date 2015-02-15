@@ -73,4 +73,20 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     val att = adjuster.attempt(p, Move(t2, 5))
     att should equal (Seq(Prerequisite(Move(t1, 1))))
   }
+  
+  it should "return two prerequisites if the task has two joint predecessors different distances behind" in {
+    val t1a = Task('t1a, "Task 1a", 4, Some("Alice"))
+    val t1b = Task('t1b, "Task 1b", 4, Some("Bob"))
+    val t2 = Task('t2, "Task two", 4, Some("Bob"))
+    val p = new Plan {
+      val tasks = Set(t1a, t1b, t2)
+      val dependencies = Set(t1a -> t2, t1b -> t2)
+      override lazy val schedule = new Schedule(Map(t1a -> 1, t1b -> 2, t2 -> 6))
+    }
+    val sch = p.schedule
+    
+    val adjuster = new PlanAdjuster
+    val att = adjuster.attempt(p, Move(t2, 4))
+    att should equal (Seq(Prerequisite(Move(t1a, 0)), Prerequisite(Move(t1b, 0))))
+  }
 }

@@ -12,19 +12,15 @@ class PlanAdjuster extends RippleAdjuster[Plan, Move] {
 
   def attempt(p: Plan, m: Move): Seq[Attempt[Move]] = {
     val task = m.task
-    val backers = p.backingTasks(task)
-    if (backers.nonEmpty) {
-      ???
+    val preventers = p.preventsMove(task, m.start)
+    if (preventers.isEmpty) {
+      Seq(Actual(m))
     } else {
-      val preventers = p.preventsMove(task, m.start)
-      if (preventers.isEmpty) {
-        Seq(Actual(m))
-      } else {
-        val preventer = preventers.head
-        val extraNeeded = p.schedule.end(preventer) - m.start 
-        val prevStart = p.schedule.start(preventer) - extraNeeded
-        Seq(Prerequisite(Move(preventers.head, prevStart)))
-      }
+      for {
+        preventer <- preventers.toSeq
+        extraNeeded = p.schedule.end(preventer) - m.start
+        prevStart = p.schedule.start(preventer) - extraNeeded
+      } yield Prerequisite(Move(preventer, prevStart))
     }
   }
 
