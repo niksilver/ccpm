@@ -20,7 +20,10 @@ class PlanAdjuster extends RippleAdjuster[Plan, Move] {
       if (preventers.isEmpty) {
         Seq(Actual(m))
       } else {
-        Seq(Prerequisite(Move(preventers.head, -1.0)))
+        val preventer = preventers.head
+        val extraNeeded = p.schedule.end(preventer) - m.start 
+        val prevStart = p.schedule.start(preventer) - extraNeeded
+        Seq(Prerequisite(Move(preventers.head, prevStart)))
       }
     }
   }
