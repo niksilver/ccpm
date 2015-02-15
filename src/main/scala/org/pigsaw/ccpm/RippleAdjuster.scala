@@ -1,5 +1,7 @@
 package org.pigsaw.ccpm
 
+import scala.annotation.tailrec
+
 /**
  * A solver for the problem where in order to make a desired change
  * to a thing, we may first need to make some changes to some other
@@ -58,6 +60,7 @@ trait RippleAdjuster[S, M <: RippleMove[M]] {
     desiredMoves0(state, List(move), List(move))
   }
 
+  @tailrec
   private def desiredMoves0(state: S, movesToAttempt: List[M], acc: List[M]): List[M] = {
     movesToAttempt match {
       case Nil => acc
@@ -74,6 +77,7 @@ trait RippleAdjuster[S, M <: RippleMove[M]] {
   // Make the given `moves`, as best as possible.
   // Return the resulting state and the actual moves made
   // (most recent first).
+  @tailrec
   private def makeMoves(state: S, moves: List[M], actualMoves: List[M]): (S, List[M]) =
     moves match {
       case Nil => (state, actualMoves)
