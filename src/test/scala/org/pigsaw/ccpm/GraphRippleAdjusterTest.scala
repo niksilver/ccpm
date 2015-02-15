@@ -442,7 +442,6 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
   }
   
   it should "work when merging branches make different demands on the merged branch (longer branch pushes more)" in {
-    println("\n\n------------------ (1)")
     //      /-[b11 4]-[b12 7]-\
     // [a 2]                   [c 7]-[d 10]
     //      \-[b2 6]----------/
@@ -466,7 +465,6 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
   }
   
   it should "work when merging branches make different demands on the merged branch (shorter branch pushes more)" in {
-    println("\n\n------------------ (2)")
     //      /-[b11 4]-[b12 5]-\
     // [a 2]                   [c 6]-[d 10]
     //      \-[b2_3 3]--------/                     <-- Note b2_3 is of size 2

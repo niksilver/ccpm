@@ -37,15 +37,12 @@ trait RippleAdjuster[S, M <: Move[M]] {
     // Work out our desired moves, and then the actual
     // moves that happen when we really make them
     val moves = desiredMoves(state, move)
-    println(s"(1) moves = $moves")
     val (_, actualMoves) = makeMoves(state, moves, Nil)
-    println(s"(2) actualMoves = $actualMoves")
     // Now we can find what actually happened to our
     // original move. So let's use that to find the
     // minimal sequence of moves to achieve that,
     // and then make those moves.
     val moves2 = desiredMoves(state, actualMoves.head)
-    println(s"(3) moves2 = $moves2")
     val (state2, _) = makeMoves(state, moves2, Nil)
     state2
   }
@@ -98,7 +95,6 @@ trait RippleAdjuster[S, M <: Move[M]] {
       case Nil => (state, actualMoves)
       case m :: rest => {
         val (state2, actualMove) = make(state, m)
-        println(s"    make move $m yields actual $actualMove")
         makeMoves(state2, rest, actualMove :: actualMoves)
       }
     }
@@ -119,8 +115,6 @@ trait RippleAdjuster[S, M <: Move[M]] {
         case Some(m2) => m1.max(m2)
       }
     }
-    println(s"   $ms1 + $ms2 combines to give")
-    println(s"   " + (ms1WithMaxMoves ++: uniques))
     ms1WithMaxMoves ++: uniques
   }
 
