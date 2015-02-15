@@ -505,5 +505,17 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     val moves = adjuster.combine(List(Move('a, 1), Move('b, 2)), List(Move('a, 10), Move('d, 4)))
     moves should equal (List(Move('a, 10), Move('b, 2), Move('d, 4)))
   }
+  
+  it should "dedupe moves from the first list if they're identical" in {
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.combine(List(Move('a, 1), Move('a, 1)), List(Move('c, 3), Move('d, 4)))
+    moves should equal (List(Move('a, 1), Move('c, 3), Move('d, 4)))
+  }
+  
+  ignore should "dedupe non-maximal moves from the first list" in {
+    val adjuster = new NetworkAdjuster
+    val moves = adjuster.combine(List(Move('a, 1), Move('a, 1)), List(Move('c, 3), Move('d, 4)))
+    moves should equal (List(Move('a, 1), Move('c, 3), Move('d, 4)))
+  }
 
 }

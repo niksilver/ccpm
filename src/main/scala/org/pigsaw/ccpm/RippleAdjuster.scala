@@ -33,7 +33,7 @@ trait RippleAdjuster[S, M <: Move[M]] {
    * Make the desired `move` from the given `state`, ensuring any
    * necessary prerequisites moves are made to achieve this.
    */
-  def solve(state: S, move: M): S =  {
+  def solve(state: S, move: M): S = {
     // Work out our desired moves, and then the actual
     // moves that happen when we really make them
     val moves = desiredMoves(state, move)
@@ -50,20 +50,20 @@ trait RippleAdjuster[S, M <: Move[M]] {
     state2
   }
 
-//  private def solve0(state: S, moves: List[M]): S =
-//    moves match {
-//      case Nil => state
-//      case m :: rest => {
-//        val atts = attempt(state, m)
-//        val attmoves = atts map { _.get }
-//        if (atts exists { _.isPrerequisite }) {
-//          solve0(state, attmoves ++: m +: rest)
-//        } else {
-//          makeMoves(state, attmoves ++: rest)
-//        }
-//      }
-//    }
-  
+  //  private def solve0(state: S, moves: List[M]): S =
+  //    moves match {
+  //      case Nil => state
+  //      case m :: rest => {
+  //        val atts = attempt(state, m)
+  //        val attmoves = atts map { _.get }
+  //        if (atts exists { _.isPrerequisite }) {
+  //          solve0(state, attmoves ++: m +: rest)
+  //        } else {
+  //          makeMoves(state, attmoves ++: rest)
+  //        }
+  //      }
+  //    }
+
   /**
    * Work out what moves we should be making in order to achieve
    * the desired `move` from the given `state`. The list of moves
@@ -102,7 +102,7 @@ trait RippleAdjuster[S, M <: Move[M]] {
         makeMoves(state2, rest, actualMove :: actualMoves)
       }
     }
-  
+
   /**
    * Prepend the moves `ms1` onto the start of `ms2`, but
    * if there are any pieces moved in `ms2` and `ms1` then
@@ -111,26 +111,44 @@ trait RippleAdjuster[S, M <: Move[M]] {
    */
   def combine(ms1: List[M], ms2: List[M]): List[M] = {
     def getRepeat(m1: M): Option[M] = (ms2 filter { _.samePiece(m1) }).headOption
-    val uniques = ms2 filterNot { m2 => ms1 exists { _.samePiece(m2) }}
-    val ms1Updated = ms1 map { m1 => getRepeat(m1) match {
-      case None => m1
-      case Some(m2) => m1.max(m2)
-    }}
+    val uniques = ms2 filterNot { m2 => ms1 exists { _.samePiece(m2) } }
+    val ms1Deduped = dedupe(ms1)
+    val ms1WithMaxMoves = ms1Deduped map { m1 =>
+      getRepeat(m1) match {
+        case None => m1
+        case Some(m2) => m1.max(m2)
+      }
+    }
     println(s"   $ms1 + $ms2 combines to give")
-    println(s"   " + (ms1Updated ++: uniques))
-    ms1Updated ++: uniques
+    println(s"   " + (ms1WithMaxMoves ++: uniques))
+    ms1WithMaxMoves ++: uniques
   }
+
+  private def dedupe(ms: List[M]): List[M] = {
+    dedupe0(ms, Nil)
+  }
+
+  private def dedupe0(ms: List[M], acc: List[M]): List[M] =
+    ms match {
+      case Nil => acc.reverse
+      case m :: rest => {
+    	val mDeduped = if (acc contains m) Nil else List(m)
+    	dedupe0(rest, mDeduped ++: acc)
+      }
+    }
 }
 
 /**
  * A move on a piece. `M` is is the type of the extending class.
  */
 trait Move[M <: Move[M]] {
-  /** Is `m2` a move on the same piece?
+  /**
+   * Is `m2` a move on the same piece?
    */
   def samePiece(m2: M): Boolean
-  
-  /** Return the greater move
+
+  /**
+   * Return the greater move
    */
   def max(m2: M): M
 }
