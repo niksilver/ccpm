@@ -18,6 +18,7 @@ class PlanAdjuster extends RippleAdjuster[Plan, Move] {
     } else {
       for {
         preventer <- preventers.toSeq
+        if (!p.criticalChain.contains(preventer))
         extraNeeded = p.schedule.end(preventer) - m.start
         prevStart = p.schedule.start(preventer) - extraNeeded
       } yield Prerequisite(Move(preventer, prevStart))
