@@ -25,5 +25,9 @@ class PlanAdjuster extends RippleAdjuster[Plan, Move] {
     }
   }
 
-  def make(p: Plan, m: Move): (Plan, Move) = ???
+  def make(p: Plan, m: Move): (Plan, Move) = {
+    val sch2 = p.schedule + (m.task, m.start)
+    val p2 = p.withSchedule(sch2)
+    (p2, m)
+  }
 }

@@ -4,6 +4,7 @@ package org.pigsaw.ccpm
  * A project plan, which may or may not be a good one.
  */
 trait Plan {
+  self =>
 
   /**
    * Tasks in the plan
@@ -35,6 +36,15 @@ trait Plan {
    * A schedule for this plan.
    */
   lazy val schedule: Schedule = Schedule.make(tasks.toSet, dependencies)
+  
+  /**
+   * Create a new plan just like this one, but with the given schedule.
+   */
+  def withSchedule(sch: Schedule): Plan = new Plan {
+    val tasks = self.tasks
+    val dependencies = self.dependencies
+    override lazy val schedule = sch
+  }
   
   /**
    * Get all the tasks which prevent the given task `t` moving back

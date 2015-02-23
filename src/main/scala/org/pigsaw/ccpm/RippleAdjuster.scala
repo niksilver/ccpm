@@ -25,7 +25,7 @@ trait RippleAdjuster[S, M <: RippleMove[M]] {
   /**
    * From the given `state` make a `move` as best as possible and
    * return the resulting state, and the actual move made.
-   * Note the we may not be able
+   * Note we may not be able
    * to make the `move` to its full extent, but we will do
    * as much as we can (if anything).
    */

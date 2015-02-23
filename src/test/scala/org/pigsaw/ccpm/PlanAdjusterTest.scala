@@ -113,4 +113,37 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     val att = adjuster.attempt(p, Move(t2, t2Start - 2))
     att should equal (Seq())
   }
+  
+  "PlanAdjuster.make" should "move a task back to its predecessor if asked and it's possible (1)" in {
+    val t1 = Task('t1, "Task one", 5, Some("Alice"))
+    val t2 = Task('t2, "Task two", 3, Some("Bob"))
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set((t1 -> t2))
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 10.0))
+      override lazy val criticalChain = Seq()
+    }
+    
+    val adjuster = new PlanAdjuster
+    val (p2, actualMove) = adjuster.make(p, Move(t2, 5))
+    p2.schedule.start(t2) should equal (p2.schedule.end(t1))
+    actualMove should equal (Move(t2, 5))
+  }
+  
+  it should "move a task back to its predecessor if asked and it's possible (2 - to avoid faking)" in {
+    val t1 = Task('t1, "Task one", 6, Some("Alice"))
+    val t2 = Task('t2, "Task two", 3, Some("Bob"))
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set((t1 -> t2))
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 10.0))
+      override lazy val criticalChain = Seq()
+    }
+    
+    val adjuster = new PlanAdjuster
+    val (p2, actualMove) = adjuster.make(p, Move(t2, 6))
+    p2.schedule.start(t2) should equal (p2.schedule.end(t1))
+    actualMove should equal (Move(t2, 6))
+  }
+  
 }
