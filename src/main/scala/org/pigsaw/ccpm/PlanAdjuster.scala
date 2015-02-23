@@ -26,8 +26,11 @@ class PlanAdjuster extends RippleAdjuster[Plan, Move] {
   }
 
   def make(p: Plan, m: Move): (Plan, Move) = {
-    val sch2 = p.schedule + (m.task, m.start)
+    val task = m.task
+    val maxDelta = p.schedule.start(task) - m.start
+    val sch2 = p.moveBack(task, maxDelta)
     val p2 = p.withSchedule(sch2)
-    (p2, m)
+    val m2 = Move(task, sch2.start(task))
+    (p2, m2)
   }
 }
