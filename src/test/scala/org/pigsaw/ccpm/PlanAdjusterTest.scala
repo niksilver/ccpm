@@ -162,4 +162,44 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     actualMove should equal (Move(t2, 6))
   }
   
+  it should "move a task back to a resource-conflicting task if that's only as far as it can go" in {
+
+    //   [t1 A]
+    // [t2 B]----[t3 A]
+
+    val t1 = Task('t1, "Task one", 4, Some("Alice"))
+    val t2 = Task('t2, "Task two", 4, Some("Bob"))
+    val t3 = Task('t3, "Task three", 4, Some("Alice"))
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t2 -> t3)
+      override lazy val schedule = new Schedule(Map(t1 -> 2, t2 -> 0, t3 -> 8))
+      override lazy val criticalChain = Seq()
+    }
+    
+    val adjuster = new PlanAdjuster
+    val (p2, actualMove) = adjuster.make(p, Move(t3, 4))
+    p2.schedule.start(t3) should equal (p2.schedule.end(t1))
+    actualMove should equal (Move(t3, 6))
+  }
+  
+  it should "not move a task if it's already backed up to its predecessor" in {
+
+    // [t1 B][t2 A]
+
+    val t1 = Task('t1, "Task one", 4, Some("Bob"))
+    val t2 = Task('t2, "Task two", 4, Some("Alice"))
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set(t1 -> t2)
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 4))
+      override lazy val criticalChain = Seq()
+    }
+    
+    val adjuster = new PlanAdjuster
+    val (p2, actualMove) = adjuster.make(p, Move(t2, -4))
+    p2.schedule.start(t2) should equal (p2.schedule.end(t1))
+    actualMove should equal (Move(t2, 4))
+  }
+  
 }
