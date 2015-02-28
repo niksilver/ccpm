@@ -25,9 +25,22 @@ class PlanAdjuster extends RippleAdjuster[Plan, Move] {
     }
   }
 
-  def make(p: Plan, m: Move): (Plan, Move) = {
+  def move(p: Plan, m: Move): (Plan, Move) = {
     val task = m.task
-    val maxDelta = p.schedule.start(task) - m.start
+    if (p.criticalChain contains task) {
+      dontMove(p, task)
+    } else {
+      doMove(p, task, m.start)
+    }
+  }
+  
+  private def dontMove(p: Plan, task: Task): (Plan, Move) = {
+    val start = p.schedule.start(task)
+    (p, Move(task, start))
+  }
+  
+  private def doMove(p: Plan, task: Task, start: Double): (Plan, Move) = {
+    val maxDelta = p.schedule.start(task) - start
     val sch2 = p.moveBack(task, maxDelta)
     val p2 = p.withSchedule(sch2)
     val m2 = Move(task, sch2.start(task))

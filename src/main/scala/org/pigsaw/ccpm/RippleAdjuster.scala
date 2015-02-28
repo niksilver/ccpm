@@ -29,7 +29,7 @@ trait RippleAdjuster[S, M <: RippleMove[M]] {
    * to make the `move` to its full extent, but we will do
    * as much as we can (if anything).
    */
-  def make(state: S, move: M): (S, M)
+  def move(state: S, move: M): (S, M)
 
   /**
    * Make the desired `move` from the given `state`, ensuring any
@@ -82,7 +82,7 @@ trait RippleAdjuster[S, M <: RippleMove[M]] {
     moves match {
       case Nil => (state, actualMoves)
       case m :: rest => {
-        val (state2, actualMove) = make(state, m)
+        val (state2, actualMove) = move(state, m)
         makeMoves(state2, rest, actualMove :: actualMoves)
       }
     }

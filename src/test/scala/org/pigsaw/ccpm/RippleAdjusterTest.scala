@@ -47,7 +47,7 @@ class RippleAdjusterTest extends FlatSpec with Matchers {
       }
     }
     
-    def make(board: String, m: LinShMove): (String, LinShMove) = {
+    def move(board: String, m: LinShMove): (String, LinShMove) = {
       val letter = board(m.index)
       val availableSteps = ((board drop (m.index+1)) takeWhile { _ == '.' }).length
       val actualSteps = Math.min(m.steps, availableSteps)

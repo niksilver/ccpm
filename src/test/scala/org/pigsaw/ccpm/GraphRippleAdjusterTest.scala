@@ -57,7 +57,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
       }
     }
 
-    def make(net: Network, move: Move): (Network, Move) = {
+    def move(net: Network, move: Move): (Network, Move) = {
       val succs = net.successors(move.id)
       if (succs.isEmpty) {
         (net, move)
@@ -180,14 +180,14 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     adjuster.attempt(n, Move('a_4, 2)) should equal (Seq(Prerequisite(Move('b, 6))))
   }
   
-  "NetworkAdjuster.make" should "keep the score the same if it has no predecessors" in {
+  "NetworkAdjuster.move" should "keep the score the same if it has no predecessors" in {
     val graph = Set('a -> 'b)
     val scores = Map('a -> 1, 'b -> 6)
     val n = new Network(graph, scores)
     
     val adjuster = new NetworkAdjuster
     
-    val (n2, _) = adjuster.make(n, Move('b, 7))
+    val (n2, _) = adjuster.move(n, Move('b, 7))
     n2.scores('a) should equal (1)
     n2.scores('b) should equal (6)
   }
@@ -199,7 +199,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val (n2, _) = adjuster.make(n, Move('a, 3))
+    val (n2, _) = adjuster.move(n, Move('a, 3))
     n2.scores('a) should equal (3)
     n2.scores('b) should equal (4)
   }
@@ -211,7 +211,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val (n2, _) = adjuster.make(n, Move('a, 6))
+    val (n2, _) = adjuster.move(n, Move('a, 6))
     n2.scores('a) should equal (3)
     n2.scores('b) should equal (4)
   }
@@ -223,7 +223,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val (n2, _) = adjuster.make(n, Move('a, 6))
+    val (n2, _) = adjuster.move(n, Move('a, 6))
     n2.scores('a) should equal (3)
     n2.scores('b1) should equal (8)
     n2.scores('b2) should equal (6)
@@ -237,7 +237,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val (n2, m) = adjuster.make(n, Move('a_4, 2))
+    val (n2, m) = adjuster.move(n, Move('a_4, 2))
     m should equal (Move('a_4, 2))
     n2.scores('a_4) should equal (2)
     n2.scores('b) should equal (6)
@@ -250,7 +250,7 @@ class GraphRippleAdjusterTest extends FlatSpec with Matchers {
     
     val adjuster = new NetworkAdjuster
     
-    val (n2, m) = adjuster.make(n, Move('a_4, 3))
+    val (n2, m) = adjuster.move(n, Move('a_4, 3))
     m should equal (Move('a_4, 2))
     n2.scores('a_4) should equal (2)
     n2.scores('b) should equal (6)

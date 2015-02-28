@@ -114,7 +114,7 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     att should equal (Seq())
   }
   
-  "PlanAdjuster.make" should "move a task back to its predecessor if asked and it's possible (1)" in {
+  "PlanAdjuster.move" should "move a task back to its predecessor if asked and it's possible (1)" in {
     val t1 = Task('t1, "Task one", 5, Some("Alice"))
     val t2 = Task('t2, "Task two", 3, Some("Bob"))
     val p = new Plan {
@@ -125,7 +125,7 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     }
     
     val adjuster = new PlanAdjuster
-    val (p2, actualMove) = adjuster.make(p, Move(t2, 5))
+    val (p2, actualMove) = adjuster.move(p, Move(t2, 5))
     p2.schedule.start(t2) should equal (p2.schedule.end(t1))
     actualMove should equal (Move(t2, 5))
   }
@@ -141,7 +141,7 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     }
     
     val adjuster = new PlanAdjuster
-    val (p2, actualMove) = adjuster.make(p, Move(t2, 6))
+    val (p2, actualMove) = adjuster.move(p, Move(t2, 6))
     p2.schedule.start(t2) should equal (p2.schedule.end(t1))
     actualMove should equal (Move(t2, 6))
   }
@@ -157,7 +157,7 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     }
     
     val adjuster = new PlanAdjuster
-    val (p2, actualMove) = adjuster.make(p, Move(t2, 2))
+    val (p2, actualMove) = adjuster.move(p, Move(t2, 2))
     p2.schedule.start(t2) should equal (p2.schedule.end(t1))
     actualMove should equal (Move(t2, 6))
   }
@@ -178,7 +178,7 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     }
     
     val adjuster = new PlanAdjuster
-    val (p2, actualMove) = adjuster.make(p, Move(t3, 4))
+    val (p2, actualMove) = adjuster.move(p, Move(t3, 4))
     p2.schedule.start(t3) should equal (p2.schedule.end(t1))
     actualMove should equal (Move(t3, 6))
   }
@@ -197,9 +197,30 @@ class PlanAdjusterTest extends FlatSpec with Matchers {
     }
     
     val adjuster = new PlanAdjuster
-    val (p2, actualMove) = adjuster.make(p, Move(t2, -4))
+    val (p2, actualMove) = adjuster.move(p, Move(t2, -4))
     p2.schedule.start(t2) should equal (p2.schedule.end(t1))
     actualMove should equal (Move(t2, 4))
   }
   
+  it should "not move a task if it's on the critical chain" in {
+
+    // [t1 B]---[t2 A]
+
+    val t1 = Task('t1, "Task one", 4, Some("Bob"))
+    val t2 = Task('t2, "Task two", 4, Some("Alice"))
+    val p = new Plan {
+      val tasks = Set(t1, t2)
+      val dependencies = Set(t1 -> t2)
+      override lazy val schedule = new Schedule(Map(t1 -> 0, t2 -> 5))
+    }
+    
+    // Check the critical chain is as we expect
+    p.criticalChain should equal (Seq(t1, t2))
+    
+    val adjuster = new PlanAdjuster
+    val (p2, actualMove) = adjuster.move(p, Move(t2, 4))
+    p2.schedule.start(t2) should equal (5)
+    actualMove should equal (Move(t2, 5))
+    
+  }
 }
