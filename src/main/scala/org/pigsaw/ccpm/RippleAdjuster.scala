@@ -33,7 +33,7 @@ trait RippleAdjuster[S, M <: RippleMove[M]] {
 
   /**
    * Make the desired `move` from the given `state`, ensuring any
-   * necessary prerequisites moves are made to achieve this.
+   * necessary prerequisite moves are made to achieve this.
    */
   def solve(state: S, move: M): S = {
     // Work out our desired moves, and then the actual

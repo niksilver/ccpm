@@ -136,7 +136,7 @@ trait Plan {
   }
 
   /**
-   * Give the task that follows on from this path and which
+   * Get the task that follows on from this path and which
    * is on the critical chain
    */
   def feedOnCriticalChain(path: Seq[Task]): Option[Task] = {

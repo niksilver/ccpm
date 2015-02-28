@@ -35,10 +35,10 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
   def +(p: Period, when: Double): Schedule = new Schedule(starts + (p -> when))
 
   /**
-   * Remove a task or buffer rom the schedule, and return the resulting
+   * Remove a task or buffer from the schedule, and return the resulting
    * new schedule.
    */
-  def -(p: Period): Schedule = if (starts.keySet contains p) {
+  def -(p: Period): Schedule = if (starts isDefinedAt p) {
     new Schedule(starts - p)
   } else {
     throw new UnknownPeriodException(s"Period $p not in schedule")
