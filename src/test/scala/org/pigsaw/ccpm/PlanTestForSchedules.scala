@@ -3,7 +3,7 @@ package org.pigsaw.ccpm
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 
-class PlanForSchedules extends FlatSpec with Matchers {
+class PlanTestForSchedules extends FlatSpec with Matchers {
   
   "withSchedule" should "give the same plan with a given schedule" in {
     val t1 = Task('t1, 1.0)
