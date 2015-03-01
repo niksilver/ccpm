@@ -86,9 +86,9 @@ trait Plan {
   }
   
   /**
-   * Is the given task on the critical chain
+   * Is the given task on the critical chain?
    */
-  def isOnCriticalChain(t: Task) = { criticalChain contains t }
+  def isOnCriticalChain(t: Task): Boolean = { criticalChain contains t }
 
   /**
    * Get all paths that are distinct from the critical chain.
@@ -146,7 +146,7 @@ trait Plan {
    */
   def feedOnCriticalChain(path: Seq[Task]): Option[Task] = {
     val nextTasks = graph.successors(path.last)
-    nextTasks find { criticalChain contains _ }
+    nextTasks find { isOnCriticalChain(_) }
   }
 
   /**
