@@ -99,11 +99,28 @@ class Graph[T](g: Set[(T, T)]) {
     pathsTo(Set(n))
   }
   
-  // Get all the paths to (and including) the given nodes
-  private def pathsTo(dests: Set[T]): Set[Seq[T]] = {
+  /**
+   * Get all the paths for which any of the given nodes is the last node.
+   */
+  def pathsTo(dests: Set[T]): Set[Seq[T]] = {
     for {
       dest <- dests
       path <- pathsBefore(dest)
+    } yield (path :+ dest)
+  }
+  
+  /**
+   * Get all the paths for which any of the given nodes is the last node,
+   * and treating some nodes as if they weren't in the graph at all.
+   * @param dests  Each path must terminate at one these nodes.
+   * @param excluded  A function which allows us to treat a node as
+   *     if it weren't in the graph. If `excluded(n)` is `true` then
+   *     we pretend `n` has been removed from the graph.
+   */
+  def pathsTo(dests: Set[T], excluded: T => Boolean): Set[Seq[T]] = {
+    for {
+      dest <- dests
+      path <- pathsBefore(dest, excluded)
     } yield (path :+ dest)
   }
   
@@ -114,6 +131,17 @@ class Graph[T](g: Set[(T, T)]) {
       Set(Nil)
     } else {
       pathsTo(preds)
+    }
+  }
+  
+  // Get all the paths before (and therefore excluding) the given node
+  private def pathsBefore(dest: T, excluded: T => Boolean): Set[Seq[T]] = {
+    val preds = predecessors(dest) filterNot excluded
+    println(s"Preds of $dest = $preds")
+    if (preds.isEmpty) {
+      Set(Nil)
+    } else {
+      pathsTo(preds, excluded)
     }
   }
 

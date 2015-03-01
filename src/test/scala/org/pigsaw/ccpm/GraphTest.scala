@@ -162,4 +162,13 @@ class GraphTest extends FlatSpec with Matchers {
     g.pathsTo('e) should equal (Set(Seq('a, 'b, 'e), Seq('c, 'd, 'e)))
   }
   
+  "pathsTo(..., ignore)" should "allow us to terminate paths early" in {
+    // a--b-\
+    // c--d--e--f
+
+    val g = new Graph(Set('a -> 'b, 'b -> 'e, 'e -> 'f, 'c -> 'd, 'd -> 'e))
+    val excluded = { (sym: Symbol) => sym == 'a }
+    g.pathsTo(Set('e), excluded) should equal (Set(Seq('b, 'e), Seq('c, 'd, 'e)))
+  }
+  
 }

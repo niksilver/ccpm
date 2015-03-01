@@ -171,6 +171,15 @@ trait Plan {
     val feederTasks = exclusiveFeederPaths map { _.last }
     feederTasks map { t => (t, t.duration * 0.5) }
   }
+  
+  /**
+   * Get all the paths (possibly overlapping) that feed into
+   * the critical chain. The last task of each path will be
+   * a task on the critical chain.
+   */
+  lazy val pathsToCriticalChain: Set[Seq[Task]] = {
+    graph.pathsTo(criticalChain.toSet)
+  }
 
   /**
    * Get a schedule for this plan, including buffers.
