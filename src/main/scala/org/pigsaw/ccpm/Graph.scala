@@ -82,7 +82,7 @@ class Graph[T](g: Set[(T, T)]) {
     } yield (next +: path)
   }
 
-  // Get all the paths after (and therefore excluding) the given nodes.
+  // Get all the paths after (and therefore excluding) the given node.
   private def pathsAfter(source: T): Set[Seq[T]] = {
     val succs = successors(source)
     if (succs.isEmpty) {
@@ -96,18 +96,25 @@ class Graph[T](g: Set[(T, T)]) {
    * Get all paths for which the given node is the last node.
    */
   def pathsBackFrom(n: T): Set[Seq[T]] = {
-    val path = pathBefore(n, Seq(n))
-    Set(path)
+    pathsTo(Set(n))
   }
   
-  // Get a paths before (and therefore excluding) the given node
-  private def pathBefore(dest: T, path: Seq[T]): Seq[T] = {
+  // Get all the paths to (and including) the given nodes
+  private def pathsTo(dests: Set[T]): Set[Seq[T]] = {
+    for {
+      dest <- dests
+      path <- pathsBefore(dest)
+    } yield (path :+ dest)
+  }
+  
+  // Get all the paths before (and therefore excluding) the given node
+  private def pathsBefore(dest: T): Set[Seq[T]] = {
     val preds = predecessors(dest)
     if (preds.isEmpty) {
-      path
+      Set(Nil)
     } else {
-      val nextNode = preds.head
-      pathBefore(nextNode, nextNode +: path)
+      pathsTo(preds)
     }
   }
+
 }

@@ -154,4 +154,12 @@ class GraphTest extends FlatSpec with Matchers {
     g.pathsBackFrom('c) should equal (Set(Seq('a, 'b, 'c)))
   }
   
+  it should "give multiple paths if there are several back from here" in {
+    // a--b-\
+    // c--d--e--f
+
+    val g = new Graph(Set('a -> 'b, 'b -> 'e, 'e -> 'f, 'c -> 'd, 'd -> 'e))
+    g.pathsBackFrom('e) should equal (Set(Seq('a, 'b, 'e), Seq('c, 'd, 'e)))
+  }
+  
 }
