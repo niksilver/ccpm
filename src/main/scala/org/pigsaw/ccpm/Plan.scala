@@ -178,7 +178,7 @@ trait Plan {
     def penultimate(path: Seq[Task]): Task = path(path.length - 2)
     def halfDurationBeforeChain(path: Seq[Task]): Double = Chain(path.init).length * 0.5
     
-    val pathDurations = pathsToCriticalChain.toSeq map {
+    val pathDurations = pathsToCriticalChain map {
       path => (penultimate(path), path.last, halfDurationBeforeChain(path)) }
     
     def hasLonger(t: Task, d: Double) = pathDurations exists { pd => pd._1 == t && pd._3 > d }
