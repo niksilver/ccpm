@@ -175,11 +175,13 @@ trait Plan {
   lazy val feederBuffersNeeded: Set[(Task, Double)] = {
     def penultimate(path: Seq[Task]): Task = path(path.length - 2)
     def halfDurationBeforeChain(path: Seq[Task]): Double = Chain(path.init).length * 0.5
+    
     val pathDurations = pathsToCriticalChain.toSeq map { path => (penultimate(path), halfDurationBeforeChain(path)) }
-    def durationToTask(task: Task) = pathDurations filter { _._1 == task } map { _._2 }
-    def maxDurationToTask(task: Task) = durationToTask(task).max
-    val pathMaxes = pathDurations map { _._1 } map { t => t -> maxDurationToTask(t) }
-    pathMaxes.toSet
+    
+    def hasLonger(t: Task, d: Double) = pathDurations exists { pd => pd._1 == t && pd._2 > d }
+    
+    val maxPathDurations = pathDurations filterNot { pd => hasLonger(pd._1, pd._2) }
+    maxPathDurations.toSet
   }
   
   /**
