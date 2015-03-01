@@ -103,10 +103,8 @@ class Graph[T](g: Set[(T, T)]) {
    * Get all the paths for which any of the given nodes is the last node.
    */
   def pathsTo(dests: Set[T]): Set[Seq[T]] = {
-    for {
-      dest <- dests
-      path <- pathsBefore(dest)
-    } yield (path :+ dest)
+    val noNodes = { node: T => false }
+    pathsTo(dests, noNodes)
   }
   
   /**
@@ -122,16 +120,6 @@ class Graph[T](g: Set[(T, T)]) {
       dest <- dests
       path <- pathsBefore(dest, excluded)
     } yield (path :+ dest)
-  }
-  
-  // Get all the paths before (and therefore excluding) the given node
-  private def pathsBefore(dest: T): Set[Seq[T]] = {
-    val preds = predecessors(dest)
-    if (preds.isEmpty) {
-      Set(Nil)
-    } else {
-      pathsTo(preds)
-    }
   }
   
   // Get all the paths before (and therefore excluding) the given node
