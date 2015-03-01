@@ -130,7 +130,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.feederBuffersNeeded should equal (Set((t1, 2.0)))
   }
   
-  ignore should "return the last task of the only path not on the CC, with half its duration" in {
+  it should "return the last task of the only path not on the CC, with half its duration" in {
     
     //       [t1]-[t2 ]\
     //  [t3           ]-[t4 ]
