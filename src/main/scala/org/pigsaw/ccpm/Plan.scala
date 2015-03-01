@@ -173,8 +173,9 @@ trait Plan {
    *     buffer, and how long it should ideally be.
    */
   lazy val feederBuffersNeeded: Set[(Task, Double)] = {
-    val feederTasks = exclusiveFeederPaths map { _.last }
-    feederTasks map { t => (t, t.duration * 0.5) }
+    def penultimate(path: Seq[Task]): Task = path(path.length - 2)
+    def halfDurationBeforeChain(path: Seq[Task]): Double = Chain(path.init).length * 0.5
+    pathsToCriticalChain map { path => (penultimate(path), halfDurationBeforeChain(path)) }
   }
   
   /**
