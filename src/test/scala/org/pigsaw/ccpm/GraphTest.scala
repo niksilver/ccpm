@@ -139,19 +139,19 @@ class GraphTest extends FlatSpec with Matchers {
     g.hasEdge('x -> 'y) should be (false)
   }
   
-  "pathsBackFrom" should "give all nodes if we give the end node of a line" in {
+  "pathsTo" should "give all nodes if we give the end node of a line" in {
     val g = new Graph(Set('a -> 'b))
-    g.pathsBackFrom('b) should equal (Set(Seq('a, 'b)))
+    g.pathsTo('b) should equal (Set(Seq('a, 'b)))
   }
   
   it should "give the one path back from here if we give a node in the middle of a line (1)" in {
     val g = new Graph(Set('a -> 'b, 'b -> 'c))
-    g.pathsBackFrom('b) should equal (Set(Seq('a, 'b)))
+    g.pathsTo('b) should equal (Set(Seq('a, 'b)))
   }
   
   it should "give the one path back from here if we give a node in the middle of a line (2 - longer path to avoid faking)" in {
     val g = new Graph(Set('a -> 'b, 'b -> 'c, 'c -> 'd))
-    g.pathsBackFrom('c) should equal (Set(Seq('a, 'b, 'c)))
+    g.pathsTo('c) should equal (Set(Seq('a, 'b, 'c)))
   }
   
   it should "give multiple paths if there are several back from here" in {
@@ -159,7 +159,7 @@ class GraphTest extends FlatSpec with Matchers {
     // c--d--e--f
 
     val g = new Graph(Set('a -> 'b, 'b -> 'e, 'e -> 'f, 'c -> 'd, 'd -> 'e))
-    g.pathsBackFrom('e) should equal (Set(Seq('a, 'b, 'e), Seq('c, 'd, 'e)))
+    g.pathsTo('e) should equal (Set(Seq('a, 'b, 'e), Seq('c, 'd, 'e)))
   }
   
 }

@@ -95,7 +95,7 @@ class Graph[T](g: Set[(T, T)]) {
   /**
    * Get all paths for which the given node is the last node.
    */
-  def pathsBackFrom(n: T): Set[Seq[T]] = {
+  def pathsTo(n: T): Set[Seq[T]] = {
     pathsTo(Set(n))
   }
   
