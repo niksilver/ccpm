@@ -104,7 +104,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.feederBuffersNeeded should equal (Set())
   }
   
-  it should "return the only task not on the CC with half its duration, assuming there is only one (1)" in {
+  it should "return the only task not on the CC with the join and half its duration, assuming there is only one (1)" in {
     val t1 = Task('t1, 1) // Not on critical chain
     val t2 = Task('t2, 5)
     val t3 = Task('t3, 3)
@@ -114,10 +114,10 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
       val dependencies = Set(t1 -> t3, t2 -> t3)
     }
 
-    p.feederBuffersNeeded should equal (Set((t1, 0.5)))
+    p.feederBuffersNeeded should equal (Set((t1, t3, 0.5)))
   }
   
-  it should "return the only task not on the CC with half its duration, assuming there is only one (2 - to avoid faking)" in {
+  it should "return the only task not on the CC with the join and half its duration, assuming there is only one (2 - to avoid faking)" in {
     val t1 = Task('t1, 4) // Not on critical chain
     val t2 = Task('t2, 5)
     val t3 = Task('t3, 3)
@@ -127,10 +127,10 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
       val dependencies = Set(t1 -> t3, t2 -> t3)
     }
 
-    p.feederBuffersNeeded should equal (Set((t1, 2.0)))
+    p.feederBuffersNeeded should equal (Set((t1, t3, 2.0)))
   }
   
-  it should "return the last task of the only path not on the CC, with half its duration" in {
+  it should "return the last task of the only path not on the CC, with the join and half its duration" in {
     
     //       [t1]-[t2 ]\
     //  [t3           ]-[t4 ]
@@ -145,10 +145,10 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
       val dependencies = Set(t1 -> t2, t2 -> t4, t3 -> t4)
     }
 
-    p.feederBuffersNeeded should equal (Set((t2, 1.5)))
+    p.feederBuffersNeeded should equal (Set((t2, t4, 1.5)))
   }
   
-  it should "return just one task, even if several paths lead into it" in {
+  it should "return just one task and the join, even if several paths lead into it" in {
     
     //       [t1a]+
     //      [t1b ]+
@@ -170,8 +170,9 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
           t2 -> t4, t3 -> t4)
     }
 
-    val (task, _) = p.feederBuffersNeeded.head
+    val (task, join, _) = p.feederBuffersNeeded.head
     task should equal (t2)
+    join should equal (t4)
   }
   
   it should "return half the duration of the longest, even if several paths lead into the CC" in {
@@ -196,7 +197,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
           t2 -> t4, t3 -> t4)
     }
 
-    val (_, duration) = p.feederBuffersNeeded.head
+    val (_, _, duration) = p.feederBuffersNeeded.head
     duration should equal ((t1c.duration + t2.duration)/2)
   }
   
@@ -207,7 +208,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     //     [t1c  ]+
     //      [t1d ]+[t2  ]\
     //  [t3             ]-[t4 ]
-    //     [t5a  ]+[t6  ]\
+    //     [t5a  ]+[t6  ]/
     //    [t5b   ]+
     //      [t5c ]+
     
@@ -234,8 +235,8 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     }
 
     p.feederBuffersNeeded should contain theSameElementsAs (Set(
-        (t2, (t1c.duration + t2.duration)/2),
-        (t6, (t5b.duration + t6.duration)/2)
+        (t2, t4, (t1c.duration + t2.duration)/2),
+        (t6, t4, (t5b.duration + t6.duration)/2)
     ))
   }
   
