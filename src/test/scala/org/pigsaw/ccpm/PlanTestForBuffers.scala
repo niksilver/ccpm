@@ -240,6 +240,27 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     ))
   }
   
+  it should "give two outputs for a path if it hits the critical chain twice" in {
+    
+    //    [t1 ]+-----+
+    //  [t2   ]+[t3 ]-[t4 ]
+    
+    val t1 = Task('t1, 2)
+    val t2 = Task('t2, 3)
+    val t3 = Task('t3, 2)
+    val t4 = Task('t4, 2)
+    
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4)
+      val dependencies = Set(t1 -> t3, t1 -> t4, t2 -> t3, t3 -> t4)
+    }
+    
+    p.feederBuffersNeeded should contain theSameElementsAs (Set(
+        (t1, t3, t1.duration / 2),
+        (t1, t4, t1.duration / 2)
+    ))
+  }
+  
   "pathsToCriticalChain" should "be empty if there is just the critical chain" in {
     val t1 = Task('t1, 1)
     val t2 = Task('t2, 5)
