@@ -35,7 +35,7 @@ trait Plan {
   /**
    * A schedule for this plan.
    */
-  lazy val schedule: Schedule = Schedule.make(tasks.toSet, dependencies)
+  lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
   
   /**
    * Create a new plan just like this one, but with the given schedule.
