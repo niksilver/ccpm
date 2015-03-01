@@ -158,6 +158,16 @@ trait Plan {
     val id = Buffer.nextId(tasks map { _.id })
     Buffer.make(id, criticalChain)
   }
+  
+  /**
+   * Get what feeder buffers are needed.
+   * @return Pairs which identify the last task before the
+   *     buffer, and how long it should ideally be.
+   */
+  lazy val feederBuffersNeeded: Set[(Task, Double)] = {
+    val feederTasks = feederPaths map { _.last }
+    feederTasks map { t => (t, t.duration * 0.5) }
+  }
 
   /**
    * Get a schedule for this plan, including buffers.

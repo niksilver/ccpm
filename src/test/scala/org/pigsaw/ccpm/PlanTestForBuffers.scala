@@ -91,6 +91,45 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     cb.predecessor should equal (t13)
   }
   
+  "feederBuffersNeeded" should "return the empty set if there's just a critical chain" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t2, t2 -> t3)
+    }
+
+    p.feederBuffersNeeded should equal (Set())
+  }
+  
+  it should "return the only task not on the CC with half its duration, assuming there is only one (1)" in {
+    val t1 = Task('t1, 1) // Not on critical chain
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+
+    p.feederBuffersNeeded should equal (Set((t1, 0.5)))
+  }
+  
+  it should "return the only task not on the CC with half its duration, assuming there is only one (2 - to avoid faking)" in {
+    val t1 = Task('t1, 4) // Not on critical chain
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+
+    p.feederBuffersNeeded should equal (Set((t1, 2.0)))
+  }
+  
   "bufferedSchedule" should "include buffer at the end of the last task" in {
     val t1 = Task('t1, 1)
     val t2 = Task('t2, 5)
