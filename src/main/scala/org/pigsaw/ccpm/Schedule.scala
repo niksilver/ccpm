@@ -24,6 +24,11 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
   private lazy val taskStarts = starts collect { case (t: Task, s: Double) => (t, s) }
 
   /**
+   * All the buffers
+   */
+  lazy val buffers: Iterable[Buffer] = starts.keys collect { case b: Buffer => b }
+  
+  /**
    * Is this period scheduled?
    */
   def isScheduled(t: Task): Boolean = { taskSet contains t }
