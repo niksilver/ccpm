@@ -409,9 +409,9 @@ class PlanTestForChains extends FlatSpec with Matchers with ScheduleMatchers {
     p.feedOnCriticalChain(Seq(i2, i3)) should equal (None)    
   }
   
-  "feederPaths" should "be empty for an empty plan" in {
+  "exclusiveFeederPaths" should "be empty for an empty plan" in {
     val p = EmptyPlan
-    p.feederPaths should be (Set())
+    p.exclusiveFeederPaths should be (Set())
   }
   
   it should "give the non-critical paths if they all feed into the critical chain" in {
@@ -432,7 +432,7 @@ class PlanTestForChains extends FlatSpec with Matchers with ScheduleMatchers {
         (b1 -> b2), (b2 -> b3), (b3 -> b4),
         (b1 -> c1), (c1 -> c2), (c2 -> b4))
     }
-    p.feederPaths should contain theSameElementsAs Set(
+    p.exclusiveFeederPaths should contain theSameElementsAs Set(
       Seq(a1, a2),
       Seq(c1, c2))
   }
@@ -457,7 +457,7 @@ class PlanTestForChains extends FlatSpec with Matchers with ScheduleMatchers {
     
     // The longer path feeds into the critical chain
     
-    p.feederPaths should (
+    p.exclusiveFeederPaths should (
         equal (Set(Seq(a1, a2, a3, a4))) or
         equal (Set(Seq(a1, i2, i3, a4))))
   }

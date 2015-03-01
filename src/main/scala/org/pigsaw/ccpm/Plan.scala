@@ -145,9 +145,12 @@ trait Plan {
   }
 
   /**
-   * Get all the paths which feed directly into the critical chain.
+   * Get paths which feed directly into the critical chain.
+   * No task is repeated in the result, so if there are two
+   * overlapping paths which feed into the critical chain
+   * only one of them will be returned here.
    */
-  def feederPaths: Set[Seq[Task]] = {
+  def exclusiveFeederPaths: Set[Seq[Task]] = {
     nonCriticalPaths filter { feedOnCriticalChain(_).nonEmpty }
   }
 
@@ -165,7 +168,7 @@ trait Plan {
    *     buffer, and how long it should ideally be.
    */
   lazy val feederBuffersNeeded: Set[(Task, Double)] = {
-    val feederTasks = feederPaths map { _.last }
+    val feederTasks = exclusiveFeederPaths map { _.last }
     feederTasks map { t => (t, t.duration * 0.5) }
   }
 

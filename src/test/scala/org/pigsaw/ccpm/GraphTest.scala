@@ -139,4 +139,19 @@ class GraphTest extends FlatSpec with Matchers {
     g.hasEdge('x -> 'y) should be (false)
   }
   
+  "pathsBackFrom" should "give all nodes if we give the end node of a line" in {
+    val g = new Graph(Set('a -> 'b))
+    g.pathsBackFrom('b) should equal (Set(Seq('a, 'b)))
+  }
+  
+  it should "give the one path back from here if we give a node in the middle of a line (1)" in {
+    val g = new Graph(Set('a -> 'b, 'b -> 'c))
+    g.pathsBackFrom('b) should equal (Set(Seq('a, 'b)))
+  }
+  
+  it should "give the one path back from here if we give a node in the middle of a line (2 - longer path to avoid faking)" in {
+    val g = new Graph(Set('a -> 'b, 'b -> 'c, 'c -> 'd))
+    g.pathsBackFrom('c) should equal (Set(Seq('a, 'b, 'c)))
+  }
+  
 }

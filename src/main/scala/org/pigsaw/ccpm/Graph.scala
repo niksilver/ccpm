@@ -91,4 +91,23 @@ class Graph[T](g: Set[(T, T)]) {
       pathsFrom(succs)
     }
   }
+  
+  /**
+   * Get all paths for which the given node is the last node.
+   */
+  def pathsBackFrom(n: T): Set[Seq[T]] = {
+    val path = pathBefore(n, Seq(n))
+    Set(path)
+  }
+  
+  // Get a paths before (and therefore excluding) the given node
+  private def pathBefore(dest: T, path: Seq[T]): Seq[T] = {
+    val preds = predecessors(dest)
+    if (preds.isEmpty) {
+      path
+    } else {
+      val nextNode = preds.head
+      pathBefore(nextNode, nextNode +: path)
+    }
+  }
 }
