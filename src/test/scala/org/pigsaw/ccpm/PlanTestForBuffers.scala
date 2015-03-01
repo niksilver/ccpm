@@ -148,6 +148,58 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.feederBuffersNeeded should equal (Set((t2, 1.5)))
   }
   
+  it should "return just one task, even if several paths lead into it" in {
+    
+    //       [t1a]+
+    //      [t1b ]+
+    //     [t1c  ]+
+    //      [t1d ]+[t2  ]\
+    //  [t3             ]-[t4 ]
+    
+    val t1a = Task('t1a, 1.0)
+    val t1b = Task('t1b, 1.1)
+    val t1c = Task('t1c, 1.2)
+    val t1d = Task('t1d, 1.1)
+    val t2 = Task('t2, 2)
+    val t3 = Task('t3, 5)
+    val t4 = Task('t4, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1a, t1b, t1c, t1d, t2, t3, t4)
+      val dependencies = Set(t1a -> t2, t1b -> t2, t1c -> t2, t1d -> t2,
+          t2 -> t4, t3 -> t4)
+    }
+
+    val (task, _) = p.feederBuffersNeeded.head
+    task should equal (t2)
+  }
+  
+  it should "return half the duration of the longest, even if several paths lead into the CC" in {
+    
+    //       [t1a]+
+    //      [t1b ]+
+    //     [t1c  ]+
+    //      [t1d ]+[t2  ]\
+    //  [t3             ]-[t4 ]
+    
+    val t1a = Task('t1a, 1.0)
+    val t1b = Task('t1b, 1.1)
+    val t1c = Task('t1c, 1.2)
+    val t1d = Task('t1d, 1.1)
+    val t2 = Task('t2, 2)
+    val t3 = Task('t3, 5)
+    val t4 = Task('t4, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1a, t1b, t1c, t1d, t2, t3, t4)
+      val dependencies = Set(t1a -> t2, t1b -> t2, t1c -> t2, t1d -> t2,
+          t2 -> t4, t3 -> t4)
+    }
+
+    val (_, duration) = p.feederBuffersNeeded.head
+    duration should equal ((t1c.duration + t2.duration)/2)
+  }
+  
   "pathsToCriticalChain" should "be empty if there is just the critical chain" in {
     val t1 = Task('t1, 1)
     val t2 = Task('t2, 5)
