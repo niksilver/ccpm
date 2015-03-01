@@ -125,7 +125,6 @@ class Graph[T](g: Set[(T, T)]) {
   // Get all the paths before (and therefore excluding) the given node
   private def pathsBefore(dest: T, excluded: T => Boolean): Set[Seq[T]] = {
     val preds = predecessors(dest) filterNot excluded
-    println(s"Preds of $dest = $preds")
     if (preds.isEmpty) {
       Set(Nil)
     } else {

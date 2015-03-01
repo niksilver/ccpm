@@ -84,6 +84,11 @@ trait Plan {
       longest.toSeq
     }
   }
+  
+  /**
+   * Is the given task on the critical chain
+   */
+  def isOnCriticalChain(t: Task) = { criticalChain contains t }
 
   /**
    * Get all paths that are distinct from the critical chain.
@@ -178,7 +183,12 @@ trait Plan {
    * a task on the critical chain.
    */
   lazy val pathsToCriticalChain: Set[Seq[Task]] = {
-    graph.pathsTo(criticalChain.toSet)
+    // We want all paths that terminate on the critical chain,
+    // but we will end up with some one-task paths which are
+    // simply a task on the critical chain. So we'll need
+    // to filter those out
+    val paths = graph.pathsTo(criticalChain.toSet, isOnCriticalChain)
+    paths filterNot ( _.length == 1 )
   }
 
   /**

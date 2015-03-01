@@ -148,7 +148,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.feederBuffersNeeded should equal (Set((t2, 1.5)))
   }
   
-  /*"pathsToCriticalChain"*/ ignore should "be empty if there is just the critical chain" in {
+  "pathsToCriticalChain" should "be empty if there is just the critical chain" in {
     val t1 = Task('t1, 1)
     val t2 = Task('t2, 5)
     val t3 = Task('t3, 3)
@@ -161,7 +161,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.pathsToCriticalChain should equal (Set())
   }
   
-  ignore should "give one path into the critical chain if there is just one" in {
+  it should "give one path into the critical chain if there is just one" in {
     
     //       [t1]-[t2 ]\
     //  [t3           ]-[t4 ]
