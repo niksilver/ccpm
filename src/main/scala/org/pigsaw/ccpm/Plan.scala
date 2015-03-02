@@ -207,16 +207,11 @@ trait Plan {
   lazy val bufferedSchedule: Schedule = {
     val lastTask = criticalChain.last
     val lastTaskEnd = schedule.end(lastTask)
-    schedule + (completionBuffer, lastTaskEnd)
-  }
-  
-  /**
-   * The feeder buffers for this plan.
-   */
-  lazy val feederBuffers: Set[Buffer] = {
+    
     val feederBufferData = feederBuffersNeeded.head
     val feederBuffer = Buffer('bDummy, feederBufferData._3, feederBufferData._1)
-    Set(feederBuffer)
+    
+    schedule + (completionBuffer, lastTaskEnd) + (feederBuffer, 99)
   }
 
   /**

@@ -315,7 +315,22 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.pathsToCriticalChain should equal (Set(Seq(t1, t2, t4)))
   }
   
-  "feederBuffers" should "include a feeder buffer of the appropriate length" in {
+  "bufferedSchedule" should "include buffer at the end of the last task" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    
+    val cb = p.completionBuffer
+    val bs = p.bufferedSchedule
+    bs.start(cb) should equal (bs.end(t3))
+  }
+  
+  it should "include a feeder buffer of the appropriate length" in {
     
     //       [t1]-[t2 ]\
     //  [t3           ]-[t4 ]
@@ -330,25 +345,11 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
       val dependencies = Set(t1 -> t2, t2 -> t4, t3 -> t4)
     }
     
-    p.feederBuffers.size should equal (1)
+    val feederBuffers = p.bufferedSchedule.buffers filterNot { _ == p.completionBuffer }
+    feederBuffers.size should equal (1)
     
-    p.feederBuffers.head.duration should equal ((t1.duration + t2.duration)/2)
-    p.feederBuffers.head.predecessor should equal (t2)
-  }
-  
-  "bufferedSchedule" should "include buffer at the end of the last task" in {
-    val t1 = Task('t1, 1)
-    val t2 = Task('t2, 5)
-    val t3 = Task('t3, 3)
-
-    val p = new Plan {
-      val tasks = Set(t1, t2, t3)
-      val dependencies = Set(t1 -> t3, t2 -> t3)
-    }
-    
-    val cb = p.completionBuffer
-    val bs = p.bufferedSchedule
-    bs.start(cb) should equal (bs.end(t3))
+    feederBuffers.head.duration should equal ((t1.duration + t2.duration)/2)
+    feederBuffers.head.predecessor should equal (t2)
   }
 
 }
