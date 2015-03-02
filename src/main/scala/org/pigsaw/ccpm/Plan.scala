@@ -208,11 +208,18 @@ trait Plan {
     val lastTask = criticalChain.last
     val lastTaskEnd = schedule.end(lastTask)
     
-    val feederBufferData = feederBuffersNeeded.head
-    val feederBuffer = Buffer('bDummy, feederBufferData._3, feederBufferData._1)
-    val bufferStart = schedule.end(feederBufferData._1) - feederBufferData._3
+    val (bufferPred, bufferSucc, bufferDuration) = feederBuffersNeeded.head
+    val bufferEnd = schedule.end(bufferPred) // Should be start(bufferSucc) - but first prove it's wrong!
+    val bufferPredIdealStart = schedule.start(bufferPred) - bufferDuration
     
-    schedule + (completionBuffer, lastTaskEnd) + (feederBuffer, bufferStart)
+    val move = Move(bufferPred, bufferPredIdealStart)
+    val adj = new PlanAdjuster
+    val adjustedPlan = adj.solve(this, move)
+    val bufferActualStart = adjustedPlan.schedule.end(bufferPred)
+    val bufferActualDuration = bufferEnd - bufferActualStart
+    val buffer = Buffer('bDummy, bufferActualDuration, bufferPred)
+    
+    adjustedPlan.schedule + (completionBuffer, lastTaskEnd) + (buffer, bufferActualStart)
   }
 
   /**

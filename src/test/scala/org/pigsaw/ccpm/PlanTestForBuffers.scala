@@ -395,5 +395,28 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     
     p.bufferedSchedule.start(feederBuffer) should equal (t2OriginalEnd - (t1.duration + t2.duration)/2)
   }
+  
+  it should "reschedule the path going into a feeder buffer" in {
+    
+    //       [t1]-[t2 ]\
+    //  [t3           ]-[t4 ]
+    
+    val t1 = Task('t1, 1) // Not on critical chain
+    val t2 = Task('t2, 2) // Not on critical chain
+    val t3 = Task('t3, 5)
+    val t4 = Task('t4, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4)
+      val dependencies = Set(t1 -> t2, t2 -> t4, t3 -> t4)
+    }
+    
+    val t1OriginalStart = p.schedule.start(t1)
+    val t2OriginalStart = p.schedule.start(t2)
+    val expectedBufferDuration = (t1.duration + t2.duration)/2
+    
+    p.bufferedSchedule.start(t1) should equal (t1OriginalStart - expectedBufferDuration)
+    p.bufferedSchedule.start(t2) should equal (t2OriginalStart - expectedBufferDuration)
+  }
 
 }
