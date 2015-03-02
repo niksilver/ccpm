@@ -351,5 +351,49 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     feederBuffers.head.duration should equal ((t1.duration + t2.duration)/2)
     feederBuffers.head.predecessor should equal (t2)
   }
+  
+  it should "start a feeder buffer at an appropriate point (1)" in {
+    
+    //       [t1]-[t2 ]\
+    //  [t3           ]-[t4 ]
+    
+    val t1 = Task('t1, 1) // Not on critical chain
+    val t2 = Task('t2, 2) // Not on critical chain
+    val t3 = Task('t3, 5)
+    val t4 = Task('t4, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4)
+      val dependencies = Set(t1 -> t2, t2 -> t4, t3 -> t4)
+    }
+    
+    val t2OriginalEnd = p.schedule.end(t2)
+    
+    val Some(feederBuffer) = p.bufferedSchedule.buffers find { _.predecessor == t2 }
+    
+    p.bufferedSchedule.start(feederBuffer) should equal (t2OriginalEnd - (t1.duration + t2.duration)/2)
+  }
+  
+  it should "start a feeder buffer at an appropriate point (2 - to avoid faking)" in {
+    
+    //       [t1]-[t2 ]\
+    //  [t3           ]-[t4 ]
+    
+    val t1 = Task('t1, 1.5) // Not on critical chain
+    val t2 = Task('t2, 2.5) // Not on critical chain
+    val t3 = Task('t3, 5)
+    val t4 = Task('t4, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4)
+      val dependencies = Set(t1 -> t2, t2 -> t4, t3 -> t4)
+    }
+    
+    val t2OriginalEnd = p.schedule.end(t2)
+    
+    val Some(feederBuffer) = p.bufferedSchedule.buffers find { _.predecessor == t2 }
+    
+    p.bufferedSchedule.start(feederBuffer) should equal (t2OriginalEnd - (t1.duration + t2.duration)/2)
+  }
 
 }

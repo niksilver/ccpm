@@ -210,8 +210,9 @@ trait Plan {
     
     val feederBufferData = feederBuffersNeeded.head
     val feederBuffer = Buffer('bDummy, feederBufferData._3, feederBufferData._1)
+    val bufferStart = schedule.end(feederBufferData._1) - feederBufferData._3
     
-    schedule + (completionBuffer, lastTaskEnd) + (feederBuffer, 99)
+    schedule + (completionBuffer, lastTaskEnd) + (feederBuffer, bufferStart)
   }
 
   /**
