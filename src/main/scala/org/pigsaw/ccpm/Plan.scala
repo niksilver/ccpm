@@ -36,7 +36,7 @@ trait Plan {
    * A schedule for this plan.
    */
   lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
-  
+
   /**
    * Create a new plan just like this one, but with the given schedule.
    */
@@ -45,7 +45,7 @@ trait Plan {
     val dependencies = self.dependencies
     override lazy val schedule = sch
   }
-  
+
   /**
    * Get all the tasks which prevent the given task `t` moving back
    * any further. So these are the tasks which end where `t` starts,
@@ -84,7 +84,7 @@ trait Plan {
       longest.toSeq
     }
   }
-  
+
   /**
    * Is the given task on the critical chain?
    */
@@ -166,7 +166,7 @@ trait Plan {
     val id = Buffer.nextId(tasks map { _.id })
     Buffer.make(id, criticalChain)
   }
-  
+
   /**
    * Get what feeder buffers are needed.
    * @return Triples which identify
@@ -177,16 +177,17 @@ trait Plan {
   lazy val feederBuffersNeeded: Set[(Task, Task, Double)] = {
     def penultimate(path: Seq[Task]): Task = path(path.length - 2)
     def halfDurationBeforeChain(path: Seq[Task]): Double = Chain(path.init).length * 0.5
-    
+
     val pathDurations = pathsToCriticalChain map {
-      path => (penultimate(path), path.last, halfDurationBeforeChain(path)) }
-    
+      path => (penultimate(path), path.last, halfDurationBeforeChain(path))
+    }
+
     def hasLonger(t: Task, d: Double) = pathDurations exists { pd => pd._1 == t && pd._3 > d }
-    
+
     val maxPathDurations = pathDurations filterNot { pd => hasLonger(pd._1, pd._3) }
     maxPathDurations.toSet
   }
-  
+
   /**
    * Get all the paths (possibly overlapping) that feed into
    * the critical chain. The last task of each path will be
@@ -207,19 +208,27 @@ trait Plan {
   lazy val bufferedSchedule: Schedule = {
     val lastTask = criticalChain.last
     val lastTaskEnd = schedule.end(lastTask)
-    
-    val (bufferPred, bufferSucc, bufferDuration) = feederBuffersNeeded.head
-    val bufferEnd = schedule.end(bufferPred) // Should be start(bufferSucc) - but first prove it's wrong!
-    val bufferPredIdealStart = schedule.start(bufferPred) - bufferDuration
-    
-    val move = Move(bufferPred, bufferPredIdealStart)
-    val adj = new PlanAdjuster
-    val adjustedPlan = adj.solve(this, move)
-    val bufferActualStart = adjustedPlan.schedule.end(bufferPred)
-    val bufferActualDuration = bufferEnd - bufferActualStart
-    val buffer = Buffer('bDummy, bufferActualDuration, bufferPred)
-    
-    adjustedPlan.schedule + (completionBuffer, lastTaskEnd) + (buffer, bufferActualStart)
+
+    addFeederBuffers(feederBuffersNeeded, schedule + (completionBuffer, lastTaskEnd))
+  }
+
+  private def addFeederBuffers(buffs: Set[(Task, Task, Double)], sch: Schedule): Schedule = {
+    if (buffs.isEmpty) {
+      sch
+    } else {
+      val (bufferPred, bufferSucc, bufferDuration) = buffs.head
+      val bufferEnd = sch.end(bufferPred) // Should be start(bufferSucc) - but first prove it's wrong!
+      val bufferPredIdealStart = sch.start(bufferPred) - bufferDuration
+
+      val move = Move(bufferPred, bufferPredIdealStart)
+      val adj = new PlanAdjuster
+      val adjustedPlan = adj.solve(this.withSchedule(sch), move)
+      val bufferActualStart = adjustedPlan.schedule.end(bufferPred)
+      val bufferActualDuration = bufferEnd - bufferActualStart
+      val buffer = Buffer('bDummy, bufferActualDuration, bufferPred) // Need to put in sensible name!
+
+      addFeederBuffers(buffs.tail, adjustedPlan.schedule + (buffer, bufferActualStart))
+    }
   }
 
   /**
@@ -244,7 +253,7 @@ trait Plan {
     val actualMove = measureMoveBack(t, max)
     schedule changing (t, tStart - actualMove)
   }
-  
+
   /**
    * All the tasks that prevent a task `t` moving to a particular `start`.
    * That is: All resource-conflicting tasks, and all tasks

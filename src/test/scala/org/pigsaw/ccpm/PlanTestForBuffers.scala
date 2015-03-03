@@ -418,5 +418,40 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.bufferedSchedule.start(t1) should equal (t1OriginalStart - expectedBufferDuration)
     p.bufferedSchedule.start(t2) should equal (t2OriginalStart - expectedBufferDuration)
   }
+  
+  it should "reschedule more than one path going into a feeder buffer" in {
+    
+    //       [t1]-[t2 ]\
+    //  [t3           ]-[t4 ]
+    //      [t5]-[t6  ]/
+    
+    val t1 = Task('t1, 1) // Not on critical chain
+    val t2 = Task('t2, 2) // Not on critical chain
+    val t3 = Task('t3, 5)
+    val t4 = Task('t4, 3)
+    val t5 = Task('t5, 1) // Not on critical chain
+    val t6 = Task('t6, 3) // Not on critical chain
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4, t5, t6)
+      val dependencies = Set(t1 -> t2, t2 -> t4,
+          t3 -> t4,
+          t5 -> t6, t6 -> t4)
+    }
+    
+    val t1OriginalStart = p.schedule.start(t1)
+    val t2OriginalStart = p.schedule.start(t2)
+    val t2ExpectedBufferDuration = (t1.duration + t2.duration)/2
+
+    val t5OriginalStart = p.schedule.start(t5)
+    val t6OriginalStart = p.schedule.start(t6)
+    val t6ExpectedBufferDuration = (t5.duration + t6.duration)/2
+    
+    p.bufferedSchedule.start(t1) should equal (t1OriginalStart - t2ExpectedBufferDuration)
+    p.bufferedSchedule.start(t2) should equal (t2OriginalStart - t2ExpectedBufferDuration)
+    
+    p.bufferedSchedule.start(t5) should equal (t5OriginalStart - t6ExpectedBufferDuration)
+    p.bufferedSchedule.start(t6) should equal (t6OriginalStart - t6ExpectedBufferDuration)
+  }
 
 }
