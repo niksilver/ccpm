@@ -217,8 +217,9 @@ trait Plan {
       sch
     } else {
       val (bufferPred, bufferSucc, bufferDuration) = buffs.head
-      val bufferEnd = sch.end(bufferPred) // Should be start(bufferSucc) - but first prove it's wrong!
-      val bufferPredIdealStart = sch.start(bufferPred) - bufferDuration
+      val bufferEnd = sch.start(bufferSucc)
+      val bufferPredIdealStart = bufferEnd - bufferDuration - bufferPred.duration
+      // But... we mustn't let the bufferPred move forward
 
       val move = Move(bufferPred, bufferPredIdealStart)
       val adj = new PlanAdjuster
