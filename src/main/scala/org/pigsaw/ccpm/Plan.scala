@@ -218,10 +218,11 @@ trait Plan {
     } else {
       val (bufferPred, bufferSucc, bufferDuration) = buffs.head
       val bufferEnd = sch.start(bufferSucc)
-      val bufferPredIdealStart = bufferEnd - bufferDuration - bufferPred.duration
-      // But... we mustn't let the bufferPred move forward
+      val bufferPredCalculatedStart = bufferEnd - bufferDuration - bufferPred.duration
+      val bufferPredCurrentStart = sch.start(bufferPred)
+      val bufferPredIdealstart = Math.min(bufferPredCurrentStart, bufferPredCalculatedStart)
 
-      val move = Move(bufferPred, bufferPredIdealStart)
+      val move = Move(bufferPred, bufferPredIdealstart)
       val adj = new PlanAdjuster
       val adjustedPlan = adj.solve(this.withSchedule(sch), move)
       val bufferActualStart = adjustedPlan.schedule.end(bufferPred)

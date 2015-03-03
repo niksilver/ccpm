@@ -480,5 +480,30 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.bufferedSchedule.start(t1) should equal (t1OriginalStart - expectedBufferDuration + currentGap)
     p.bufferedSchedule.start(t2) should equal (t2OriginalStart - expectedBufferDuration + currentGap)
   }
+  
+  it should "not allow a path to move forward" in {
+    //  0  1    2  3.5  4  5   6
+    //     [t1]-[t2 ]---------\
+    //  [t3                  ]-[t4 ]
+    
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 1.5)
+    val t3 = Task('t3, 6)
+    val t4 = Task('t4, 1)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4)
+      val dependencies = Set(t1 -> t2, t2 -> t4, t3 -> t4)
+      override lazy val schedule = new Schedule(Map(
+          t1 -> 1, t2 -> 2, t3 -> 0, t4 -> 6
+      ))
+    }
+    
+    val t1OriginalStart = p.schedule.start(t1)
+    val t2OriginalStart = p.schedule.start(t2)
+    
+    p.bufferedSchedule.start(t1) should equal (t1OriginalStart)
+    p.bufferedSchedule.start(t2) should equal (t2OriginalStart)
+  }
 
 }
