@@ -216,18 +216,18 @@ trait Plan {
     if (buffs.isEmpty) {
       sch
     } else {
-      val (bufferPred, bufferSucc, bufferDuration) = buffs.head
-      val bufferEnd = sch.start(bufferSucc)
-      val bufferPredCalculatedStart = bufferEnd - bufferDuration - bufferPred.duration
-      val bufferPredCurrentStart = sch.start(bufferPred)
-      val bufferPredIdealstart = Math.min(bufferPredCurrentStart, bufferPredCalculatedStart)
+      val (pred, succ, bufferDuration) = buffs.head
+      val bufferEnd = sch.start(succ)
+      val predCalculatedStart = bufferEnd - bufferDuration - pred.duration
+      val predCurrentStart = sch.start(pred)
+      val predIdealstart = Math.min(predCurrentStart, predCalculatedStart)
 
-      val move = Move(bufferPred, bufferPredIdealstart)
+      val move = Move(pred, predIdealstart)
       val adj = new PlanAdjuster
       val adjustedPlan = adj.solve(this.withSchedule(sch), move)
-      val bufferActualStart = adjustedPlan.schedule.end(bufferPred)
+      val bufferActualStart = adjustedPlan.schedule.end(pred)
       val bufferActualDuration = bufferEnd - bufferActualStart
-      val buffer = Buffer('bDummy, bufferActualDuration, bufferPred) // Need to put in sensible name!
+      val buffer = Buffer('bDummy, bufferActualDuration, pred) // Need to put in sensible name!
 
       addFeederBuffers(buffs.tail, adjustedPlan.schedule + (buffer, bufferActualStart))
     }
