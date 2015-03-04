@@ -9,6 +9,11 @@ import scala.collection.TraversableLike
 class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
 
   import Schedule._
+  
+  /**
+   * The tasks and buffers in the schedule.
+   */
+  lazy val periods: Iterable[Period] = starts.keys
 
   /**
    * The tasks in the schedule.

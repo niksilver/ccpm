@@ -227,11 +227,16 @@ trait Plan {
       val adjustedPlan = adj.solve(this.withSchedule(sch), move)
       val bufferActualStart = adjustedPlan.schedule.end(pred)
       val bufferActualDuration = bufferEnd - bufferActualStart
-      val buffer = Buffer('bDummy, bufferActualDuration, pred) // Need to put in sensible name!
+      val bufferId = nextBufferId(adjustedPlan.schedule)
+      val buffer = Buffer(bufferId, bufferActualDuration, pred) // Need to put in sensible name!
 
       addFeederBuffers(buffs.tail, adjustedPlan.schedule + (buffer, bufferActualStart))
     }
   }
+  
+  // A new buffer ID for a given schedule
+  private def nextBufferId(sch: Schedule): Symbol =
+    Buffer.nextId(sch.periods map { _.id })
 
   /**
    * See how far we can move back a given task.

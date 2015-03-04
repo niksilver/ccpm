@@ -505,5 +505,32 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.bufferedSchedule.start(t1) should equal (t1OriginalStart)
     p.bufferedSchedule.start(t2) should equal (t2OriginalStart)
   }
+  
+  it should "give buffers unique names" in {
+    //     [t1  ]+
+    //   [t2    ]+
+    //    [t3   ]+
+    //      [t4 ]+
+    //    [t5   ]+[t6]
+    
+    val t1 = Task('t1, 3)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 4)
+    val t4 = Task('t4, 2)
+    val t5 = Task('t5, 4)
+    val t6 = Task('t6, 1)
+    
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4, t5, t6)
+      val dependencies = Set(t1 -> t6, t2 -> t6, t3 -> t6, t4 -> t6, t5 -> t6)
+    }
+    
+    // There should be four feeder buffers and one completion buffer
+    val buffers = p.bufferedSchedule.buffers
+    
+    buffers.size should equal (5)
+    val bufferIds = (buffers map {_.id}).toSet
+    bufferIds.size should equal (5)
+  }
 
 }
