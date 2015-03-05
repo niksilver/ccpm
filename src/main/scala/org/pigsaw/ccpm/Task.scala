@@ -106,27 +106,4 @@ object Task extends AutoIding("t") {
  */
 case class Buffer(id: Symbol, duration: Double, predecessor: Task) extends Period
 
-object Buffer extends AutoIding("b") {
-  
-  /**
-   * Make a buffer of the appropriate duration, which will be
-   * half the length of the given path.
-   * @param id      The id of the buffer
-   * @param path    The path that the buffer is to follow on from
-   * @param max     The maximum duration of the buffer
-   */
-  def make(id: Symbol, path: Seq[Task], max: Double): Buffer = {
-    val duration = Chain(path).length / 2
-    Buffer(id, Math.min(duration, max), path.last)
-  }
-  
-  /**
-   * Make a buffer of the appropriate duration, which will be
-   * half the length of the given path.
-   * @param id      The id of the buffer
-   * @param path    The path that the buffer is to follow on from
-   */
-  def make(id: Symbol, path: Seq[Task]): Buffer = {
-    make(id, path, Double.MaxValue)
-  }
-}
+object Buffer extends AutoIding("b")

@@ -104,7 +104,8 @@ trait Plan {
    */
   lazy val completionBuffer: Buffer = {
     val id = Buffer.nextId(tasks map { _.id })
-    Buffer.make(id, criticalChain)
+    val duration = Chain(criticalChain).length * 0.5
+    Buffer(id, duration, criticalChain.last)
   }
 
   /**
