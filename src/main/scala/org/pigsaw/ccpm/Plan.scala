@@ -102,10 +102,10 @@ trait Plan {
   /**
    * Get the completion buffer (aka project buffer).
    */
-  lazy val completionBuffer: Buffer = {
+  lazy val completionBuffer: CompletionBuffer = {
     val id = Buffer.nextId(tasks map { _.id })
     val duration = Chain(criticalChain).length * 0.5
-    Buffer(id, duration, criticalChain.last)
+    CompletionBuffer(id, duration, criticalChain.last)
   }
 
   /**
@@ -169,7 +169,7 @@ trait Plan {
       val bufferActualStart = adjustedPlan.schedule.end(pred)
       val bufferActualDuration = bufferEnd - bufferActualStart
       val bufferId = nextBufferId(adjustedPlan.schedule)
-      val buffer = Buffer(bufferId, bufferActualDuration, pred) // Need to put in sensible name!
+      val buffer = FeederBuffer(bufferId, bufferActualDuration, pred)
 
       addFeederBuffers(buffs.tail, adjustedPlan.schedule + (buffer, bufferActualStart))
     }

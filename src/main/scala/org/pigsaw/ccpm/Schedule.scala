@@ -32,6 +32,11 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
    * All the buffers
    */
   lazy val buffers: Iterable[Buffer] = starts.keys collect { case b: Buffer => b }
+
+  /**
+   * All the feeder buffers
+   */
+  lazy val feederBuffers: Iterable[FeederBuffer] = starts.keys collect { case b: FeederBuffer => b }
   
   /**
    * Is this period scheduled?

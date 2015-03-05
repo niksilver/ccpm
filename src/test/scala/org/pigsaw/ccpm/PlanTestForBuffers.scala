@@ -345,7 +345,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
       val dependencies = Set(t1 -> t2, t2 -> t4, t3 -> t4)
     }
     
-    val feederBuffers = p.bufferedSchedule.buffers filterNot { _ == p.completionBuffer }
+    val feederBuffers = p.bufferedSchedule.feederBuffers
     feederBuffers.size should equal (1)
     
     feederBuffers.head.duration should equal ((t1.duration + t2.duration)/2)
@@ -369,7 +369,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     
     val t2OriginalEnd = p.schedule.end(t2)
     
-    val Some(feederBuffer) = p.bufferedSchedule.buffers find { _.predecessor == t2 }
+    val feederBuffer = p.bufferedSchedule.feederBuffers.head
     
     p.bufferedSchedule.start(feederBuffer) should equal (t2OriginalEnd - (t1.duration + t2.duration)/2)
   }
@@ -391,7 +391,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     
     val t2OriginalEnd = p.schedule.end(t2)
     
-    val Some(feederBuffer) = p.bufferedSchedule.buffers find { _.predecessor == t2 }
+    val feederBuffer = p.bufferedSchedule.feederBuffers.head
     
     p.bufferedSchedule.start(feederBuffer) should equal (t2OriginalEnd - (t1.duration + t2.duration)/2)
   }

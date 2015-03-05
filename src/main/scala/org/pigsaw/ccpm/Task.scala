@@ -104,6 +104,14 @@ object Task extends AutoIding("t") {
  * A buffer in a critical chain plan.
  * Could be a completion buffer (aka project buffer) or a feeder buffer.
  */
-case class Buffer(id: Symbol, duration: Double, predecessor: Task) extends Period
+sealed abstract class Buffer extends Period {
+  val id: Symbol
+  val duration: Double
+  val predecessor: Task
+}
 
 object Buffer extends AutoIding("b")
+
+case class CompletionBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
+
+case class FeederBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
