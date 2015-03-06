@@ -115,3 +115,10 @@ object Buffer extends AutoIding("b")
 case class CompletionBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
 
 case class FeederBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
+
+object FeederBuffer {
+  /**
+   * The proportion of the path which is the feeder buffer.
+   */
+  val factor: Double = 0.5
+}

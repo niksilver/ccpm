@@ -104,7 +104,7 @@ trait Plan {
    */
   lazy val completionBuffer: CompletionBuffer = {
     val id = Buffer.nextId(tasks map { _.id })
-    val duration = Chain(criticalChain).length * 0.5
+    val duration = Chain(criticalChain).length * FeederBuffer.factor
     CompletionBuffer(id, duration, criticalChain.last)
   }
 
@@ -117,7 +117,7 @@ trait Plan {
    */
   lazy val feederBuffersNeeded: Set[(Task, Task, Double)] = {
     def penultimate(path: Seq[Task]): Task = path(path.length - 2)
-    def halfDurationBeforeChain(path: Seq[Task]): Double = Chain(path.init).length * 0.5
+    def halfDurationBeforeChain(path: Seq[Task]): Double = Chain(path.init).length * FeederBuffer.factor
 
     val pathDurations = pathsToCriticalChain map {
       path => (penultimate(path), path.last, halfDurationBeforeChain(path))
