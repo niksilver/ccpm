@@ -122,16 +122,9 @@ trait Plan {
     for {
       link <- links.keySet
       paths = links(link) map { _.init }
-    } yield (link._1, link._2, bufferDuration(paths))
+    } yield (link._1, link._2, FeederBuffer.duration(paths))
   }
   
-  // Given a number of paths that feed into (but which exclude)
-  // the critical chain, work out the buffer duration needed
-  private def bufferDuration(paths: Set[Seq[Task]]): Double = {
-    val maxPathLength = (paths map { Chain(_).length }).max
-    maxPathLength * FeederBuffer.factor
-  }
-
   /**
    * Get all the paths (possibly overlapping) that feed into
    * the critical chain. The last task of each path will be

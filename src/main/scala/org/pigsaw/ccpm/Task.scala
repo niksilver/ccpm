@@ -117,8 +117,21 @@ case class CompletionBuffer(id: Symbol, duration: Double, predecessor: Task) ext
 case class FeederBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
 
 object FeederBuffer {
+  
   /**
-   * The proportion of the path which is the feeder buffer.
+   * What we need to multiply a path length by to get the duration
+   * of its feeder buffer.
    */
   val factor: Double = 0.5
+  
+  /**
+   *  Given a number of paths that feed into (but which exclude)
+   * the critical chain, work out the buffer duration needed
+   */
+  def duration(paths: Set[Seq[Task]]): Double = {
+    val maxPathLength = (paths map { Chain(_).length }).max
+    maxPathLength * factor
+  }
+
+
 }
