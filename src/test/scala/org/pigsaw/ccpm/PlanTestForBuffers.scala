@@ -454,6 +454,54 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     p.bufferedSchedule.start(t6) should equal (t6OriginalStart - t6ExpectedBufferDuration)
   }
   
+  it should "return one buffer if multiple paths meet at the same point" in {
+    
+    //       [t1]\
+	//      [t2 ]-[t3 ]\
+    //  [t4           ]-[t5 ]
+    
+    val t1 = Task('t1, 1) // Not on critical chain
+    val t2 = Task('t2, 2) // Not on critical chain
+    val t3 = Task('t3, 2) // Not on critical chain
+    val t4 = Task('t4, 6)
+    val t5 = Task('t5, 1)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4, t5)
+      val dependencies = Set(t1 -> t3, t2 -> t3, t3 -> t5, t4 -> t5)
+    }
+
+    p.bufferedSchedule.feederBuffers.size should equal (1)
+  }
+  
+  it should "return a buffer of duration based on longest path if multiple paths meet at the same point" in {
+    
+    //       [t1]\
+	//      [t2 ]+
+	//     [t3  ]+
+	//      [t4 ]+[t5 ]\
+    //  [t6           ]-[t7]
+    
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 2)
+    val t3 = Task('t3, 3)
+    val t4 = Task('t4, 2)
+    val t5 = Task('t5, 2)
+    val t6 = Task('t6, 8)
+    val t7 = Task('t7, 1)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3, t4, t5, t6, t7)
+      val dependencies = Set(t1 -> t5, t2 -> t5, t3 -> t5, t4 -> t5, t5 -> t7,
+          t6 -> t7)
+    }
+
+    p.bufferedSchedule.feederBuffers.size should equal (1)
+    
+    val buffer = p.bufferedSchedule.feederBuffers.head
+    buffer.duration should equal ((t3.duration + t5.duration)/2)
+  }
+  
   it should "account for a feeder path already having a bit of buffer" in {
     //  0  1    2  3.5  4
     //     [t1]-[t2 ]--\
