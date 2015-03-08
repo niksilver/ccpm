@@ -6,12 +6,12 @@ trait Period {
 }
 
 /**
- * The capability to work out ids automatically. 
+ * The capability to work out ids automatically.
  */
 class AutoIding(private val prefix: String) {
 
   private val length = prefix.length
-  
+
   private def split(name: String): (String, String) = name.splitAt(length)
   private def splitName(id: Symbol): (String, String) = split(id.name)
 
@@ -52,7 +52,7 @@ case class Task(id: Symbol, description: String, duration: Double, resource: Opt
    * the ids are the same.
    */
   def isAVariationOf(t: Task) = (id == t.id)
-  
+
   /**
    * True if and only if this and `t2` both have `Some` resource
    * and they are they are equal.
@@ -86,13 +86,13 @@ object Task extends AutoIding("t") {
    * A `Task` with just the `id` and `duration` set by the user.
    */
   def apply(id: Symbol, duration: Double) = new Task(id, DefaultDescription, duration, None)
-  
+
   /**
    * Given some tasks, get one by its id, or throw an
    * `UnknownTaskException`.
    */
   def task(ts: scala.collection.Set[Task], id: Symbol): Task = {
-    (ts find { _.id == id}) match {
+    (ts find { _.id == id }) match {
       case Some(t) => t
       case None => throw new UnknownTaskException("No such task with id " + id)
     }
@@ -117,21 +117,27 @@ case class CompletionBuffer(id: Symbol, duration: Double, predecessor: Task) ext
 case class FeederBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
 
 object FeederBuffer {
-  
+
   /**
    * What we need to multiply a path length by to get the duration
    * of its feeder buffer.
    */
-  val factor: Double = 0.5
-  
+  val Factor: Double = 0.5
+
   /**
-   *  Given a number of paths that feed into (but which exclude)
-   * the critical chain, work out the buffer duration needed
+   * Given a number of paths that feed into (but which exclude)
+   * the critical chain, work out the buffer duration needed.
+   * According to
+   * http://www.pmknowledgecenter.com/node/273
+   * this is the 'cut and paste' method.
    */
   def duration(paths: Set[Seq[Task]]): Double = {
-    val maxPathLength = (paths map { Chain(_).length }).max
-    maxPathLength * factor
+    if (paths.size == 0) {
+      0
+    } else {
+      val maxPathLength = (paths map { Chain(_).length }).max
+      maxPathLength * Factor
+    }
   }
-
 
 }
