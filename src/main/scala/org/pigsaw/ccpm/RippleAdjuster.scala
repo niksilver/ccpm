@@ -9,7 +9,7 @@ import scala.annotation.tailrec
  * It should return the best available solution, which may be less than
  * our original goal.
  *
- * @type M  The move made on each state
+ * @tparam M  The move made on each state
  */
 trait RippleAdjuster[S, M <: RippleMove[M]] {
 
@@ -18,7 +18,7 @@ trait RippleAdjuster[S, M <: RippleMove[M]] {
    * more things to achieve this. Each item in the sequence is one of
    * two things:
    * `Actual(m)` an actual move `m` that should be made;
-   * `Prerequisite(m2)` if another move `m2` is required before we can make the desired `move` as best as possible;
+   * `Prerequisite(m2)` if another move `m2` is required before we can make the desired `move` as best as possible.
    */
   def attempt(state: S, move: M): Seq[Attempt[M]]
 
