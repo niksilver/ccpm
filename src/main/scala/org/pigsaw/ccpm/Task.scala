@@ -128,7 +128,7 @@ object FeederBuffer {
    * Given a number of paths that feed into (but which exclude)
    * the critical chain, work out the buffer duration needed.
    * According to
-   * http://www.pmknowledgecenter.com/node/273
+   * [[http://www.pmknowledgecenter.com/node/273]]
    * this is the 'cut and paste' method.
    */
   def duration(paths: Set[Seq[Task]]): Double = {
