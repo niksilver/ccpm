@@ -117,16 +117,19 @@ trait Plan {
    */
   lazy val feederBuffersNeeded: Set[(Task, Task, Double)] = {
     def penultimate(path: Seq[Task]): Task = path(path.length - 2)
-    def halfDurationBeforeChain(path: Seq[Task]): Double = Chain(path.init).length * FeederBuffer.factor
-
-    val pathDurations = pathsToCriticalChain map {
-      path => (penultimate(path), path.last, halfDurationBeforeChain(path))
-    }
-
-    def hasLonger(t: Task, d: Double) = pathDurations exists { pd => pd._1 == t && pd._3 > d }
-
-    val maxPathDurations = pathDurations filterNot { pd => hasLonger(pd._1, pd._3) }
-    maxPathDurations.toSet
+    val links = pathsToCriticalChain groupBy { path => (penultimate(path), path.last) }
+    
+    for {
+      link <- links.keySet
+      paths = links(link) map { _.init }
+    } yield (link._1, link._2, bufferDuration(paths))
+  }
+  
+  // Given a number of paths that feed into (but which exclude)
+  // the critical chain, work out the buffer duration needed
+  private def bufferDuration(paths: Set[Seq[Task]]): Double = {
+    val maxPathLength = (paths map { Chain(_).length }).max
+    maxPathLength * FeederBuffer.factor
   }
 
   /**
