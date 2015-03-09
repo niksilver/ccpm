@@ -114,6 +114,13 @@ object Buffer extends AutoIding("b")
 
 case class CompletionBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
 
+object CompletionBuffer {
+  /**
+   * Duration of a completion buffer, given the critical chain.
+   */
+  def duration(chain: Seq[Task]): Double = Chain(chain).length * 0.5
+}
+
 case class FeederBuffer(id: Symbol, duration: Double, predecessor: Task) extends Buffer
 
 object FeederBuffer {
