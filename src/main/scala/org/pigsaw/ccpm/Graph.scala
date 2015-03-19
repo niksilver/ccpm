@@ -22,6 +22,13 @@ class Graph[T](g: Set[(T, T)]) {
    * Does the graph have a given edge?
    */
   def hasEdge(e: Tuple2[T, T]): Boolean = { g contains e }
+  
+  /**
+   * Does the graph have the given node?
+   */
+  def hasNode(node: T): Boolean = {
+    g exists { pair => node == pair._1 || node == pair._2 }
+  }
 
   /**
    * Given an acyclic graph `g`, does it remain acyclic

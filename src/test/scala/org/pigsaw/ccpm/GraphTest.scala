@@ -95,6 +95,21 @@ class GraphTest extends FlatSpec with Matchers {
     g.starts should contain theSameElementsAs (Set('a, 'z))
   }
   
+  "hasNode" should "give false if node not in graph" in {
+    val g = new Graph(Set(('a -> 'b)))
+    g.hasNode('c) should equal (false)
+  }
+  
+  it should "give true if node is at the start of a pair" in {
+    val g = new Graph(Set(('c -> 'd)))
+    g.hasNode('c) should equal (true)
+  }
+  
+  it should "give true if node is at the end of a pair" in {
+    val g = new Graph(Set(('b -> 'c)))
+    g.hasNode('c) should equal (true)
+  }
+  
   "path" should "extract a single path when there is just one" in {
     val g = new Graph(Set(('a -> 'b), ('b -> 'c), ('c -> 'd)))
     g.paths should equal (Set(Seq('a, 'b, 'c, 'd)))

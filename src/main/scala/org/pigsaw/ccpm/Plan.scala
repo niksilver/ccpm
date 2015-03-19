@@ -68,7 +68,11 @@ trait Plan {
     val newResPairs = resPairs filterNot { pair => graph.hasEdge(pair) }
     val chainedDependencies = dependencies ++ newResPairs
     val chainedGraph = new Graph(chainedDependencies)
-    chainedGraph.paths
+
+    val singletons = tasks filterNot ( graph.hasNode(_) );
+    val singletonChains = singletons map { Seq(_) }
+
+    chainedGraph.paths ++ singletonChains
   }
 
   /**
