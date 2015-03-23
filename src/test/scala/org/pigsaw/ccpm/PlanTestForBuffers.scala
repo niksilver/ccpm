@@ -91,6 +91,27 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     cb.predecessor should equal (t13)
   }
   
+  "completionBufferOption" should "indicate there's no completion buffer if there are no tasks" in {
+    val p = new Plan {
+      val tasks = Set[Task]()
+      val dependencies = Set[(Task, Task)]()
+    }
+    p.completionBufferOption should equal (None)
+  }
+  
+  it should "give a completion buffer if there are some tasks" in {
+    val t1 = Task('t1, 3)
+    val t2 = Task('t2, 7)
+    val t3 = Task('t3, 9)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    val cbo = p.completionBufferOption
+    cbo shouldBe a [Some[_]]
+  }
+  
   "feederBuffersNeeded" should "return the empty set if there's just a critical chain" in {
     val t1 = Task('t1, 1)
     val t2 = Task('t2, 5)

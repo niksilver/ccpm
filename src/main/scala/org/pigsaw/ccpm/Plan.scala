@@ -111,6 +111,18 @@ trait Plan {
     val duration = CompletionBuffer.duration(criticalChain)
     CompletionBuffer(id, duration, criticalChain.last)
   }
+  
+  /**
+   * Get the completion buffer as an `Option`, because
+   * there won't be one if there are no tasks.
+   */
+  lazy val completionBufferOption: Option[CompletionBuffer] = {
+    if (tasks.isEmpty) {
+      None
+    } else {
+      Some(completionBuffer)
+    }
+  }
 
   /**
    * Get what feeder buffers are needed.
@@ -147,10 +159,11 @@ trait Plan {
    * Get a schedule for this plan, including buffers.
    */
   lazy val bufferedSchedule: Schedule = {
-    val schWithCompletionBuffer = criticalChain.lastOption match {
-      case Some(lastTask) => {
+    val schWithCompletionBuffer = completionBufferOption match {
+      case Some(buffer) => {
+        val lastTask = criticalChain.last
         val lastTaskEnd = schedule.end(lastTask)
-        schedule + (completionBuffer, lastTaskEnd)
+        schedule + (buffer, lastTaskEnd)
       }
       case None => schedule
     }
