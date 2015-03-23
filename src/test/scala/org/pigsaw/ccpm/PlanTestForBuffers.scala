@@ -580,5 +580,9 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val bufferIds = (buffers map {_.id}).toSet
     bufferIds.size should equal (5)
   }
+  
+  it should "be empty if there are no tasks" in {
+    EmptyPlan.bufferedSchedule.periods.size should equal (0)
+  }
 
 }

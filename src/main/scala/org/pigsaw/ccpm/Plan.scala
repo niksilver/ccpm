@@ -147,10 +147,15 @@ trait Plan {
    * Get a schedule for this plan, including buffers.
    */
   lazy val bufferedSchedule: Schedule = {
-    val lastTask = criticalChain.last
-    val lastTaskEnd = schedule.end(lastTask)
+    val schWithCompletionBuffer = criticalChain.lastOption match {
+      case Some(lastTask) => {
+        val lastTaskEnd = schedule.end(lastTask)
+        schedule + (completionBuffer, lastTaskEnd)
+      }
+      case None => schedule
+    }
 
-    addFeederBuffers(feederBuffersNeeded, schedule + (completionBuffer, lastTaskEnd))
+    addFeederBuffers(feederBuffersNeeded, schWithCompletionBuffer)
   }
 
   private def addFeederBuffers(buffs: Set[(Task, Task, Double)], sch: Schedule): Schedule = {
