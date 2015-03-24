@@ -91,7 +91,7 @@ object Task extends AutoIding("t") {
    * Given some tasks, get one by its id, or throw an
    * `UnknownTaskException`.
    */
-  def task(ts: scala.collection.Set[Task], id: Symbol): Task = {
+  def task(ts: Iterable[Task], id: Symbol): Task = {
     (ts find { _.id == id }) match {
       case Some(t) => t
       case None => throw new UnknownTaskException("No such task with id " + id)

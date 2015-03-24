@@ -9,7 +9,7 @@ trait Plan {
   /**
    * Tasks in the plan
    */
-  val tasks: Set[Task]
+  val tasks: Iterable[Task]
 
   /**
    * Retrieve a task by its id.
@@ -35,7 +35,7 @@ trait Plan {
   /**
    * A schedule for this plan.
    */
-  lazy val schedule: Schedule = Schedule.make(tasks, dependencies)
+  lazy val schedule: Schedule = Schedule.make(tasks.toSet, dependencies)
 
   /**
    * Create a new plan just like this one, but with the given schedule.

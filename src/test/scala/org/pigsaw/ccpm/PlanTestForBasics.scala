@@ -5,6 +5,17 @@ import org.scalatest.Matchers
 import org.scalatest.Ignore
 
 class PlanTestForBasics extends FlatSpec with Matchers with ScheduleMatchers {
+  
+  "tasks" should "return all tasks in order" in {
+    val ts = (0 to 99) map { i => Task(Symbol("t"+i), "Task #"+i, i, None) }
+    val p = new Plan {
+      val tasks = ts
+      val dependencies = Set[(Task, Task)]()
+    }
+    (0 to 99).foreach { i =>
+      p.tasks.toSeq(i).id.name should equal ("t"+i)
+    }
+  }
 
   "resources" should "return all resources" in {
     val t1 = Task('t1, "Task one", 1, Some("Alice"))
