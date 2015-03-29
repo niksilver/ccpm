@@ -159,7 +159,7 @@ trait Plan {
    * All the dependencies, including those involving buffers.
    */
   lazy val dependenciesWithBuffers: Set[(Period, Period)] =
-    (dependencies map { d: (Task, Task) => (d._1: Period, d._2: Period) }) +
+    (dependencies map { d => (d._1: Period, d._2: Period) }) +
     Tuple2(completionBuffer.predecessor, completionBuffer) ++
     (bufferedSchedule.feederBuffers map { b => (b.predecessor, b) })
 
