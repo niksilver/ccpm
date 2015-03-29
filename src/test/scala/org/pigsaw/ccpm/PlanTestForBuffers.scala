@@ -391,5 +391,74 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     }
     p.dependenciesWithBuffers shouldBe empty
   }
+  
+  "periodsWithBuffers" should "list all the tasks in their original order" in {
+    //    [t1]\
+    //        +[t2]\
+    //             +[t3]\
+    //                  +[t4]
+    
+    val t1 = Task('t1, "Task one", 1, None)
+    val t2 = Task('t2, "Task two", 1, None)
+    val t3 = Task('t3, "Task three", 1, None)
+    val t4 = Task('t4, "Task four", 1, None)
+
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3, t4)
+      val dependencies = Set(t1 -> t2, t2 -> t3, t3 -> t4)
+    }
+    
+    p.periodsWithBuffers.toSeq should contain inOrder (t1, t2, t3, t4)
+  }
+  
+  it should "put the completion buffer at the end" in {
+    //    [t1]\
+    //        +[t2]\
+    //             +[t3]\
+    //                  +[t4]
+    
+    val t1 = Task('t1, "Task one", 1, None)
+    val t2 = Task('t2, "Task two", 1, None)
+    val t3 = Task('t3, "Task three", 1, None)
+    val t4 = Task('t4, "Task four", 1, None)
+
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3, t4)
+      val dependencies = Set(t1 -> t2, t2 -> t3, t3 -> t4)
+    }
+    
+    val cp = p.completionBuffer
+    
+    p.periodsWithBuffers.toSeq should contain inOrder (t1, t2, t3, t4, cp)
+  }
+  
+  "periodsWithBuffers" should "put a feeder buffer directly after its predecessor if the tasks are ordered" in {
+    //    [t1]\
+    //        +[t2]---------------\
+    //                            |
+    //    [t3  ]\                 |
+    //          +[t4  ]-----------+
+    //                            |
+    //    [t5                    ]+
+    //                            +[t6]
+    
+    val t1 = Task('t1, "Task one", 1, None)
+    val t2 = Task('t2, "Task two", 1, None)
+    val t3 = Task('t3, "Task three", 2, None)
+    val t4 = Task('t4, "Task four", 2, None)
+    val t5 = Task('t5, "Task five", 10, None)
+    val t6 = Task('t6)
+
+    val p = new Plan {
+      val tasks = Seq(t1, t2, t3, t4, t5, t6)
+      val dependencies = Set(t1 -> t2, t2 -> t6, t3 -> t4, t4 -> t6, t5 -> t6)
+    }
+    
+    val bufferT2 = (p.bufferedSchedule.feederBuffers find { _.predecessor == t2 }).get
+    val bufferT4 = (p.bufferedSchedule.feederBuffers find { _.predecessor == t4 }).get
+    
+    p.periodsWithBuffers.toSeq should contain inOrder (t1, t2, bufferT2)
+    p.periodsWithBuffers.toSeq should contain inOrder (t3, t4, bufferT4)
+  }
  
 }

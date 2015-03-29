@@ -364,4 +364,5 @@ class ScheduleTestBasics extends FlatSpec with Matchers with ScheduleMatchers {
     val sch = new Schedule() + (t1, 0) + (t2, 2.5) + (t3, 0.5)
     sch.resourceAdjacentTasks should equal (Seq((t3, t2)))
   }
+
 }

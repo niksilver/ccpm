@@ -164,6 +164,23 @@ trait Plan {
     (bufferedSchedule.feederBuffers map { b => (b.predecessor, b) })
 
   /**
+   * All the periods from the buffered schedule, in an appropriate
+   * order (if the original `tasks` were ordered).
+   * So all tasks will be in the order specified,
+   * each feeder buffers will come directly after its predecessor,
+   * and the completion buffer will be last. 
+   */
+  lazy val periodsWithBuffers: Iterable[Period] = {
+    val tasksAndFeeders = for {
+      task <- tasks
+      feeders = bufferedSchedule.feederBuffers filter ( _.predecessor == task )
+      taskOrFeeder <- Seq(task) ++ feeders
+    } yield taskOrFeeder
+    
+    tasksAndFeeders ++ completionBufferOption
+  }
+  
+  /**
    * Get a schedule for this plan, including buffers.
    */
   lazy val bufferedSchedule: Schedule = {
