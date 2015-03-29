@@ -429,7 +429,7 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     
     val cp = p.completionBuffer
     
-    p.periodsWithBuffers.toSeq should contain inOrder (t1, t2, t3, t4, cp)
+    p.periodsWithBuffers.toSeq should equal (Seq(t1, t2, t3, t4, cp))
   }
   
   "periodsWithBuffers" should "put a feeder buffer directly after its predecessor if the tasks are ordered" in {
@@ -457,8 +457,8 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     val bufferT2 = (p.bufferedSchedule.feederBuffers find { _.predecessor == t2 }).get
     val bufferT4 = (p.bufferedSchedule.feederBuffers find { _.predecessor == t4 }).get
     
-    p.periodsWithBuffers.toSeq should contain inOrder (t1, t2, bufferT2)
-    p.periodsWithBuffers.toSeq should contain inOrder (t3, t4, bufferT4)
+    p.periodsWithBuffers.sliding(3).toSeq should contain (Seq(t1, t2, bufferT2))
+    p.periodsWithBuffers.sliding(3).toSeq should contain (Seq(t3, t4, bufferT4))
   }
  
 }
