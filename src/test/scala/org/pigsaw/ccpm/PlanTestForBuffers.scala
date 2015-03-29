@@ -383,5 +383,13 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     
     p.dependenciesWithBuffers should contain (t1, fb)
   }
+  
+  it should "give no dependencies if there are no tasks" in {
+    val p = new Plan {
+      val tasks = Set()
+      val dependencies = Set[(Task, Task)]()
+    }
+    p.dependenciesWithBuffers shouldBe empty
+  }
  
 }
