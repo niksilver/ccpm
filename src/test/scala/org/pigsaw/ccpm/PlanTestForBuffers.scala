@@ -335,5 +335,53 @@ class PlanTestForBuffers extends FlatSpec with Matchers {
     
     p.pathsToCriticalChain should equal (Set(Seq(t1, t2, t4)))
   }
+  
+  "dependenciesWithBuffers" should "include all task dependencies" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t2, t2 -> t3)
+    }
+    
+    p.dependenciesWithBuffers should contain allOf((t1, t2), (t2, t3))
+  }
+  
+  it should "include the dependency from the last task to the completion buffer" in {
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t2, t2 -> t3)
+    }
+    
+    val cp = p.completionBuffer
+    
+    p.dependenciesWithBuffers should contain (t3, cp)
+  }
+  
+  it should "include dependencies into feeder buffers" in {
+    //   [t1]---\
+    //   [t2   ]+[t3 ]
+    
+    val t1 = Task('t1, 1)
+    val t2 = Task('t2, 5)
+    val t3 = Task('t3, 3)
+
+    val p = new Plan {
+      val tasks = Set(t1, t2, t3)
+      val dependencies = Set(t1 -> t3, t2 -> t3)
+    }
+    
+    p.bufferedSchedule.feederBuffers.size should equal (1)
+    
+    val fb = p.bufferedSchedule.feederBuffers.head
+    
+    p.dependenciesWithBuffers should contain (t1, fb)
+  }
  
 }

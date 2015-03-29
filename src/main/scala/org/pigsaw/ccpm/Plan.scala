@@ -154,6 +154,14 @@ trait Plan {
     val paths = graph.pathsTo(criticalChain.toSet, isOnCriticalChain)
     paths filterNot ( _.length == 1 )
   }
+  
+  /**
+   * All the dependencies, including those involving buffers.
+   */
+  lazy val dependenciesWithBuffers: Set[(Period, Period)] =
+    (dependencies map { d: (Task, Task) => (d._1: Period, d._2: Period) }) +
+    Tuple2(completionBuffer.predecessor, completionBuffer) ++
+    (bufferedSchedule.feederBuffers map { b => (b.predecessor, b) })
 
   /**
    * Get a schedule for this plan, including buffers.
