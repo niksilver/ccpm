@@ -2,8 +2,9 @@ package org.pigsaw.ccpm
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
+import org.scalatest.Inspectors
 
-class PlanTestForBufferedSchedule extends FlatSpec with Matchers {
+class PlanTestForBufferedSchedule extends FlatSpec with Matchers with Inspectors {
  
   "bufferedSchedule" should "include buffer at the end of the last task" in {
     val t1 = Task('t1, 1)
@@ -84,6 +85,30 @@ class PlanTestForBufferedSchedule extends FlatSpec with Matchers {
     val feederBuffer = p.bufferedSchedule.feederBuffers.head
     
     p.bufferedSchedule.start(feederBuffer) should equal (t2OriginalEnd - (t1.duration + t2.duration)/2)
+  }
+  
+  it should "not have a feeder buffer of length zero" in {
+    //    [t0]--------------\
+    //     | |              [t1   ]--\
+    //     | \-[t4        ]-/        |
+    //     +---[t2                ]  |
+    //                           \--[t3]
+    
+    val t0 = Task('t0)
+    val t1 = Task('t1, "Task one", 2.0, None)
+    val t2 = Task('t2, "Task two", 5.0, None)
+    val t3 = Task('t3)
+    val t4 = Task('t4, "Task four", 3.0, None)
+    
+    val p = new Plan {
+      val tasks = Seq(t0, t1, t2, t3, t4)
+      val dependencies = Set(
+          t0 -> t1, t1 -> t3,
+          t0 -> t2, t2 -> t3,
+          t0 -> t4, t4 -> t1, t4 -> t3)
+    }
+    
+    forAll (p.bufferedSchedule.feederBuffers.toSeq) { fb => fb.duration shouldBe > (0) }
   }
   
   it should "reschedule the path going into a feeder buffer" in {

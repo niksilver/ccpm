@@ -213,8 +213,14 @@ trait Plan {
       val bufferActualDuration = bufferEnd - bufferActualStart
       val bufferId = nextBufferId(adjustedPlan.schedule)
       val buffer = FeederBuffer(bufferId, bufferActualDuration, pred)
+      
+      val updatedSchedule = if (bufferActualDuration > 0) {
+        adjustedPlan.schedule + (buffer, bufferActualStart)
+      } else {
+        adjustedPlan.schedule
+      }
 
-      addFeederBuffers(buffs.tail, adjustedPlan.schedule + (buffer, bufferActualStart))
+      addFeederBuffers(buffs.tail, updatedSchedule)
     }
   }
   
