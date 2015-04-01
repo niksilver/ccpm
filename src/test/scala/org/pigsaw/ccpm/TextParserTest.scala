@@ -6,10 +6,6 @@ import scala.util.parsing.combinator._
 
 class TextParserTest extends FlatSpec with Matchers {
 
-  class TextParser extends RegexParsers {
-    def taskID: Parser[Symbol] = "[a-zA-Z][0-9a-zA-Z]".r ^^ { Symbol(_) }
-  }
-
   "taskID" should "parse a task ID of letter and number (1)" in {
     new TextParser {
       parseAll(taskID, "t1").get should equal (Symbol("t1"))
@@ -22,6 +18,18 @@ class TextParserTest extends FlatSpec with Matchers {
     }
   }
 
+  it should "parse a task ID of just one letter" in {
+    new TextParser {
+      parseAll(taskID, "k").get should equal (Symbol("k"))
+    }
+  }
+
+  it should "parse a task ID of several alphanumerics" in {
+    new TextParser {
+      parseAll(taskID, "klmno5").get should equal (Symbol("klmno5"))
+    }
+  }
+
   it should "reject a string starting with a digit" in {
     new TextParser {
       parseAll(taskID, "34").successful should equal (false)
@@ -31,6 +39,13 @@ class TextParserTest extends FlatSpec with Matchers {
   it should "reject a string with punctuation" in {
     new TextParser {
       parseAll(taskID, "ty,oi").successful should equal (false)
+    }
+  }
+  
+  "taskDescription" should "parse something that starts and ends with double quotes" in {
+    new TextParser {
+      println("**** " + parseAll(taskDescription, "\"Hello\""))
+      parseAll(taskDescription, "\"Hello\"").get should equal ("Hello")
     }
   }
 }
