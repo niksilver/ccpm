@@ -8,15 +8,8 @@ scalacOptions ++=
 	Seq("-deprecation", "-feature",
 		"-language:implicitConversions")
 
-// unmanagedJars in Compile <++= baseDirectory map { base =>
-	// val jarDirs =
-		// (base / "lib" / "build") +++
-		// (base / "lib" / "runtime")
-	// val jars = jarDirs ** "*.jar"
-	// jars.classpath
-// }
-
 libraryDependencies ++= Seq(
+	"org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3"
 )
 
 // For Scalatest for Scala 2.11
