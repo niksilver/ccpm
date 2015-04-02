@@ -13,20 +13,20 @@ class TextParsersTest extends FlatSpec with Matchers {
   }
 
   it should "parse a task ID of letter and number (2 - to avoid faking)" in {
-    new TextParser {
-      parseAll(taskID, "x2").get should equal (Symbol("x2"))
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "x2") should parseAs (Symbol("x2"))
     }
   }
 
   it should "parse a task ID of just one letter" in {
-    new TextParser {
-      parseAll(taskID, "k").get should equal (Symbol("k"))
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "k") should parseAs (Symbol("k"))
     }
   }
 
   it should "parse a task ID of several alphanumerics" in {
-    new TextParser {
-      parseAll(taskID, "klmno5").get should equal (Symbol("klmno5"))
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "klmno5") should parseAs (Symbol("klmno5"))
     }
   }
 
