@@ -10,6 +10,8 @@ import scala.language.existentials
  * Scalatest `Matchers` that are useful for the parsing.
  */
 trait ParserMatchers {
+  
+  self: Parsers =>
 
   // The following definitions allow us to more easily assert
   // the outcomes of a parseResult
@@ -18,17 +20,15 @@ trait ParserMatchers {
   //
   // See http://www.scalatest.org/user_guide/using_matchers#usingCustomMatchers
 
-  class ResultParsesAsMatcher[T <: p.ParseResult[U] forSome { type U; val p: Parsers; }](expectedOutput: String, parsers: Parsers) extends Matcher[T] {
-
-    def apply(left: T) = {
+  class ResultParsesAsMatcher(expected: String) extends Matcher[self.ParseResult[String]] {
+    
+    def apply(result: self.ParseResult[String]) = {
       MatchResult(
-        left.successful && left.get == expectedOutput,
-        left.toString,
-        s"$left was a successful parse of '$expectedOutput'")
+        result.successful && result.get == expected,
+        result.toString,
+        s"$result was a successful parse of '$expected'")
     }
   }
 
-  def parseAs(expectedOutput: String)(implicit parsers: TextParser) =
-    new ResultParsesAsMatcher[parsers.ParseResult[String]](expectedOutput, parsers)
-
+  def parseAs(expected: String) = new ResultParsesAsMatcher(expected)
 }

@@ -4,7 +4,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 import scala.util.parsing.combinator._
 
-class TextParserTest extends FlatSpec with Matchers with ParserMatchers {
+class TextParserTest extends FlatSpec with Matchers {
 
   "taskID" should "parse a task ID of letter and number (1)" in {
     new TextParser {
@@ -43,8 +43,8 @@ class TextParserTest extends FlatSpec with Matchers with ParserMatchers {
   }
   
   "taskDescription" should "parse something that starts and ends with double quotes" in {
-    new TextParser {
-      parseAll(taskDescription, "\"Hello\"") should parseAs ("Hello")(this)
+    new TextParser with ParserMatchers {
+      parseAll(taskDescription, "\"Hello\"") should parseAs ("Hello")
     }
   }
   
