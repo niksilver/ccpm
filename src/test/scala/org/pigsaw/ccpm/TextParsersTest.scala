@@ -4,7 +4,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 import scala.util.parsing.combinator._
 
-class TextParserTest extends FlatSpec with Matchers {
+class TextParsersTest extends FlatSpec with Matchers {
 
   "taskID" should "parse a task ID of letter and number (1)" in {
     new TextParser {
