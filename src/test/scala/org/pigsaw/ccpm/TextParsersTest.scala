@@ -7,8 +7,8 @@ import scala.util.parsing.combinator._
 class TextParsersTest extends FlatSpec with Matchers {
 
   "taskID" should "parse a task ID of letter and number (1)" in {
-    new TextParser {
-      parseAll(taskID, "t1").get should equal (Symbol("t1"))
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "t1") should parseAs (Symbol("t1"))
     }
   }
 

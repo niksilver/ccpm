@@ -20,15 +20,23 @@ trait ParserMatchers {
   //
   // See http://www.scalatest.org/user_guide/using_matchers#usingCustomMatchers
 
-  class ResultParsesAsMatcher(expected: String) extends Matcher[self.ParseResult[String]] {
+  class ResultParsesAsMatcher[T](expected: T) extends Matcher[self.ParseResult[T]] {
     
-    def apply(result: self.ParseResult[String]) = {
+    def apply(result: self.ParseResult[T]) = {
       MatchResult(
         result.successful && result.get == expected,
-        result.toString,
+        failureMessage(result, expected),
         s"$result was a successful parse of '$expected'")
+    }
+    
+    private def failureMessage(result: self.ParseResult[T], expected: T): String = {
+      if (!result.successful) {
+        result.toString
+      } else {
+        s"$result parsed but did not match $expected"
+      }
     }
   }
 
-  def parseAs(expected: String) = new ResultParsesAsMatcher(expected)
+  def parseAs[T](expected: T) = new ResultParsesAsMatcher(expected)
 }
