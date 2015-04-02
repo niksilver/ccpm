@@ -31,14 +31,14 @@ class TextParsersTest extends FlatSpec with Matchers {
   }
 
   it should "reject a string starting with a digit" in {
-    new TextParser {
-      parseAll(taskID, "34").successful should equal (false)
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "34") shouldNot parseOkay
     }
   }
 
   it should "reject a string with punctuation" in {
-    new TextParser {
-      parseAll(taskID, "ty,oi").successful should equal (false)
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "ty,oi") shouldNot parseOkay
     }
   }
   

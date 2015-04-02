@@ -46,13 +46,13 @@ trait ParserMatchers {
   //   pr should parseOkay
   //   pr shoulNot parseOkay
   
-  class ResultParseOkayMatcher extends Matcher[self.ParseResult[String]] {
+  class ResultParseOkayMatcher extends Matcher[self.ParseResult[_]] {
     
-    def apply(result: self.ParseResult[String]) = {
+    def apply(result: self.ParseResult[_]) = {
       MatchResult(
         result.successful,
         result.toString,
-        s"$result parsed successfully")
+        s"$result - parsing was successful")
     }
   }
   
