@@ -49,20 +49,20 @@ class TextParsersTest extends FlatSpec with Matchers {
   }
   
   it should "reject anything which doesn't start with double quotes" in {
-    new TextParser {
-      parseAll(taskDescription, "Hello\"").successful should equal (false)
+    new TextParser with ParserMatchers {
+      parseAll(taskDescription, "Hello\"") shouldNot parseOkay
     }
   }
   
   it should "reject anything which doesn't end with double quotes" in {
-    new TextParser {
-      parseAll(taskDescription, "\"My message").successful should equal (false)
+    new TextParser with ParserMatchers {
+      parseAll(taskDescription, "\"My message") shouldNot parseOkay
     }
   }
   
   it should "reject anything with double quotes in the middle" in {
-    new TextParser {
-      parseAll(taskDescription, "\"My\"message\"").successful should equal (false)
+    new TextParser with ParserMatchers {
+      parseAll(taskDescription, "\"My\"message\"") shouldNot parseOkay
     }
   }
 }

@@ -39,4 +39,23 @@ trait ParserMatchers {
   }
 
   def parseAs[T](expected: T) = new ResultParsesAsMatcher(expected)
+
+  // The following definitions allow us to more easily assert
+  // other outcomes of a parseResult
+  //
+  //   pr should parseOkay
+  //   pr shoulNot parseOkay
+  
+  class ResultParseOkayMatcher extends Matcher[self.ParseResult[String]] {
+    
+    def apply(result: self.ParseResult[String]) = {
+      MatchResult(
+        result.successful,
+        result.toString,
+        s"$result parsed successfully")
+    }
+  }
+  
+  val parseOkay = new ResultParseOkayMatcher()
+
 }
