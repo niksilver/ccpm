@@ -65,4 +65,16 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(taskDescription, "\"My\"message\"") shouldNot parseOkay
     }
   }
+  
+  "taskLine" should "parse a task ID and description (1)" in {
+    new TextParser with ParserMatchers {
+      parseAll(taskLine, """t1: "My first task"""") should parseAs (Task('t1, "My first task"))
+    }
+  }
+  
+  it should "parse a task ID and description (2 - to avoid faking)" in {
+    new TextParser with ParserMatchers {
+      parseAll(taskLine, """x17: "Some other task"""") should parseAs (Task('x17, "Some other task"))
+    }
+  }
 }

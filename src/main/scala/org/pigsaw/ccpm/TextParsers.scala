@@ -10,4 +10,6 @@ class TextParser extends RegexParsers {
   def taskID: Parser[Symbol] = "[a-zA-Z][0-9a-zA-Z]*".r ^^ { Symbol(_) }
   
   def taskDescription: Parser[String] = "\"" ~> """[^"]*""".r <~ "\"" ^^ { _.toString }
+  
+  def taskLine: Parser[Task] = taskID ~ ":" ~ taskDescription ^^ { case (id ~ ":" ~ desc) => Task(id, desc) }
 }
