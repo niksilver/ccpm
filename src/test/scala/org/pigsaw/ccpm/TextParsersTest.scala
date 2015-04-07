@@ -29,6 +29,18 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(taskID, "klmno5") should parseAs (Symbol("klmno5"))
     }
   }
+  
+  it should "parse a task ID starting with an underscore" in {
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "_lmno5") should parseAs (Symbol("_lmno5"))
+    }
+  }
+  
+  it should "parse a task ID containing an underscore" in {
+    new TextParser with ParserMatchers {
+      parseAll(taskID, "kl_no5") should parseAs (Symbol("kl_no5"))
+    }
+  }
 
   it should "reject a string starting with a digit" in {
     new TextParser with ParserMatchers {
@@ -114,6 +126,35 @@ class TextParsersTest extends FlatSpec with Matchers {
       out should parseOkay
       out.get shouldBe > (123455e15)
       out.get shouldBe < (123457e15)
+    }
+  }
+  
+  "resource" should "parse a word okay" in {
+    new TextParser with ParserMatchers {
+      parseAll(resource, "A") should parseAs ("A")
+      parseAll(resource, "Bob") should parseAs ("Bob")
+      parseAll(resource, "Charlie34") should parseAs ("Charlie34")
+    }
+  }
+  
+  it should "reject a string that starts with a number" in {
+    new TextParser with ParserMatchers {
+      parseAll(resource, "1Alice") shouldNot parseOkay
+    }
+  }
+  
+  it should "parse common characters if we're using double quotes" in {
+    def dq(s: String) = '"' + s + '"'
+    new TextParser with ParserMatchers {
+      parseAll(resource, dq("Alice Cromby")) should parseAs ("Alice Cromby")
+      parseAll(resource, dq("Cromby, Alice")) should parseAs ("Cromby, Alice")
+      parseAll(resource, dq(" the fin@l frontier")) should parseAs (" the fin@l frontier")
+    }
+  }
+  
+  it should "reject a string with a double quote if we're using double quotes" in {
+    new TextParser with ParserMatchers {
+      parseAll(resource, "\"He\"llo\"") shouldNot parseOkay
     }
   }
   
