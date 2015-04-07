@@ -9,11 +9,6 @@ class TextParsersTest extends FlatSpec with Matchers {
   "taskID" should "parse a task ID of letter and number (1)" in {
     new TextParser with ParserMatchers {
       parseAll(taskID, "t1") should parseAs (Symbol("t1"))
-    }
-  }
-
-  it should "parse a task ID of letter and number (2 - to avoid faking)" in {
-    new TextParser with ParserMatchers {
       parseAll(taskID, "x2") should parseAs (Symbol("x2"))
     }
   }

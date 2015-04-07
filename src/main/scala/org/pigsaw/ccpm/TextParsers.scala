@@ -7,6 +7,10 @@ import scala.util.parsing.combinator.RegexParsers
  * 
  * {{{
  *     t1: "My first task"
+ *     t2: "Task of duration 3" 3.0
+ *     ajob: "Alice's job" 1.5 (Alice)
+ *     b76a: "Bob's job" 2.0 ("Bob K")
+ *     end: "Carly's task requiring no time" (Carly)
  * }}}
  */
 class TextParser extends RegexParsers {
