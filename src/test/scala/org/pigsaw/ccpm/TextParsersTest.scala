@@ -169,4 +169,25 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(taskLine, """x17: "Some other task"""") should parseAs (Task('x17, "Some other task"))
     }
   }
+  
+  it should "parse a line with task ID, description, duration and parenthetical resource" in {
+    new TextParser with ParserMatchers {
+      parseAll(taskLine, """t0: "Initial task" 1.0 (Alice)""") should parseAs (Task('t0, "Initial task", 1.0, Some("Alice")))
+      parseAll(taskLine, """end: "Final task" 2.5 (Bob)""") should parseAs (Task('end, "Final task", 2.5, Some("Bob")))
+    }
+  }
+  
+  it should "parse a line with task ID, description and duration but no resource" in {
+    new TextParser with ParserMatchers {
+      parseAll(taskLine, """t0: "Initial task" 1.0""") should parseAs (Task('t0, "Initial task", 1.0, None))
+      parseAll(taskLine, """end: "Final task" 2.5""") should parseAs (Task('end, "Final task", 2.5, None))
+    }
+  }
+  
+  it should "parse a line with task ID, description and resource but no duration" in {
+    new TextParser with ParserMatchers {
+      parseAll(taskLine, """t0: "Initial task" (Alice)""") should parseAs (Task('t0, "Initial task", 0.0, Some("Alice")))
+      parseAll(taskLine, """end: "Final task" ("Bob Bobbington")""") should parseAs (Task('end, "Final task", 0.0, Some("Bob Bobbington")))
+    }
+  }
 }
