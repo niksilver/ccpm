@@ -21,7 +21,7 @@ class TextParser extends RegexParsers {
 
   def taskID: Parser[Symbol] = word ^^ { Symbol(_) }
   
-  def taskDescription: Parser[String] = "\"" ~> """[^"]*""".r <~ "\"" ^^ { _.toString }
+  def taskDescription: Parser[String] = doubleQuotedString
   
   def duration: Parser[Double] = ("""[0-9]*\.[0-9]+""".r | """[0-9]+""".r) ^^ { _.toDouble }
   
