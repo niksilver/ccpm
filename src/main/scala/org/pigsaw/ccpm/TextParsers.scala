@@ -27,21 +27,7 @@ class TextParser extends RegexParsers {
   
   def resource: Parser[String] = (word | doubleQuotedString ) ^^ { _.toString }
   
-  def taskLineJustDescription: Parser[Task] =
-    taskID ~ ":" ~ taskDescription ^^ { case (id ~ ":" ~ desc) => Task(id, desc) }
-  
-  def taskLineNoResource: Parser[Task] =
-    taskID ~ ":" ~ taskDescription ~ duration ^^
-    { case (id ~ ":" ~ desc ~ dur) => Task(id, desc, dur, None) }
-  
-  def taskLineNoDuration: Parser[Task] =
-    taskID ~ ":" ~ taskDescription ~ ("(" ~> resource <~ ")") ^^
-    { case (id ~ ":" ~ desc ~ res) => Task(id, desc, 0.0, Some(res)) }
-  
-  def taskLineAllDetails: Parser[Task] =
-    taskID ~ ":" ~ taskDescription ~ duration ~ ("(" ~> resource <~ ")") ^^
-    { case (id ~ ":" ~ desc ~ dur ~ res) => Task(id, desc, dur, Some(res)) }
-  
   def taskLine: Parser[Task] =
-    taskLineAllDetails | taskLineNoResource | taskLineNoDuration | taskLineJustDescription
+    taskID ~ ":" ~ taskDescription ~ opt(duration) ~ opt("(" ~> resource <~ ")") ^^
+    { case (id ~ ":" ~ desc ~ dur ~ res) => Task(id, desc, dur.getOrElse(0), res) }
 }
