@@ -187,21 +187,10 @@ class TextParsersTest extends FlatSpec with Matchers {
     }
   }
   
-  "dependenciesLine" should "parse a single dependency (1)" in {
+  "dependenciesLine" should "parse a single dependency" in {
     new TextParser with ParserMatchers {
-      val t1 = Task('t1, "First")
-      val t2 = Task('t2, "Second")
-      override val tasks = LinkedHashSet(t1, t2)
-      parseAll(dependenciesLine, "t1 -> t2") should parseAs (Set(t1 -> t2))
-    }
-  }
-  
-  it should "parse a single dependency (2 - to avoid faking)" in {
-    new TextParser with ParserMatchers {
-      val k1 = Task('k1, "First")
-      val k2 = Task('k2, "Second")
-      override val tasks = LinkedHashSet(k1, k2)
-      parseAll(dependenciesLine, "k2 -> k1") should parseAs (Set(k2 -> k1))
+      parseAll(dependenciesLine, "t1 -> t2") should parseAs (Set('t1 -> 't2))
+      parseAll(dependenciesLine, "k2 -> k1") should parseAs (Set('k2 -> 'k1))
     }
   }
 }
