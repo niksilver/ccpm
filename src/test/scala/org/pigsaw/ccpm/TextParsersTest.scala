@@ -289,4 +289,21 @@ class TextParsersTest extends FlatSpec with Matchers {
           parseAs (CommentLine())
     }
   }
+
+  it should "parse all lines with comments at the end" in {
+    new TextParser with ParserMatchers {
+      parseAll(line, """t0: "Initial" # First task""").asInstanceOf[ParseResult[TaskLine]] should
+          parseAs (TaskLine(Task('t0, "Initial")))
+      parseAll(line, "k2 -> k1#My dep here").asInstanceOf[ParseResult[DepsLine]] should
+          parseAs (DepsLine(Set('k2 -> 'k1)))
+      parseAll(line, """resource "Charlie-34" ###""").asInstanceOf[ParseResult[ResDecLine]] should
+          parseAs (ResDecLine("Charlie-34"))
+    }
+  }
+  
+  it should "parse a blank line" in {
+    new TextParser with ParserMatchers {
+      parseAll(line, "").asInstanceOf[ParseResult[BlankLine]] should parseAs (BlankLine())
+    }
+  }
 }
