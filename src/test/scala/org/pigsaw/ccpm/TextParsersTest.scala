@@ -253,4 +253,11 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(comment, "--##") shouldNot parseOkay
     }
   }
+  
+  "line" should "parse a task line" in {
+    new TextParser with ParserMatchers {
+      parseAll(line, """t0: "Initial" 1.0 (Alice)""").asInstanceOf should parseAs (TaskLine(Task('t0, "Initial", 1.0, Some("Alice"))))
+      parseAll(line, """end: "Final" 2.5 (Bob)""").asInstanceOf should parseAs (TaskLine(Task('end, "Final", 2.5, Some("Bob"))))
+    }
+  }
 }

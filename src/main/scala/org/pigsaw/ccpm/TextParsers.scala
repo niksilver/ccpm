@@ -1,6 +1,7 @@
 package org.pigsaw.ccpm
 
 import scala.util.parsing.combinator.RegexParsers
+import scala.language.existentials
 
 /**
  * Parse a piece of text to create a `Plan`. Define a task like this:
@@ -23,6 +24,11 @@ import scala.util.parsing.combinator.RegexParsers
  * {{{
  *     t1 -> t2
  *     ajob -> b76a -> end
+ * }}}
+ * 
+ * You can inject comments if they start with a `#`:
+ * {{{
+ *     # Resource declarations...
  * }}}
  */
 class TextParser extends RegexParsers {
@@ -57,6 +63,8 @@ class TextParser extends RegexParsers {
     "resource" ~> resource ^^ { ResourceDeclaration(_) }
     
   def comment: Parser[Comment] = "#" ~> ".*".r ^^ { _ => Comment() }
+  
+  def line: Parser[Line[_]] = taskLine ^^ { TaskLine(_) }
 }
 
 /**
@@ -68,3 +76,7 @@ case class ResourceDeclaration(name: String)
  * A comment in a textual plan.
  */
 case class Comment()
+
+sealed abstract class Line[+T](struct: T)
+
+case class TaskLine(t: Task) extends Line[Task](t)
