@@ -200,4 +200,17 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(dependenciesLine, "k2 -> k1 -> k0") should parseAs (Set('k2 -> 'k1, 'k1 -> 'k0))
     }
   }
+  
+  it should "reject a single task without a dependency" in {
+    new TextParser with ParserMatchers {
+      parseAll(dependenciesLine, "t1") shouldNot parseOkay
+    }
+  }
+  
+  it should "reject dependencies with trailing arrows" in {
+    new TextParser with ParserMatchers {
+      parseAll(dependenciesLine, "t1 ->") shouldNot parseOkay
+      parseAll(dependenciesLine, "t1 -> t2 ->") shouldNot parseOkay
+    }
+  }
 }
