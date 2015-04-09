@@ -256,29 +256,37 @@ class TextParsersTest extends FlatSpec with Matchers {
   
   "line" should "parse a task line" in {
     new TextParser with ParserMatchers {
-      parseAll(line, """t0: "Initial" 1.0 (Alice)""").asInstanceOf should parseAs (TaskLine(Task('t0, "Initial", 1.0, Some("Alice"))))
-      parseAll(line, """end: "Final" 2.5 (Bob)""").asInstanceOf should parseAs (TaskLine(Task('end, "Final", 2.5, Some("Bob"))))
+      parseAll(line, """t0: "Initial" 1.0 (Alice)""").asInstanceOf[ParseResult[TaskLine]] should
+          parseAs (TaskLine(Task('t0, "Initial", 1.0, Some("Alice"))))
+      parseAll(line, """end: "Final" 2.5 (Bob)""").asInstanceOf[ParseResult[TaskLine]] should
+          parseAs (TaskLine(Task('end, "Final", 2.5, Some("Bob"))))
     }
   }
   
   it should "parse a dependencies line" in {
     new TextParser with ParserMatchers {
-      parseAll(line, "t1 -> t2").asInstanceOf should parseAs (DepsLine(Set('t1 -> 't2)))
-      parseAll(line, "k2 -> k1 -> k0").asInstanceOf should parseAs (DepsLine(Set('k2 -> 'k1, 'k1 -> 'k0)))
+      parseAll(line, "t1 -> t2").asInstanceOf[ParseResult[DepsLine]] should
+          parseAs (DepsLine(Set('t1 -> 't2)))
+      parseAll(line, "k2 -> k1 -> k0").asInstanceOf[ParseResult[DepsLine]] should
+          parseAs (DepsLine(Set('k2 -> 'k1, 'k1 -> 'k0)))
     }
   }
   
   it should "parse a resource declaration" in {
     new TextParser with ParserMatchers {
-      parseAll(line, "resource Bob").asInstanceOf should parseAs (ResDecLine("Bob"))
-      parseAll(line, """resource "Charlie-34"""").asInstanceOf should parseAs (ResDecLine("Charlie-34"))
+      parseAll(line, "resource Bob").asInstanceOf[ParseResult[ResDecLine]] should
+          parseAs (ResDecLine("Bob"))
+      parseAll(line, """resource "Charlie-34"""").asInstanceOf[ParseResult[ResDecLine]] should
+          parseAs (ResDecLine("Charlie-34"))
     }
   }
   
   it should "parse a comment line" in {
     new TextParser with ParserMatchers {
-      parseAll(line, "# Resource declarations").asInstanceOf should parseAs (CommentLine)
-      parseAll(line, "##---##").asInstanceOf should parseAs (CommentLine)
+      parseAll(line, "# Resource declarations").asInstanceOf[ParseResult[CommentLine]] should
+          parseAs (CommentLine())
+      parseAll(line, "##---##").asInstanceOf[ParseResult[CommentLine]] should
+          parseAs (CommentLine())
     }
   }
 }
