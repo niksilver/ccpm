@@ -213,4 +213,28 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(dependenciesLine, "t1 -> t2 ->") shouldNot parseOkay
     }
   }
+  
+  "resourceDeclaration" should "accept a declared resource" in {
+    new TextParser with ParserMatchers {
+      parseAll(resourceDeclaration, "resource A") should parseAs (ResourceDeclaration("A"))
+      parseAll(resourceDeclaration, "resource Bob") should parseAs (ResourceDeclaration("Bob"))
+      parseAll(resourceDeclaration, "resource Charlie34") should parseAs (ResourceDeclaration("Charlie34"))
+    }
+  }
+  
+  it should "reject multiple words outside double quotes" in {
+    new TextParser with ParserMatchers {
+      parseAll(resourceDeclaration, "resource A B") shouldNot parseOkay
+      parseAll(resourceDeclaration, "resource Bob,e,brown") shouldNot parseOkay
+      parseAll(resourceDeclaration, "resource Charlie-34") shouldNot parseOkay
+    }
+  }
+  
+  it should "parse multiple words if they're in double quotes" in {
+    new TextParser with ParserMatchers {
+      parseAll(resourceDeclaration, """resource "A B"""") should parseAs (ResourceDeclaration("A B"))
+      parseAll(resourceDeclaration, """resource "Bob,e,brown"""") should parseAs (ResourceDeclaration("Bob,e,brown"))
+      parseAll(resourceDeclaration, """resource "Charlie-34"""") should parseAs (ResourceDeclaration("Charlie-34"))
+    }
+  }
 }

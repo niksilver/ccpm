@@ -12,6 +12,18 @@ import scala.util.parsing.combinator.RegexParsers
  *     b76a: "Bob's job" 2.0 ("Bob K")
  *     end: "Carly's task requiring no time" (Carly)
  * }}}
+ * 
+ * But resources need to be declared first like this:
+ * {{{
+ *     resource Alice
+ *     resource "Bob K"
+ * }}}
+ * 
+ * Dependencies can be explained like this:
+ * {{{
+ *     t1 -> t2
+ *     ajob -> b76a -> end
+ * }}}
  */
 class TextParser extends RegexParsers {
   
@@ -40,4 +52,12 @@ class TextParser extends RegexParsers {
   def dependenciesLine: Parser[Set[(Symbol, Symbol)]] =
     taskID ~ depArrow ~ rep1sep( taskID, depArrow ) ^^
     { case (t1 ~ depArrow ~ ts) => listToPairs(t1 :: ts) }
+  
+  def resourceDeclaration: Parser[ResourceDeclaration] =
+    "resource" ~> resource ^^ { ResourceDeclaration(_) }
 }
+
+/**
+ * Declaration of a resource while parsing a textual plan.
+ */
+case class ResourceDeclaration(name: String)
