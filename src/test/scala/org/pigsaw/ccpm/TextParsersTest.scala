@@ -6,6 +6,8 @@ import scala.util.parsing.combinator._
 import scala.collection.mutable.LinkedHashSet
 
 class TextParsersTest extends FlatSpec with Matchers {
+  
+  import Grammar._
 
   "taskID" should "parse a task ID of letter and number (1)" in {
     new TextParser with ParserMatchers {
