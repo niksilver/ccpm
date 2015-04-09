@@ -44,9 +44,11 @@ import scala.language.existentials
  *     ajob -> b76a -> end
  * }}}
  *
- * You can inject comments if they start with a `#`:
+ * You can inject comments if they start with a `#`. They can
+ * appear at the start of a line, or at the end:
  * {{{
  *     # Resource declarations...
+ *     resource Alice    # That's Alice
  * }}}
  */
 class TextParser extends RegexParsers {
