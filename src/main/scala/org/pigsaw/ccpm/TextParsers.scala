@@ -17,6 +17,8 @@ class TextParser extends RegexParsers {
   
   private val word = "[a-zA-Z_][0-9a-zA-Z_]*".r
   
+  private val depArrow = "->"
+  
   def doubleQuotedString: Parser[String] = "\"[^\"]+\"".r ^^ { _.toString.tail.init }
 
   def taskID: Parser[Symbol] = word ^^ { Symbol(_) }
@@ -31,6 +33,11 @@ class TextParser extends RegexParsers {
     taskID ~ ":" ~ taskDescription ~ opt(duration) ~ opt("(" ~> resource <~ ")") ^^
     { case (id ~ ":" ~ desc ~ dur ~ res) => Task(id, desc, dur.getOrElse(0), res) }
   
+  // Convert a List(a, b, c, d) to a Set(a -> b, b -> c, c -> d)
+  private def listToPairs(ts: List[Symbol]): Set[(Symbol, Symbol)] =
+    (ts.sliding(2) map { p => p(0) -> p(1) }).toSet
+  
   def dependenciesLine: Parser[Set[(Symbol, Symbol)]] =
-    taskID ~ "->" ~ taskID ^^ { case (t1 ~ "->" ~ t2) => Set(t1 -> t2) }
+    taskID ~ depArrow ~ rep1sep( taskID, depArrow ) ^^
+    { case (t1 ~ depArrow ~ ts) => listToPairs(t1 :: ts) }
 }

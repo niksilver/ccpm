@@ -193,4 +193,11 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(dependenciesLine, "k2 -> k1") should parseAs (Set('k2 -> 'k1))
     }
   }
+  
+  it should "parse multiple dependencies" in {
+    new TextParser with ParserMatchers {
+      parseAll(dependenciesLine, "t1 -> t2 -> t3 -> t4") should parseAs (Set('t1 -> 't2, 't2 -> 't3, 't3 ->'t4))
+      parseAll(dependenciesLine, "k2 -> k1 -> k0") should parseAs (Set('k2 -> 'k1, 'k1 -> 'k0))
+    }
+  }
 }
