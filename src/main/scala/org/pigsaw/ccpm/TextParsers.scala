@@ -51,7 +51,7 @@ import scala.language.existentials
  *     resource Alice    # That's Alice
  * }}}
  */
-class TextParser extends RegexParsers {
+class TextParsers extends RegexParsers {
   import Grammar._
 
   private val word = "[a-zA-Z_][0-9a-zA-Z_]*".r
