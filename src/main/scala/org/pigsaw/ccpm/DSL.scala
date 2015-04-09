@@ -5,7 +5,7 @@ import scala.collection.mutable.LinkedHashSet
 /**
  * Mutable data for a plan.
  */
-class PlanContext {
+trait PlanContext {
   val tasks = LinkedHashSet[Task]()
   val resources = LinkedHashSet[String]()
   val dependencies = LinkedHashSet[(Task, Task)]()
@@ -25,7 +25,7 @@ class PlanContext {
 trait PlanVerbs {
   this: ScriptedPlan =>
 
-  protected val pc = new PlanContext
+  protected val pc = new PlanContext { }
 
   implicit def Task2DSLTask(t: Task) = new DSLTask(t, pc)
   implicit def Id2DSLTask(id: Symbol) = new DSLTask(task(id), pc)

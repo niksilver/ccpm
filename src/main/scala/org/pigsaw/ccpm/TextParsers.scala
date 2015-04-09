@@ -13,7 +13,7 @@ import scala.util.parsing.combinator.RegexParsers
  *     end: "Carly's task requiring no time" (Carly)
  * }}}
  */
-class TextParser extends RegexParsers {
+class TextParser extends RegexParsers with PlanContext {
   
   private val word = "[a-zA-Z_][0-9a-zA-Z_]*".r
   
@@ -30,4 +30,7 @@ class TextParser extends RegexParsers {
   def taskLine: Parser[Task] =
     taskID ~ ":" ~ taskDescription ~ opt(duration) ~ opt("(" ~> resource <~ ")") ^^
     { case (id ~ ":" ~ desc ~ dur ~ res) => Task(id, desc, dur.getOrElse(0), res) }
+  
+  def dependenciesLine: Parser[Set[(Task, Task)]] =
+    taskID ~ "->" ~ taskID ^^ { case (t1 ~ "->" ~ t2) => Set(task(t1) -> task(t2)) }
 }

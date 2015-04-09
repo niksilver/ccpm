@@ -3,6 +3,7 @@ package org.pigsaw.ccpm
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 import scala.util.parsing.combinator._
+import scala.collection.mutable.LinkedHashSet
 
 class TextParsersTest extends FlatSpec with Matchers {
 
@@ -183,6 +184,24 @@ class TextParsersTest extends FlatSpec with Matchers {
     new TextParser with ParserMatchers {
       parseAll(taskLine, """t0: "Initial task" (Alice)""") should parseAs (Task('t0, "Initial task", 0.0, Some("Alice")))
       parseAll(taskLine, """end: "Final task" ("Bob Bobbington")""") should parseAs (Task('end, "Final task", 0.0, Some("Bob Bobbington")))
+    }
+  }
+  
+  "dependenciesLine" should "parse a single dependency (1)" in {
+    new TextParser with ParserMatchers {
+      val t1 = Task('t1, "First")
+      val t2 = Task('t2, "Second")
+      override val tasks = LinkedHashSet(t1, t2)
+      parseAll(dependenciesLine, "t1 -> t2") should parseAs (Set(t1 -> t2))
+    }
+  }
+  
+  it should "parse a single dependency (2 - to avoid faking)" in {
+    new TextParser with ParserMatchers {
+      val k1 = Task('k1, "First")
+      val k2 = Task('k2, "Second")
+      override val tasks = LinkedHashSet(k1, k2)
+      parseAll(dependenciesLine, "k2 -> k1") should parseAs (Set(k2 -> k1))
     }
   }
 }
