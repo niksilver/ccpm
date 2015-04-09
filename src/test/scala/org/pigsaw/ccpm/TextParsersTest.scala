@@ -260,4 +260,25 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(line, """end: "Final" 2.5 (Bob)""").asInstanceOf should parseAs (TaskLine(Task('end, "Final", 2.5, Some("Bob"))))
     }
   }
+  
+  it should "parse a dependencies line" in {
+    new TextParser with ParserMatchers {
+      parseAll(line, "t1 -> t2").asInstanceOf should parseAs (DepsLine(Set('t1 -> 't2)))
+      parseAll(line, "k2 -> k1 -> k0").asInstanceOf should parseAs (DepsLine(Set('k2 -> 'k1, 'k1 -> 'k0)))
+    }
+  }
+  
+  it should "parse a resource declaration" in {
+    new TextParser with ParserMatchers {
+      parseAll(line, "resource Bob").asInstanceOf should parseAs (ResDecLine("Bob"))
+      parseAll(line, """resource "Charlie-34"""").asInstanceOf should parseAs (ResDecLine("Charlie-34"))
+    }
+  }
+  
+  it should "parse a comment line" in {
+    new TextParser with ParserMatchers {
+      parseAll(line, "# Resource declarations").asInstanceOf should parseAs (CommentLine)
+      parseAll(line, "##---##").asInstanceOf should parseAs (CommentLine)
+    }
+  }
 }

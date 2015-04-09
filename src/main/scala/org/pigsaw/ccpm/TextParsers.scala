@@ -64,7 +64,11 @@ class TextParser extends RegexParsers {
     
   def comment: Parser[Comment] = "#" ~> ".*".r ^^ { _ => Comment() }
   
-  def line: Parser[Line[_]] = taskLine ^^ { TaskLine(_) }
+  def line: Parser[Line[_]] =
+    ( taskLine ^^ { TaskLine(_) } ) |
+    ( dependenciesLine ^^ { DepsLine(_) }) |
+    ( resourceDeclaration ^^ { rd => ResDecLine(rd.name) }) |
+    ( comment ^^ { _ => CommentLine })
 }
 
 /**
@@ -80,3 +84,6 @@ case class Comment()
 sealed abstract class Line[+T](struct: T)
 
 case class TaskLine(t: Task) extends Line[Task](t)
+case class DepsLine(ds: Set[(Symbol, Symbol)]) extends Line[Set[(Symbol, Symbol)]](ds)
+case class ResDecLine(r: String) extends Line[String](r)
+object CommentLine extends Line[String](null)
