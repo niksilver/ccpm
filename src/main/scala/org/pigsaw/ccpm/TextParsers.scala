@@ -55,9 +55,16 @@ class TextParser extends RegexParsers {
   
   def resourceDeclaration: Parser[ResourceDeclaration] =
     "resource" ~> resource ^^ { ResourceDeclaration(_) }
+    
+  def comment: Parser[Comment] = "#" ~> ".*".r ^^ { _ => Comment() }
 }
 
 /**
  * Declaration of a resource while parsing a textual plan.
  */
 case class ResourceDeclaration(name: String)
+
+/**
+ * A comment in a textual plan.
+ */
+case class Comment()

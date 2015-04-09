@@ -237,4 +237,20 @@ class TextParsersTest extends FlatSpec with Matchers {
       parseAll(resourceDeclaration, """resource "Charlie-34"""") should parseAs (ResourceDeclaration("Charlie-34"))
     }
   }
+  
+  "comment" should "parse a line that starts with a hash" in {
+    new TextParser with ParserMatchers {
+      parseAll(comment, "#") should parseAs (Comment())
+      parseAll(comment, "# Resource declarations") should parseAs (Comment())
+      parseAll(comment, "##---##") should parseAs (Comment())
+    }
+  }
+  
+  it should "reject a line that doesn't start with a hash" in {
+    new TextParser with ParserMatchers {
+      parseAll(comment, "") shouldNot parseOkay
+      parseAll(comment, "Resource declarations") shouldNot parseOkay
+      parseAll(comment, "--##") shouldNot parseOkay
+    }
+  }
 }
