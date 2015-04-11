@@ -21,7 +21,7 @@ package org.pigsaw.ccpm
 import scala.collection.mutable.LinkedHashSet
 
 /**
- * Mutable data for a plan.
+ * Mutable data for a plan that's being built up.
  */
 class PlanContext {
   val tasks = LinkedHashSet[Task]()

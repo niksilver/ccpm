@@ -93,6 +93,24 @@ class TextParsers extends RegexParsers {
       ("" ^^ { _ => BlankLine() })
 
   def line: Parser[Line] = simpleLine ~ opt(comment) ^^ { case ln ~ comm => ln }
+  
+  /**
+   * Parse a textual plan
+   */
+  def apply(text: String): Tuple2[Plan, String] = {
+    val res = parseAll(line, text)
+    val pc = new PlanContext
+    res match {
+      case Success(TaskLine(t), _) => pc.tasks += t
+      case Success(BlankLine(), _) => // Nothing
+      case other => throw new NotImplementedError(other.toString)
+    }
+    val p = new Plan {
+      val tasks = pc.tasks
+      val dependencies = Set[(Task, Task)]()
+    }
+    (p, "Hello!")
+  }
 }
 
 /**
