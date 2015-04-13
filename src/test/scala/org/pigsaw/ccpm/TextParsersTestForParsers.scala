@@ -21,8 +21,9 @@ package org.pigsaw.ccpm
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 import scala.util.parsing.combinator._
+import scala.util.parsing.input.CharSequenceReader
 
-class TextParsersTest extends FlatSpec with Matchers {
+class TextParsersTestForParsers extends FlatSpec with Matchers {
   
   import Grammar._
 
@@ -324,5 +325,34 @@ class TextParsersTest extends FlatSpec with Matchers {
     new TextParsers with ParserMatchers {
       parseAll(line, "").asInstanceOf[ParseResult[BlankLine]] should parseAs (BlankLine())
     }
+  }
+  
+  it should "report a bad line" in {
+    new TextParsers with ParserMatchers {
+      parseAll(line, "Not syntactically correct").asInstanceOf[ParseResult[BadLine]] should
+          parseAs (BadLine("Not syntactically correct"))
+      parseAll(line, "Other bad line").asInstanceOf[ParseResult[BadLine]] should
+          parseAs (BadLine("Other bad line"))
+    }
+  }
+  
+  "parseLines" should "give a single blank line if input is empty" in {
+    val tp = new TextParsers
+    tp.parseLines("") should equal (Seq(BlankLine()))
+  }
+  
+  it should "give an empty sequence if input is just a \\n" in {
+    val tp = new TextParsers
+    tp.parseLines("\u000a") should equal (Seq())
+  }
+  
+  it should "give two bad lines if input is two bad lines separated by \\n" in {
+    val tp = new TextParsers
+    tp.parseLines("One\u000aTwo") should equal (Seq(BadLine("One"), BadLine("Two")))
+  }
+  
+  it should "give two bad lines if input is two bad lines separated by \\r\\n" in {
+    val tp = new TextParsers
+    tp.parseLines("One\u000d\u000aTwo") should equal (Seq(BadLine("One"), BadLine("Two")))
   }
 }

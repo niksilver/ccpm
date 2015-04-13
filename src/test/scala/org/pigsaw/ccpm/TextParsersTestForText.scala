@@ -35,4 +35,14 @@ class TextParsersTestForText extends FlatSpec with Matchers {
     p.tasks.size should equal (1)
     p.task('t0) should equal (Task('t0, "First task", 0, None))
   }
+  
+  it should "give a two-task plan if there are just two tasks" in {
+    val parsers = new TextParsers
+    val p = parsers(
+        """t0: "First task" 1.0
+          |t1: "Other task" 1.5""".stripMargin)._1
+    p.tasks.size should equal (2)
+    p.task('t0) should equal (Task('t0, "First task", 1.0, None))
+    p.task('t1) should equal (Task('t1, "Other task", 1.5, None))
+  }
 }

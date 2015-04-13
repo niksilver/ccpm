@@ -20,6 +20,9 @@ package org.pigsaw.ccpm
 
 import scala.util.parsing.combinator.RegexParsers
 import scala.language.existentials
+import scala.util.parsing.input.Reader
+import scala.util.parsing.combinator.PackratParsers
+import scala.util.parsing.input.CharSequenceReader
 
 /**
  * Parse a piece of text to create a `Plan`. Define a task like this:
@@ -51,24 +54,26 @@ import scala.language.existentials
  *     resource Alice    # That's Alice
  * }}}
  */
-class TextParsers extends RegexParsers {
+class TextParsers extends RegexParsers with PackratParsers {
   import Grammar._
 
   private val word = "[a-zA-Z_][0-9a-zA-Z_]*".r
-
+  
   private val depArrow = "->"
 
-  def doubleQuotedString: Parser[String] = "\"[^\"]+\"".r ^^ { _.toString.tail.init }
+  lazy val doubleQuotedString: PackratParser[String] = "\"[^\"]+\"".r ^^ { _.toString.tail.init }
 
-  def taskID: Parser[Symbol] = word ^^ { Symbol(_) }
+  lazy val nonBlankSeq: PackratParser[String] = """\S.*""".r ^^ { _.toString }
 
-  def taskDescription: Parser[String] = doubleQuotedString
+  lazy val taskID: PackratParser[Symbol] = word ^^ { Symbol(_) }
 
-  def duration: Parser[Double] = ("""[0-9]*\.[0-9]+""".r | """[0-9]+""".r) ^^ { _.toDouble }
+  lazy val taskDescription: PackratParser[String] = doubleQuotedString
 
-  def resource: Parser[String] = (word | doubleQuotedString) ^^ { _.toString }
+  lazy val duration: PackratParser[Double] = ("""[0-9]*\.[0-9]+""".r | """[0-9]+""".r) ^^ { _.toDouble }
 
-  def taskLine: Parser[Task] =
+  lazy val resource: PackratParser[String] = (word | doubleQuotedString) ^^ { _.toString }
+
+  lazy val taskLine: PackratParser[Task] =
     taskID ~ ":" ~ taskDescription ~ opt(duration) ~ opt("(" ~> resource <~ ")") ^^
       { case (id ~ ":" ~ desc ~ dur ~ res) => Task(id, desc, dur.getOrElse(0), res) }
 
@@ -76,37 +81,40 @@ class TextParsers extends RegexParsers {
   private def listToPairs(ts: List[Symbol]): Set[(Symbol, Symbol)] =
     (ts.sliding(2) map { p => p(0) -> p(1) }).toSet
 
-  def dependenciesLine: Parser[Set[(Symbol, Symbol)]] =
+  lazy val dependenciesLine: PackratParser[Set[(Symbol, Symbol)]] =
     taskID ~ depArrow ~ rep1sep(taskID, depArrow) ^^
       { case (t1 ~ depArrow ~ ts) => listToPairs(t1 :: ts) }
 
-  def resourceDeclaration: Parser[ResourceDeclaration] =
+  lazy val resourceDeclaration: PackratParser[ResourceDeclaration] =
     "resource" ~> resource ^^ { ResourceDeclaration(_) }
 
-  def comment: Parser[Comment] = "#" ~> ".*".r ^^ { _ => Comment() }
+  lazy val comment: PackratParser[Comment] = "#" ~> ".*".r ^^ { _ => Comment() }
 
-  def simpleLine: Parser[Line] =
+  lazy val simpleLine: PackratParser[Line] =
     (taskLine ^^ { TaskLine(_) }) |
       (dependenciesLine ^^ { DepsLine(_) }) |
       (resourceDeclaration ^^ { rd => ResDecLine(rd.name) }) |
-      (comment ^^ { _ => CommentLine() }) |
-      ("" ^^ { _ => BlankLine() })
+      (comment ^^ { _ => CommentLine() })
 
-  def line: Parser[Line] = simpleLine ~ opt(comment) ^^ { case ln ~ comm => ln }
+  lazy val line: PackratParser[Line] =
+    (simpleLine ~ opt(comment) ^^ { case ln ~ comm => ln }) |
+    (nonBlankSeq ^^ { case ln => BadLine(ln) }) |
+    ("" ^^ { _ => BlankLine() })
+
+  def parseLines(lines: String): Seq[Line] = {
+    lines.split("\u000a") map { parseAll(line, _).get }
+  }
+  
+  def parseAll[T](fn: Parser[T], text: String): ParseResult[T] =
+    parseAll(fn, new PackratReader(new CharSequenceReader(text)))
   
   /**
    * Parse a textual plan
    */
-  def apply(text: String): Tuple2[Plan, String] = {
-    val res = parseAll(line, text)
-    val pc = new PlanContext
-    res match {
-      case Success(TaskLine(t), _) => pc.tasks += t
-      case Success(BlankLine(), _) => // Nothing
-      case other => throw new NotImplementedError(other.toString)
-    }
+  def apply(text: String): (Plan, String) = {
+    val lns = parseLines(text)
     val p = new Plan {
-      val tasks = pc.tasks
+      val tasks = lns collect { case TaskLine(t) => t }
       val dependencies = Set[(Task, Task)]()
     }
     (p, "Hello!")
@@ -135,4 +143,5 @@ object Grammar {
   case class ResDecLine(r: String) extends Line
   case class CommentLine() extends Line
   case class BlankLine() extends Line
+  case class BadLine(line: String) extends Line
 }
