@@ -45,4 +45,20 @@ class TextParsersTestForText extends FlatSpec with Matchers {
     p.task('t0) should equal (Task('t0, "First task", 1.0, None))
     p.task('t1) should equal (Task('t1, "Other task", 1.5, None))
   }
+  
+  it should "give tasks in order if there are many of them" in {
+    val parsers = new TextParsers
+    val p = parsers(
+        """t0: "First task" 1.0
+          |t1: "Other task" 1.5
+          |t2: "Two" 2.0
+          |t3: "Three" 3.0
+          |t4: "Four" 4.0""".stripMargin)._1
+    p.tasks.size should equal (5)
+    p.tasks.toSeq(0) should equal (Task('t0, "First task", 1.0, None))
+    p.tasks.toSeq(1) should equal (Task('t1, "Other task", 1.5, None))
+    p.tasks.toSeq(2) should equal (Task('t2, "Two", 2.0, None))
+    p.tasks.toSeq(3) should equal (Task('t3, "Three", 3.0, None))
+    p.tasks.toSeq(4) should equal (Task('t4, "Four", 4.0, None))
+  }
 }
