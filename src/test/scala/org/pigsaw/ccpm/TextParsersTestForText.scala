@@ -82,4 +82,14 @@ class TextParsersTestForText extends FlatSpec with Matchers {
     errors.size should equal (1)
     errors(0) should equal (Grammar.LineError(2))
   }
+  
+  it should "correctly report multiple errors" in {
+    val parsers = new TextParsers
+    val errors = parsers(
+        """t0: "First task" 1.0
+          |Something wrong here
+          |...and here!
+          |# This is a comment""".stripMargin)._2
+    errors should equal (Seq(Grammar.LineError(2), Grammar.LineError(3)))
+  }
 }

@@ -113,12 +113,22 @@ class TextParsers extends RegexParsers with PackratParsers {
    */
   def apply(text: String): (Plan, Seq[LineError]) = {
     val lns = parseLines(text)
+    var ts = scala.collection.mutable.Seq[Task]()
+    var es = scala.collection.mutable.Seq[LineError]()
+    val linenos = (lns zip (1 to lns.size))
+    linenos.foreach {
+      case (TaskLine(t), _) => ts = ts :+ t
+      case (BadLine(ln), n) => es = es :+ LineError(n)
+      case (BlankLine(), _) => 
+      case (CommentLine(), _) => 
+      case (DepsLine(_), _) => 
+      case (ResDecLine(_), _) => 
+    }
     val p = new Plan {
-      val tasks = lns collect { case TaskLine(t) => t }
+      val tasks = Seq(ts: _*)
       val dependencies = Set[(Task, Task)]()
     }
-    val errors = (lns zip (1 to lns.size)) collect { case (BadLine(ln), n) => LineError(n) }
-    (p, errors)
+    (p, Seq(es: _*))
   }
 }
 
