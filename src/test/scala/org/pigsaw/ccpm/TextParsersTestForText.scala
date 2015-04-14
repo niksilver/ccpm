@@ -61,4 +61,25 @@ class TextParsersTestForText extends FlatSpec with Matchers {
     p.tasks.toSeq(3) should equal (Task('t3, "Three", 3.0, None))
     p.tasks.toSeq(4) should equal (Task('t4, "Four", 4.0, None))
   }
+  
+  it should "correctly report an error at a specified line (1)" in {
+    val parsers = new TextParsers
+    val errors = parsers(
+        """t0: "First task" 1.0
+          |t1: "Second task" 1.5
+          |This line is an error
+          |# This is a comment""".stripMargin)._2
+    errors.size should equal (1)
+    errors(0) should equal (Grammar.LineError(3))
+  }
+  
+  it should "correctly report an error at a specified line (2 - to avoid faking)" in {
+    val parsers = new TextParsers
+    val errors = parsers(
+        """t0: "First task" 1.0
+          |Something wrong here
+          |# This is a comment""".stripMargin)._2
+    errors.size should equal (1)
+    errors(0) should equal (Grammar.LineError(2))
+  }
 }

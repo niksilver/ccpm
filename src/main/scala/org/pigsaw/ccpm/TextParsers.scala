@@ -111,13 +111,14 @@ class TextParsers extends RegexParsers with PackratParsers {
   /**
    * Parse a textual plan
    */
-  def apply(text: String): (Plan, String) = {
+  def apply(text: String): (Plan, Seq[LineError]) = {
     val lns = parseLines(text)
     val p = new Plan {
       val tasks = lns collect { case TaskLine(t) => t }
       val dependencies = Set[(Task, Task)]()
     }
-    (p, "Hello!")
+    val errors = (lns zip (1 to lns.size)) collect { case (BadLine(ln), n) => LineError(n) }
+    (p, errors)
   }
 }
 
@@ -136,6 +137,9 @@ object Grammar {
    */
   case class Comment()
 
+  /**
+   * The result of a parsed line.
+   */
   sealed abstract class Line
 
   case class TaskLine(t: Task) extends Line
@@ -144,4 +148,10 @@ object Grammar {
   case class CommentLine() extends Line
   case class BlankLine() extends Line
   case class BadLine(line: String) extends Line
+  
+  /**
+   * A report of a line which cannot be parsed.
+   * @param num  Line number of the error (starting at 1).
+   */
+  case class LineError(num: Int)
 }
