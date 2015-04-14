@@ -23,6 +23,7 @@ import scala.language.existentials
 import scala.util.parsing.input.Reader
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.CharSequenceReader
+import scala.annotation.tailrec
 
 /**
  * Parse a piece of text to create a `Plan`. Define a task like this:
@@ -113,22 +114,26 @@ class TextParsers extends RegexParsers with PackratParsers {
    */
   def apply(text: String): (Plan, Seq[LineError]) = {
     val lns = parseLines(text)
-    var ts = scala.collection.mutable.Seq[Task]()
-    var es = scala.collection.mutable.Seq[LineError]()
-    val linenos = (lns zip (1 to lns.size))
-    linenos.foreach {
-      case (TaskLine(t), _) => ts = ts :+ t
-      case (BadLine(ln), n) => es = es :+ LineError(n)
-      case (BlankLine(), _) => 
-      case (CommentLine(), _) => 
-      case (DepsLine(_), _) => 
-      case (ResDecLine(_), _) => 
-    }
+    val (ts, es) = build(lns, 1, Seq(), Seq())
     val p = new Plan {
       val tasks = Seq(ts: _*)
       val dependencies = Set[(Task, Task)]()
     }
     (p, Seq(es: _*))
+  }
+  
+  @tailrec
+  private def build(lines: Seq[Grammar.Line], num: Int, ts: Seq[Task], es: Seq[LineError]):
+      (Seq[Task], Seq[LineError]) = {
+    if (lines.isEmpty) {
+      (ts, es)
+    } else {
+      val (sLine, rest) = (Seq(lines.head), lines.tail)
+      build(rest, num + 1,
+          ts ++ (sLine collect { case TaskLine(t) => t }),
+          es ++ (sLine collect { case BadLine(ln) => LineError(num) })
+      )
+    }
   }
 }
 
