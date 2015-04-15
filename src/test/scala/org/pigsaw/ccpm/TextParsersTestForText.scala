@@ -92,4 +92,19 @@ class TextParsersTestForText extends FlatSpec with Matchers {
           |# This is a comment""".stripMargin)._2
     errors should equal (Seq(Grammar.LineError(2), Grammar.LineError(3)))
   }
+  
+  it should "include dependencies in the plan" in {
+    val parsers = new TextParsers
+    val p = parsers(
+        """t0: "First task" 1.0
+          |t1: "Other task" 1.5
+          |t2: "Two" 2.0
+          |t0 -> t1
+          |t1 -> t2""".stripMargin)._1
+    val t0 = p.task('t0)
+    val t1 = p.task('t1)
+    val t2 = p.task('t2)
+    p.dependencies should contain (t0 -> t1)
+    p.dependencies should contain (t1 -> t2)
+  }
 }

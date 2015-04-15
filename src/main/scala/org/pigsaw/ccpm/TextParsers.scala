@@ -114,23 +114,32 @@ class TextParsers extends RegexParsers with PackratParsers {
    */
   def apply(text: String): (Plan, Seq[LineError]) = {
     val lns = parseLines(text)
-    val (ts, es) = build(lns, 1, Seq(), Seq())
+    val (ts, ds, es) = build(lns, 1, Seq(), Set(), Seq())
     val p = new Plan {
-      val tasks = Seq(ts: _*)
-      val dependencies = Set[(Task, Task)]()
+      val tasks = ts
+      val dependencies = ds
     }
     (p, Seq(es: _*))
   }
   
   @tailrec
-  private def build(lines: Seq[Grammar.Line], num: Int, ts: Seq[Task], es: Seq[LineError]):
-      (Seq[Task], Seq[LineError]) = {
+  private def build(lines: Seq[Grammar.Line], num: Int,
+      ts: Seq[Task], ds: Set[(Task, Task)], es: Seq[LineError]):
+      (Seq[Task], Set[(Task, Task)], Seq[LineError]) = {
+    
+    def task(s: Symbol): Task = ts.find(_.id == s).get
+    def sym2tasks(d: (Symbol, Symbol)): (Task, Task) = (task(d._1), task(d._2))
+    def set2tasks(s: Set[(Symbol, Symbol)]) = s map {sym2tasks(_)}
+    
     if (lines.isEmpty) {
-      (ts, es)
+      (ts, ds, es)
     } else {
       val (sLine, rest) = (Seq(lines.head), lines.tail)
+      val w = (sLine collect { case TaskLine(t) => t })
+      val x = (sLine collect { case DepsLine(d) => set2tasks(_) })
       build(rest, num + 1,
           ts ++ (sLine collect { case TaskLine(t) => t }),
+          ds ++ (sLine collect { case DepsLine(d) => set2tasks(d).head }),
           es ++ (sLine collect { case BadLine(ln) => LineError(num) })
       )
     }
