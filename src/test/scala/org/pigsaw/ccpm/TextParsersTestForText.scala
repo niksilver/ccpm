@@ -70,7 +70,7 @@ class TextParsersTestForText extends FlatSpec with Matchers {
           |This line is an error
           |# This is a comment""".stripMargin)._2
     errors.size should equal (1)
-    errors(0) should equal (Grammar.LineError(3))
+    errors(0) should equal (Grammar.LineError(3, "Syntax error"))
   }
   
   it should "correctly report an error at a specified line (2 - to avoid faking)" in {
@@ -80,7 +80,7 @@ class TextParsersTestForText extends FlatSpec with Matchers {
           |Something wrong here
           |# This is a comment""".stripMargin)._2
     errors.size should equal (1)
-    errors(0) should equal (Grammar.LineError(2))
+    errors(0) should equal (Grammar.LineError(2, "Syntax error"))
   }
   
   it should "correctly report multiple errors" in {
@@ -90,7 +90,7 @@ class TextParsersTestForText extends FlatSpec with Matchers {
           |Something wrong here
           |...and here!
           |# This is a comment""".stripMargin)._2
-    errors should equal (Seq(Grammar.LineError(2), Grammar.LineError(3)))
+    errors should equal (Seq(Grammar.LineError(2, "Syntax error"), Grammar.LineError(3, "Syntax error")))
   }
   
   it should "include dependencies in the plan" in {
@@ -106,5 +106,16 @@ class TextParsersTestForText extends FlatSpec with Matchers {
     val t2 = p.task('t2)
     p.dependencies should contain (t0 -> t1)
     p.dependencies should contain (t1 -> t2)
+  }
+  
+  it should "be able to report an unknown task in a dependency line" in {
+    val parsers = new TextParsers
+    val errors = parsers(
+        """t0: "First task" 1.0
+          |t1: "Other task" 1.5
+          |t2: "Two" 2.0
+          |t0 -> t1
+          |t1 -> t200""".stripMargin)._2
+    errors(0) should equal (Grammar.LineError(5, "Unknown task: t200"))
   }
 }

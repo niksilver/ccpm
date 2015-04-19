@@ -113,37 +113,28 @@ class TextParsers extends RegexParsers with PackratParsers {
    * Parse a textual plan
    */
   def apply(text: String): (Plan, Seq[LineError]) = {
-    val lns = parseLines(text)
-    val (ts, ds, es) = build(lns, 1, Seq(), Set(), Seq())
+    var ts = Seq[Task]()
+    var ds = Set[(Task, Task)]()
+    var es = Seq[LineError]()
+    var num = 0
+    
+    def task(s: Symbol): Option[Task] = ts find { _.id == s }
+    
+    parseLines(text) foreach { ln =>
+      num += 1
+      ln match {
+        case TaskLine(t) => ts = ts :+ t
+        case DepsLine(syms) => ds = ds + Tuple2(task(syms.head._1).get, task(syms.head._2).get)
+        case BadLine(txt) => es = es :+ LineError(num, "Syntax error")
+        case _ => // Ignore
+    }}
     val p = new Plan {
       val tasks = ts
       val dependencies = ds
     }
-    (p, Seq(es: _*))
+    (p, es)
   }
-  
-  @tailrec
-  private def build(lines: Seq[Grammar.Line], num: Int,
-      ts: Seq[Task], ds: Set[(Task, Task)], es: Seq[LineError]):
-      (Seq[Task], Set[(Task, Task)], Seq[LineError]) = {
-    
-    def task(s: Symbol): Task = ts.find(_.id == s).get
-    def sym2tasks(d: (Symbol, Symbol)): (Task, Task) = (task(d._1), task(d._2))
-    def set2tasks(s: Set[(Symbol, Symbol)]) = s map {sym2tasks(_)}
-    
-    if (lines.isEmpty) {
-      (ts, ds, es)
-    } else {
-      val (sLine, rest) = (Seq(lines.head), lines.tail)
-      val w = (sLine collect { case TaskLine(t) => t })
-      val x = (sLine collect { case DepsLine(d) => set2tasks(_) })
-      build(rest, num + 1,
-          ts ++ (sLine collect { case TaskLine(t) => t }),
-          ds ++ (sLine collect { case DepsLine(d) => set2tasks(d).head }),
-          es ++ (sLine collect { case BadLine(ln) => LineError(num) })
-      )
-    }
-  }
+
 }
 
 /**
@@ -176,6 +167,7 @@ object Grammar {
   /**
    * A report of a line which cannot be parsed.
    * @param num  Line number of the error (starting at 1).
+   * @param msg  Error message.
    */
-  case class LineError(num: Int)
+  case class LineError(num: Int, msg: String)
 }
