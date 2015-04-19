@@ -24,21 +24,21 @@ import org.scalatest.Matchers
 class TextParsersTestForText extends FlatSpec with Matchers {
 
   "apply" should "give an empty plan if there are no lines" in {
-    val tp = new TextParsers
-    val p = tp("")._1
+    val reader = new TextParsers
+    val p = reader("")._1
     p.tasks.size should equal (0)
   }
   
   it should "give a one-task plan if there's just one task" in {
-    val parsers = new TextParsers
-    val p = parsers("t0: \"First task\"")._1
+    val reader = new TextParsers
+    val p = reader("t0: \"First task\"")._1
     p.tasks.size should equal (1)
     p.task('t0) should equal (Task('t0, "First task", 0, None))
   }
   
   it should "give a two-task plan if there are just two tasks" in {
-    val parsers = new TextParsers
-    val p = parsers(
+    val reader = new TextParsers
+    val p = reader(
         """t0: "First task" 1.0
           |t1: "Other task" 1.5""".stripMargin)._1
     p.tasks.size should equal (2)
@@ -47,8 +47,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "give tasks in order if there are many of them" in {
-    val parsers = new TextParsers
-    val p = parsers(
+    val reader = new TextParsers
+    val p = reader(
         """t0: "First task" 1.0
           |t1: "Other task" 1.5
           |t2: "Two" 2.0
@@ -63,8 +63,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "correctly report an error at a specified line (1)" in {
-    val parsers = new TextParsers
-    val errors = parsers(
+    val reader = new TextParsers
+    val errors = reader(
         """t0: "First task" 1.0
           |t1: "Second task" 1.5
           |This line is an error
@@ -74,8 +74,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "correctly report an error at a specified line (2 - to avoid faking)" in {
-    val parsers = new TextParsers
-    val errors = parsers(
+    val reader = new TextParsers
+    val errors = reader(
         """t0: "First task" 1.0
           |Something wrong here
           |# This is a comment""".stripMargin)._2
@@ -84,8 +84,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "correctly report multiple errors" in {
-    val parsers = new TextParsers
-    val errors = parsers(
+    val reader = new TextParsers
+    val errors = reader(
         """t0: "First task" 1.0
           |Something wrong here
           |...and here!
@@ -94,8 +94,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "include dependencies in the plan" in {
-    val parsers = new TextParsers
-    val p = parsers(
+    val reader = new TextParsers
+    val p = reader(
         """t0: "First task" 1.0
           |t1: "Other task" 1.5
           |t2: "Two" 2.0
@@ -109,8 +109,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "handle multiple dependencies on one line" in {
-    val parsers = new TextParsers
-    val p = parsers(
+    val reader = new TextParsers
+    val p = reader(
         """t0: "First task" 1.0
           |t1: "Other task" 1.5
           |t2: "Two" 2.0
@@ -123,8 +123,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "be able to report an unknown task (if first in seq) in a dependency line" in {
-    val parsers = new TextParsers
-    val errors = parsers(
+    val reader = new TextParsers
+    val errors = reader(
         """t0: "First task" 1.0
           |t1: "Other task" 1.5
           |t2: "Two" 2.0
@@ -135,8 +135,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "be able to report an unknown task (if second in seq) in a dependency line" in {
-    val parsers = new TextParsers
-    val errors = parsers(
+    val reader = new TextParsers
+    val errors = reader(
         """t0: "First task" 1.0
           |t1: "Other task" 1.5
           |t2: "Two" 2.0
@@ -147,8 +147,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "report multiple unknown tasks (if on the same line) in a dependency line" in {
-    val parsers = new TextParsers
-    val errors = parsers(
+    val reader = new TextParsers
+    val errors = reader(
         """t0: "First task" 1.0
           |t1: "Other task" 1.5
           |t2: "Two" 2.0
@@ -159,8 +159,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "report an error for an undeclared resource in a task (1)" in {
-    val parsers = new TextParsers
-    val (p, errors) = parsers(
+    val reader = new TextParsers
+    val (p, errors) = reader(
         """resource Alice
           |resource Carol
           |t1: "First task" 1.0 (Alice)
@@ -171,8 +171,8 @@ class TextParsersTestForText extends FlatSpec with Matchers {
   }
   
   it should "report an error for an undeclared resource in a task (2 - to avoid faking)" in {
-    val parsers = new TextParsers
-    val (p, errors) = parsers(
+    val reader = new TextParsers
+    val (p, errors) = reader(
         """resource Bob
           |resource Carol
           |t1: "First task" 1.0 (Alice)
