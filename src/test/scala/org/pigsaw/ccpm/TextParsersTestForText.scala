@@ -108,7 +108,33 @@ class TextParsersTestForText extends FlatSpec with Matchers {
     p.dependencies should contain (t1 -> t2)
   }
   
-  it should "be able to report an unknown task in a dependency line" in {
+  it should "handle multiple dependencies on one line" in {
+    val parsers = new TextParsers
+    val p = parsers(
+        """t0: "First task" 1.0
+          |t1: "Other task" 1.5
+          |t2: "Two" 2.0
+          |t0 -> t1 -> t2""".stripMargin)._1
+    val t0 = p.task('t0)
+    val t1 = p.task('t1)
+    val t2 = p.task('t2)
+    p.dependencies should contain (t0 -> t1)
+    p.dependencies should contain (t1 -> t2)
+  }
+  
+  it should "be able to report an unknown task (if first in seq) in a dependency line" in {
+    val parsers = new TextParsers
+    val errors = parsers(
+        """t0: "First task" 1.0
+          |t1: "Other task" 1.5
+          |t2: "Two" 2.0
+          |t0 -> t1
+          |t100 -> t2""".stripMargin)._2
+    errors.size should equal (1)
+    errors(0) should equal (Grammar.LineError(5, "Unknown task: t100"))
+  }
+  
+  it should "be able to report an unknown task (if second in seq) in a dependency line" in {
     val parsers = new TextParsers
     val errors = parsers(
         """t0: "First task" 1.0
@@ -116,6 +142,19 @@ class TextParsersTestForText extends FlatSpec with Matchers {
           |t2: "Two" 2.0
           |t0 -> t1
           |t1 -> t200""".stripMargin)._2
+    errors.size should equal (1)
     errors(0) should equal (Grammar.LineError(5, "Unknown task: t200"))
+  }
+  
+  it should "report multiple unknown tasks (if on the same line) in a dependency line" in {
+    val parsers = new TextParsers
+    val errors = parsers(
+        """t0: "First task" 1.0
+          |t1: "Other task" 1.5
+          |t2: "Two" 2.0
+          |t99 -> t1 -> t200""".stripMargin)._2
+    errors.size should equal (2)
+    errors(0) should equal (Grammar.LineError(4, "Unknown task: t99"))
+    errors(1) should equal (Grammar.LineError(4, "Unknown task: t200"))
   }
 }

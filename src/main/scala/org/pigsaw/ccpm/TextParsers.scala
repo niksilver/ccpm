@@ -119,12 +119,21 @@ class TextParsers extends RegexParsers with PackratParsers {
     var num = 0
     
     def task(s: Symbol): Option[Task] = ts find { _.id == s }
+    def addDep(ss: (Symbol, Symbol)) = {
+      val t1 = task(ss._1)
+      val t2 = task(ss._2)
+      if (t1 == None) { es = es :+ LineError(num, "Unknown task: "+(ss._1.name)) }
+      if (t2 == None) { es = es :+ LineError(num, "Unknown task: "+(ss._2.name)) }
+      if (t1.nonEmpty && t2.nonEmpty) {
+        ds = ds + Tuple2(task(ss._1).get, task(ss._2).get)
+      }
+    }
     
     parseLines(text) foreach { ln =>
       num += 1
       ln match {
         case TaskLine(t) => ts = ts :+ t
-        case DepsLine(syms) => ds = ds + Tuple2(task(syms.head._1).get, task(syms.head._2).get)
+        case DepsLine(syms) => syms foreach { addDep(_) }
         case BadLine(txt) => es = es :+ LineError(num, "Syntax error")
         case _ => // Ignore
     }}
