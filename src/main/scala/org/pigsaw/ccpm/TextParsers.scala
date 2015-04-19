@@ -113,12 +113,23 @@ class TextParsers extends RegexParsers with PackratParsers {
    * Parse a textual plan
    */
   def apply(text: String): (Plan, Seq[LineError]) = {
+    var rs = Set[String]()
     var ts = Seq[Task]()
     var ds = Set[(Task, Task)]()
     var es = Seq[LineError]()
     var num = 0
     
     def task(s: Symbol): Option[Task] = ts find { _.id == s }
+    
+    def addTask(t: Task) = {
+      if (t.resource.nonEmpty && !rs.contains(t.resource.get)) {
+        val r = t.resource.get
+        es = es :+ LineError(num, s"Resource ${r} needs to be declared before use")
+      } else {
+        ts = ts :+ t
+      }
+    }
+    
     def addDep(ss: (Symbol, Symbol)) = {
       val t1 = task(ss._1)
       val t2 = task(ss._2)
@@ -132,7 +143,8 @@ class TextParsers extends RegexParsers with PackratParsers {
     parseLines(text) foreach { ln =>
       num += 1
       ln match {
-        case TaskLine(t) => ts = ts :+ t
+        case ResDecLine(r) => rs = rs + r
+        case TaskLine(t) => addTask(t)
         case DepsLine(syms) => syms foreach { addDep(_) }
         case BadLine(txt) => es = es :+ LineError(num, "Syntax error")
         case _ => // Ignore
