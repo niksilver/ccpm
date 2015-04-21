@@ -158,6 +158,18 @@ class TextParsersTestForText extends FlatSpec with Matchers {
     errors(1) should equal (Grammar.LineError(4, "Unknown task: t200"))
   }
   
+  it should "handle a task which is not in a dependency" in {
+    val reader = new TextParsers
+    val p = reader(
+        """t0: "Begin" 0.0
+        |t1: "First task" 3.0
+        |t2: "End" 0.0
+        |t3: "Other 3" 3.0
+        |t4: "Other 4" 4.0
+        |t0 -> t1 -> t2""".stripMargin)._1
+    p.tasks.size should equal (5)
+  }
+  
   it should "report an error for an undeclared resource in a task (1)" in {
     val reader = new TextParsers
     val (p, errors) = reader(

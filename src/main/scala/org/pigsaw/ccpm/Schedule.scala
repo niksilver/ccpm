@@ -199,8 +199,8 @@ class Schedule(protected[ccpm] val starts: Map[Period, Double] = Nil.toMap) {
   def schedule(ts: Set[Task], deps: Set[(Task, Task)]): Schedule = {
     // First schedule the end tasks, then follow on from there
     val g = new Graph(deps)
-    val ends = if (g.ends.nonEmpty) g.ends else ts
-    val sch = scheduleEnds(ends)
+    val singletons = ts -- g.nodes;
+    val sch = scheduleEnds(g.ends ++ singletons)
     val remaining = ts filter { !sch.isScheduled(_) }
     sch.scheduleFollowOns(remaining, deps)
   }

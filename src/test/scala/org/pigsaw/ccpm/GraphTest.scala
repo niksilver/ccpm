@@ -23,6 +23,16 @@ import org.scalatest.Matchers
 
 class GraphTest extends FlatSpec with Matchers {
   
+  "nodes" should "be empty for an empty graph" in {
+    val g: Graph[Symbol] = new Graph(Set())
+    g.nodes should equal (Set())
+  }
+  
+  it should "give the two nodes if there are just two nodes" in {
+    val g = new Graph(Set('a -> 'b))
+    g.nodes should contain theSameElementsAs(Set('a, 'b))
+  }
+  
   "predecessors" should "be singleton for end in a one-edge graph" in {
     val g = new Graph(Set('a -> 'b))
     g.predecessors('b) should equal (Set('a))

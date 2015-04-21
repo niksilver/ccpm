@@ -346,6 +346,19 @@ class ScheduleTestForScheduling extends FlatSpec with Matchers with ScheduleMatc
     (latest - earliest) should equal (3 + 4 + 1.5)
   }
   
+  it should "schedule tasks without dependencies even when some tasks have dependencies" in {
+    val t1 = new Task('t1, "t1", 3, Some("Alice"))
+    val t2 = new Task('t2, "t2", 4, Some("Alice"))
+    val t3 = new Task('t3, "t3", 1.5, Some("Bob"))
+
+    val deps = Set[(Task, Task)](t1 -> t2)
+    val tasks = Set(t1, t2, t3)
+    val sch = Schedule.make(tasks, deps)
+    val latestEnd = sch.latestEnd(tasks)
+    
+    sch.end(t3) should equal (latestEnd)
+  }
+  
   it should "not schedule a task before scheduling all its follow-on tasks" in {
     // Here's our intended schedule:
     // [id, duration, resource]

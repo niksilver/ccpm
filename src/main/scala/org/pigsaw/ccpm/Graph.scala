@@ -24,6 +24,11 @@ import scala.annotation.tailrec
  * An acyclic graph.
  */
 class Graph[T](g: Set[(T, T)]) {
+  
+  /**
+   * Get all the edges referenced in this.
+   */
+  def nodes: Set[T] = g flatMap { n => Set(n._1, n._2) };
 
   /**
    * Get all successor nodes available from a given node
